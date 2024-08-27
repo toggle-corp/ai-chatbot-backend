@@ -1,0 +1,52 @@
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    volumes:
+      - postgres-data15:/var/lib/postgresql/data
+
+  redis:
+    image: redis:6-alpine
+    volumes:
+      - redis-data:/data
+
+  web:
+    build: .
+    env_file:
+      - .env
+    environment:
+      DJANGO_DEBUG: ${DJANGO_DEBUG:-True}
+      DJANGO_ALLOWED_HOST: ${DJANGO_ALLOWED_HOST:-localhost}
+      DJNAGO_SECRET_KEY: ${DJANGO_SECRET_KEY:- test}
+      DATABASE_NAME: ${DATABASE_NAME:-postgres}
+      DATABASE_USER: ${DATABASE_USER:-postgres}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-postgres}
+      DATABASE_PORT: ${DATABASE_PORT:-5432}
+      DATABASE_HOST: ${DATABASE_HOST:-db}
+    command: bash -c 'python manage.py runserver 0.0.0.0:8100'
+    volumes:
+      - .:/code
+    ports:
+      - "8100:8100"
+    depends_on:
+      - db
+      - redis
+      - qdrant
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    ports:
+      - "6333:6333"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    restart: always
+    environment:
+      - QDRANT_HOST=0.0.0.0
+
+volumes:
+  postgres-data15:
+  redis-data:
+  qdrant_data:
