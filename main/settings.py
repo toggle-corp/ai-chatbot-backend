@@ -19,7 +19,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 env = environ.Env(
     DJANGO_DEBUG=(bool, False),
-    DJANGO_SECRET_KEY=(str, 'test'),
+    DJANGO_SECRET_KEY=str,
     DJANGO_CORS_ORIGIN_REGEX_WHITELIST=(list, []),
     # Database
     DATABASE_NAME=str,
@@ -32,7 +32,8 @@ env = environ.Env(
     DJANGO_CACHE_REDIS_URL=str,
     # -- For running test (Optional)
     SENTRY_DSN=(str, None),
-    SENTRY_SAMPLE_RATE=(float, 0.2),
+    SENTRY_TRACES_SAMPLE_RATE=(float, 0.2),
+    SENTRY_PROFILE_SAMPLE_RATE=(float, 0.2),
     # App Domain
 )
 # Quick-start development settings - unsuitable for production
