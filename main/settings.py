@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 import environ
@@ -21,6 +22,12 @@ env = environ.Env(
     DJANGO_DEBUG=(bool, False),
     DJANGO_SECRET_KEY=str,
     DJANGO_CORS_ORIGIN_REGEX_WHITELIST=(list, []),
+    DJANGO_ALLOWED_HOST=(list, ["*"]),
+    DJANGO_STATIC_ROOT=(str, os.path.join(BASE_DIR, "assets/static")),  # Where to store
+    DJANGO_MEDIA_ROOT=(str, os.path.join(BASE_DIR, "assets/media")),  # Where to store
+    DJANGO_TIME_ZONE=(str, "UTC"),
+    DJANGO_STATIC_URL=(str, "/static/"),
+    DJANGO_MEDIA_URL=(str, "/media/"),
     # Database
     DATABASE_NAME=str,
     DATABASE_USER=str,
@@ -43,9 +50,9 @@ env = environ.Env(
 SECRET_KEY = env("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env("DJANGO_DEBUG")
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = env("DJANGO_ALLOWED_HOST")
 
 
 # Application definition
@@ -130,7 +137,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = env("DJANGO_TIME_ZONE")
 
 USE_I18N = True
 
@@ -140,7 +147,10 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATIC_URL = "static/"
+STATIC_URL = env("DJANGO_STATIC_URL")
+MEDIA_URL = env("DJANGO_MEDIA_URL")
+STATIC_ROOT = env("DJANGO_STATIC_ROOT")
+MEDIA_ROOT = env("DJANGO_MEDIA_ROOT")
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field

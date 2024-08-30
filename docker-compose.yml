@@ -14,14 +14,15 @@ services:
       - redis-data:/data
 
   qdrant:
-    image: qdrant/qdrant:latest
+    image: qdrant/qdrant:v1.11.3
     ports:
-      - "6333:6333"
+      - 127.0.0.1:6333:6333 
     volumes:
       - qdrant_data:/qdrant/storage
     restart: always
     environment:
       - QDRANT_HOST=0.0.0.0
+  
   web:
     build: .
     env_file:
@@ -39,7 +40,8 @@ services:
     volumes:
       - .:/code
     ports:
-      - "8100:8100"
+      - 127.0.0.1:8001:8001 
+
     depends_on:
       - db
       - redis
