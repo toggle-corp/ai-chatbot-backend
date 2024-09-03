@@ -25,9 +25,9 @@ env = environ.Env(
     DJANGO_ALLOWED_HOST=(list, ["*"]),
     DJANGO_STATIC_ROOT=(str, os.path.join(BASE_DIR, "assets/static")),  # Where to store
     DJANGO_MEDIA_ROOT=(str, os.path.join(BASE_DIR, "assets/media")),  # Where to store
-    DJANGO_TIME_ZONE=(str, "UTC"),
     DJANGO_STATIC_URL=(str, "/static/"),
     DJANGO_MEDIA_URL=(str, "/media/"),
+    DJANGO_TIME_ZONE=(str, "UTC"),
     # Database
     DATABASE_NAME=str,
     DATABASE_USER=str,

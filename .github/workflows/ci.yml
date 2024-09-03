@@ -6,6 +6,9 @@ on:
       - develop
   pull_request:
 
+env:
+  COMPOSE_FILE: docker-compose.yml:gh-docker-compose.yml
+
 jobs:
   test:
     name: 🚴 Test 🚴
@@ -48,9 +51,10 @@ jobs:
 
       - name: 🕮 Validate if there are no pending django migrations.
         env:
+          COMPOSE_FILE: ./docker-compose.yml:./gh-docker-compose.yml
           DOCKER_IMAGE_BACKEND: ${{ steps.prep.outputs.tagged_image }}
         run: |
-          docker compose -f ./gh-docker-compose.yml run --rm web bash -c 'wait-for-it db:5432 && ./manage.py makemigrations --check --dry-run' || {
+          docker compose  run --rm web bash -c 'wait-for-it db:5432 && ./manage.py makemigrations --check --dry-run' || {
             echo 'There are some changes to be reflected in the migration. Make sure to run makemigrations';
             exit 1;
           }
