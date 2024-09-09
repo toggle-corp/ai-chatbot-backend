@@ -112,23 +112,3 @@ class OpenAIEmbeddingModel(Embeddings):
     def get_model(self):
         """ Returns the model """
         return self.openai_embed_model
-
-if __name__ == "__main__":
-    embedmodel = SentenceTransformerEmbeddingModel()
-    #embedmodel.initialize_model()
-    result = embedmodel.embed_query(["This is a test"])
-    print(type(result))
-    #print(result)
-    similarities = embedmodel.check_similarity(result, result)
-    print(type(similarities))
-    print(similarities)
-
-    # em = OllamaEmbeddings(base_url="http://localhost:11434")
-    # resp = em.embed_query("This is a test")
-    # print(type(resp))
-    # print(len(resp))
-
-    em = OpenAIEmbeddingModel()
-    resp = em.embed_query("This is a test.")
-    print(resp)
-    print(len(resp))

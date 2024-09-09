@@ -8,15 +8,14 @@ from uuid import uuid4
 @dataclass
 class QdrantDatabase:
     """ Qdrant Vector Database """
+    collection_name: str
     host: str="localhost"
     port: int=6333
     db_client: QdrantClient=field(init=False)
-    collection_name: str=field(init=False)
 
-    def initialize_db(self, collection_name: str):
+    def __post_init__(self, collection_name: str):
         """ Initialize database client """
         self.db_client = QdrantClient(host=self.host, port=self.port)
-        self.collection_name = collection_name
 
     def _collection_exists(self, collection_name: str) -> bool:
         """ Check if the collection in db already exists """
@@ -70,7 +69,6 @@ class QdrantDatabase:
                 query_vector=query_vector,
                 top=top_n_retrieval,
                 score_threshold=score_threshold
-                
             )
             for collection_name in collection_names
         ]

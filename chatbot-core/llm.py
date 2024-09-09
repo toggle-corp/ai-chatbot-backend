@@ -179,8 +179,3 @@ class OpenAIHandler(LLMBase):
         """
         return self.memory.load_memory_variables({})
 
-
-if __name__ == "__main__":
-    handler = OpenAIHandler()
-    resp = handler.execute_chain("What do you know about DEEP ?")
-    print(resp['answer'])
