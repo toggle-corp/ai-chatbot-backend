@@ -36,7 +36,7 @@ services:
       DATABASE_PASSWORD: ${DATABASE_PASSWORD:-postgres}
       DATABASE_PORT: ${DATABASE_PORT:-5432}
       DATABASE_HOST: ${DATABASE_HOST:-db}
-    command: bash -c 'python manage.py runserver 0.0.0.0:8100'
+    command: bash -c 'python manage.py runserver 0.0.0.0:8001'
     volumes:
       - .:/code
     ports:

@@ -51,7 +51,6 @@ jobs:
 
       - name: 🕮 Validate if there are no pending django migrations.
         env:
-          COMPOSE_FILE: ./docker-compose.yml:./gh-docker-compose.yml
           DOCKER_IMAGE_BACKEND: ${{ steps.prep.outputs.tagged_image }}
         run: |
           docker compose  run --rm web bash -c 'wait-for-it db:5432 && ./manage.py makemigrations --check --dry-run' || {
