@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from typing import Any
-from dotenv import load_dotenv
+import logging
 
 from langchain_openai import ChatOpenAI
 from langchain_qdrant import QdrantVectorStore
@@ -13,17 +13,27 @@ from langchain.chains.history_aware_retriever import create_history_aware_retrie
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains.retrieval import create_retrieval_chain
 
-from embedding import  SentenceTransformerEmbeddingModel
+from embedding import  SentenceTransformerEmbeddingModel, OllamaEmbeddingModel, OpenAIEmbeddingModel
 from utils import EmbeddingModelType
 
-load_dotenv()
+from langchain_community.llms.ollama import Ollama
+
+from main.settings import (
+    EMBEDDING_MODEL_CHOICE,
+    OLLAMA_BASE_URL,
+    QDRANT_DB_HOST,
+    QDRANT_DB_PORT,
+    QDRANT_DB_COLLECTION_NAME
+)
+
+logger = logging.getLogger(__name__)
 
 @dataclass
 class LLMBase:
     """ LLM Base containing common methods """
 
-    qdrant_host: str="localhost"
-    qdrant_port: int=6333
+    qdrant_host: str=QDRANT_DB_HOST
+    qdrant_port: int=QDRANT_DB_PORT
     qdrant_client: QdrantClient=field(init=False)
     llm_model: Any=field(init=False)
     memory: Any=field(init=False)
@@ -63,33 +73,17 @@ class LLMBase:
             """
         return system_prompt
 
-    def get_selected_embedding_model(self, embedding_model: EmbeddingModelType):
+    def get_selected_embedding_model(self, embedding_model_type: int=1):
         """
         Get the Embedding Model based on input selection
         """
-        if embedding_model == EmbeddingModelType.SENTENCE_TRANSFORMES:
-            embedding_model = SentenceTransformerEmbeddingModel()
-            return embedding_model
-        elif embedding_model == EmbeddingModelType.OLLAMA:
-            pass
-        elif embedding_model == EmbeddingModelType.OPENAI:
-            pass
+        if embedding_model_type == EmbeddingModelType.SENTENCE_TRANSFORMES.value:
+            return SentenceTransformerEmbeddingModel()
+        elif embedding_model_type == EmbeddingModelType.OLLAMA.value:
+            return OllamaEmbeddingModel(base_url=OLLAMA_BASE_URL)
+        elif embedding_model_type == EmbeddingModelType.OPENAI.value:
+            return OpenAIEmbeddingModel()
         raise ValueError("Embedding Model is not selected. Chose the correct one.")
-
-
-@dataclass
-class OpenAIHandler(LLMBase):
-    """ OpenAI LLM handler for RAG """
-
-    model: str="gpt-3.5-turbo-1106"
-    temperature: float=0.2
-
-    def __post_init__(self):
-        super().__post_init__()
-        self.llm_model = ChatOpenAI(
-            model=self.model,
-            temperature=self.temperature
-        )
 
     def get_prompt_template_for_retrieval(self):
         """ Get the prompt template """
@@ -140,7 +134,7 @@ class OpenAIHandler(LLMBase):
         if not self.llm_model:
             raise Exception("The LLM model is not loaded.")
 
-        embedding_model = self.get_selected_embedding_model(EmbeddingModelType.SENTENCE_TRANSFORMES)
+        embedding_model = self.get_selected_embedding_model(EMBEDDING_MODEL_CHOICE)
         context_prompt_template = self.get_prompt_template_for_retrieval()
         response_prompt_template = self.get_prompt_template_for_response()
 
@@ -159,7 +153,7 @@ class OpenAIHandler(LLMBase):
         )
         return rag_chain
 
-    def execute_chain(self, query: str, db_collection_name: str):
+    def execute_chain(self, query: str, db_collection_name: str=QDRANT_DB_COLLECTION_NAME):
         """
         Executes the chain
         """
@@ -171,7 +165,7 @@ class OpenAIHandler(LLMBase):
         })
         self.memory.chat_memory.add_message(HumanMessage(content=query))
         self.memory.chat_memory.add_message(AIMessage(content=response['answer']))
-        return response
+        return response['answer'] if "answer" in response else ""
 
     def get_message_history(self):
         """
@@ -179,3 +173,36 @@ class OpenAIHandler(LLMBase):
         """
         return self.memory.load_memory_variables({})
 
+
+@dataclass
+class OpenAIHandler(LLMBase):
+    """ LLM handler using OpenAI for RAG """
+
+    model: str="gpt-3.5-turbo-1106"
+    temperature: float=0.2
+
+    def __post_init__(self):
+        super().__post_init__()
+
+        self.llm_model = ChatOpenAI(
+            model=self.model,
+            temperature=self.temperature
+        )
+
+@dataclass
+class OllamaHandler(LLMBase):
+    """ LLM Handler using Ollama for RAG """
+    model: str="mistral:latest"
+    base_url: str="http://localhost:11434"
+    temperature: float=0.2
+
+    def __post_init__(self):
+        super().__post_init__()
+        try:
+            self.llm_model = Ollama(
+                model=self.model,
+                base_url=self.base_url,
+                temperature=self.temperature
+            )
+        except Exception as exc:
+            logger.error("Ollama LLM model is not successfully loaded. %s", str(exc), exc_info=True)

@@ -10,10 +10,6 @@ from langchain_core.embeddings import Embeddings
 from langchain_community.embeddings import OllamaEmbeddings
 from langchain_openai import OpenAIEmbeddings
 
-from dotenv import load_dotenv
-
-load_dotenv()
-
 # Note to check if the vector dimensions are same (impt for injecting in vector db)
 
 @dataclass
@@ -52,7 +48,6 @@ class SentenceTransformerEmbeddingModel(Embeddings):
         """ Returns the model """
         return self.st_embedding_model
 
-# TODO: check with Ollama as it always expect llama2 model
 @dataclass
 class OllamaEmbeddingModel(Embeddings):
     """
@@ -60,7 +55,6 @@ class OllamaEmbeddingModel(Embeddings):
     """
     model: str="all-minilm:latest"
     base_url: str="http://localhost:11434"
-    model: str="nomic-embed-text:latest"
 
     def __post_init__(self):
         """
@@ -78,7 +72,7 @@ class OllamaEmbeddingModel(Embeddings):
         """
         Generate embedding for a piece of text
         """
-        return self.ollama_embed_model.embed_query(text=text, model=self.model)
+        return self.ollama_embed_model.embed_query(text=text)
 
     def get_model(self):
         """ Returns the model """

@@ -1,9 +1,12 @@
+import logging
 from typing import List
 from dataclasses import dataclass, field
 from qdrant_client import QdrantClient
 from qdrant_client.http.models import Distance, VectorParams
 from qdrant_client.http.exceptions import UnexpectedResponse
 from uuid import uuid4
+
+logger = logging.getLogger(__name__)
 
 @dataclass
 class QdrantDatabase:
@@ -13,7 +16,7 @@ class QdrantDatabase:
     port: int=6333
     db_client: QdrantClient=field(init=False)
 
-    def __post_init__(self, collection_name: str):
+    def __post_init__(self):
         """ Initialize database client """
         self.db_client = QdrantClient(host=self.host, port=self.port)
 
@@ -36,7 +39,7 @@ class QdrantDatabase:
                 )
             )
         else:
-            print(f"Collection {self.collection_name} already exists. Using the existing one.")
+            logger.info(f"Collection {self.collection_name} already exists. Using the existing one.")
 
     def store_data(self, data: List) -> None:
         """ Stores data in vector db """

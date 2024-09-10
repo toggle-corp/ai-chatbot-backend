@@ -8,6 +8,11 @@ class EmbeddingModelType(Enum):
     OLLAMA=2
     OPENAI=3
 
+class LLMType(Enum):
+    """ LLM Types """
+    OLLAMA=1
+    OPENAI=2
+
 def preprocess_text(texts: List[str]) -> List[str]:
     """
     Preprocessing of the texts
