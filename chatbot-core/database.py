@@ -1,77 +1,64 @@
 import logging
-from typing import List
 from dataclasses import dataclass, field
-from qdrant_client import QdrantClient
-from qdrant_client.http.models import Distance, VectorParams
-from qdrant_client.http.exceptions import UnexpectedResponse
+from typing import List
 from uuid import uuid4
+
+from qdrant_client import QdrantClient
+from qdrant_client.http.exceptions import UnexpectedResponse
+from qdrant_client.http.models import Distance, VectorParams
 
 logger = logging.getLogger(__name__)
 
+
 @dataclass
 class QdrantDatabase:
-    """ Qdrant Vector Database """
+    """Qdrant Vector Database"""
+
     collection_name: str
-    host: str="localhost"
-    port: int=6333
-    db_client: QdrantClient=field(init=False)
+    host: str = "localhost"
+    port: int = 6333
+    db_client: QdrantClient = field(init=False)
 
     def __post_init__(self):
-        """ Initialize database client """
+        """Initialize database client"""
         self.db_client = QdrantClient(host=self.host, port=self.port)
 
     def _collection_exists(self, collection_name: str) -> bool:
-        """ Check if the collection in db already exists """
+        """Check if the collection in db already exists"""
         try:
             self.db_client.get_collection(collection_name=collection_name)
             return True
         except UnexpectedResponse:
             return False
 
-    def set_collection(self, vector_size: int=384):
-        """ Create the database collection """
+    def set_collection(self, vector_size: int = 384):
+        """Create the database collection"""
         if not self._collection_exists(self.collection_name):
             self.db_client.create_collection(
-                collection_name=self.collection_name,
-                vectors_config=VectorParams(
-                    size=vector_size,
-                    distance=Distance.COSINE
-                )
+                collection_name=self.collection_name, vectors_config=VectorParams(size=vector_size, distance=Distance.COSINE)
             )
         else:
             logger.info(f"Collection {self.collection_name} already exists. Using the existing one.")
 
     def store_data(self, data: List) -> None:
-        """ Stores data in vector db """
+        """Stores data in vector db"""
         point_vectors = [
-            {
-                "id": str(uuid4()),
-                "vector": v_representation,
-                "payload": metadata
-            }
-            for v_representation, metadata in data
+            {"id": str(uuid4()), "vector": v_representation, "payload": metadata} for v_representation, metadata in data
         ]
 
-        response = self.db_client.upsert(
-            collection_name=self.collection_name,
-            points=point_vectors
-        )
+        response = self.db_client.upsert(collection_name=self.collection_name, points=point_vectors)
         return response
 
     def data_search(
-        self,
-        collection_names: list,
-        query_vector: list,
-        top_n_retrieval: int=5,
-        score_threshold: float=0.7
+        self, collection_names: list, query_vector: list, top_n_retrieval: int = 5, score_threshold: float = 0.7
     ):
-        """ Search data in the database """
+        """Search data in the database"""
         results = [
             self.db_client.search(
                 collection_name=collection_name,
                 query_vector=query_vector,
                 top=top_n_retrieval,
-                score_threshold=score_threshold
+                score_threshold=score_threshold,
             )
             for collection_name in collection_names
         ]

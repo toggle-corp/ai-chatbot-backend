@@ -50,8 +50,7 @@ env = environ.Env(
     EMBEDDING_MODEL=int,
     LLM=int,
     # Ollama url
-    OLLAMA_BASE_URL=str
-
+    OLLAMA_BASE_URL=str,
 )
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
