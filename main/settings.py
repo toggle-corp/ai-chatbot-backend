@@ -42,6 +42,16 @@ env = environ.Env(
     SENTRY_TRACES_SAMPLE_RATE=(float, 0.2),
     SENTRY_PROFILE_SAMPLE_RATE=(float, 0.2),
     # App Domain
+    # Vector Database
+    QDRANT_DB_HOST=str,
+    QDRANT_DB_PORT=int,
+    QDRANT_DB_COLLECTION_NAME=str,
+    # Embedding Model
+    EMBEDDING_MODEL=int,
+    LLM=int,
+    # Ollama url
+    OLLAMA_BASE_URL=str
+
 )
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -53,6 +63,17 @@ SECRET_KEY = env("DJANGO_SECRET_KEY")
 DEBUG = env("DJANGO_DEBUG")
 
 ALLOWED_HOSTS = env("DJANGO_ALLOWED_HOST")
+
+# Embedding Model selection
+EMBEDDING_MODEL_CHOICE = env("EMBEDDING_MODEL")
+# LLM selection
+LLM_CHOICE = env("LLM")
+# Qdrant database
+QDRANT_DB_HOST = env("QDRANT_DB_HOST")
+QDRANT_DB_PORT = env("QDRANT_DB_PORT")
+QDRANT_DB_COLLECTION_NAME = env("QDRANT_DB_COLLECTION_NAME")
+# Ollama base url
+OLLAMA_BASE_URL = env("OLLAMA_BASE_URL")
 
 
 # Application definition

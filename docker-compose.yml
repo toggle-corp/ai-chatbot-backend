@@ -21,7 +21,8 @@ services:
       - qdrant_data:/qdrant/storage
     restart: always
     environment:
-      - QDRANT_HOST=0.0.0.0
+        QDRANT_DB_HOST: 0.0.0.0
+        QDRANT_DB_PORT: 6333
   
   web:
     build: .
@@ -36,7 +37,9 @@ services:
       DATABASE_PASSWORD: ${DATABASE_PASSWORD:-postgres}
       DATABASE_PORT: ${DATABASE_PORT:-5432}
       DATABASE_HOST: ${DATABASE_HOST:-db}
-    command: bash -c 'python manage.py runserver 0.0.0.0:8001'
+      QDRANT_DB_HOST: ${QDRANT_DB_HOST:-0.0.0.0}
+      QDRANT_DB_PORT: ${QDRANT_DB_PORT:-6333}
+    command: bash -c 'python manage.py runserver 0.0.0.0:8100'
     volumes:
       - .:/code
     ports:
