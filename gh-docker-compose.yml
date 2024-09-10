@@ -1,0 +1,13 @@
+services:
+  web:
+    image: $DOCKER_IMAGE_BACKEND
+    env_file: !reset null
+    environment:
+      CI: "true"
+      DJANGO_SECRET_KEY: "test"
+      APP_ENVIRONMENT: CI
+      APP_TYPE: web
+
+    volumes:
+      - ./coverage/:/code/coverage/
+
