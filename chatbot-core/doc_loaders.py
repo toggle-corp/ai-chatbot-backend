@@ -32,13 +32,13 @@ class LoaderFromText(DocumentLoader):
     Document loader for plain texts
     """
 
-    texts: str
+    text: str
 
     def create_document_chunks(self):
         """
         Creates multiple documents from the input texts
         """
-        documents = [Document(page_content=self.texts)]
+        documents = [Document(page_content=self.text)]
         doc_chunks = self._get_split_documents(documents=documents)
         return doc_chunks
 

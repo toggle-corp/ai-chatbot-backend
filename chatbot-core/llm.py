@@ -1,12 +1,8 @@
 import logging
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Optional
 
-from embedding import (
-    OllamaEmbeddingModel,
-    OpenAIEmbeddingModel,
-    SentenceTransformerEmbeddingModel,
-)
+from custom_embeddings import CustomEmbeddingsWrapper
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains.history_aware_retriever import create_history_aware_retriever
 from langchain.chains.retrieval import create_retrieval_chain
@@ -17,11 +13,14 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_openai import ChatOpenAI
 from langchain_qdrant import QdrantVectorStore
 from qdrant_client import QdrantClient
-from utils import EmbeddingModelType
 
 from main.settings import (
-    EMBEDDING_MODEL_CHOICE,
-    OLLAMA_BASE_URL,
+    EMBEDDING_MODEL_NAME,
+    EMBEDDING_MODEL_TYPE,
+    EMBEDDING_MODEL_URL,
+    LLM_MODEL_NAME,
+    LLM_OLLAMA_BASE_URL,
+    OLLAMA_EMBEDDING_MODEL_BASE_URL,
     QDRANT_DB_COLLECTION_NAME,
     QDRANT_DB_HOST,
     QDRANT_DB_PORT,
@@ -34,19 +33,29 @@ logger = logging.getLogger(__name__)
 class LLMBase:
     """LLM Base containing common methods"""
 
-    qdrant_host: str = QDRANT_DB_HOST
-    qdrant_port: int = QDRANT_DB_PORT
     qdrant_client: QdrantClient = field(init=False)
     llm_model: Any = field(init=False)
     memory: Any = field(init=False)
+    embedding_model: CustomEmbeddingsWrapper = field(init=False)
+    rag_chain: Optional[Any] = None
 
     def __post_init__(self, mem_key: str = "chat_history", conversation_max_window: int = 3):
         self.llm_model = None
         self.qdrant_client = None
         self.memory = None
 
-        self.qdrant_client = QdrantClient(host=self.qdrant_host, port=self.qdrant_port)
+        try:
+            self.qdrant_client = QdrantClient(host=QDRANT_DB_HOST, port=QDRANT_DB_PORT)
+        except Exception as e:
+            raise Exception(f"Qdrant client is not properly setup. {str(e)}")
         self.memory = ConversationBufferWindowMemory(k=conversation_max_window, memory_key=mem_key, return_messages=True)
+
+        self.embedding_model = CustomEmbeddingsWrapper(
+            url=EMBEDDING_MODEL_URL,
+            model_name=EMBEDDING_MODEL_NAME,
+            model_type=EMBEDDING_MODEL_TYPE,
+            base_url=OLLAMA_EMBEDDING_MODEL_BASE_URL,
+        )
 
     def _system_prompt_for_retrieval(self):
         """System prompt for information retrieval"""
@@ -72,18 +81,6 @@ class LLMBase:
             """
         return system_prompt
 
-    def get_selected_embedding_model(self, embedding_model_type: int = 1):
-        """
-        Get the Embedding Model based on input selection
-        """
-        if embedding_model_type == EmbeddingModelType.SENTENCE_TRANSFORMES.value:
-            return SentenceTransformerEmbeddingModel()
-        elif embedding_model_type == EmbeddingModelType.OLLAMA.value:
-            return OllamaEmbeddingModel(base_url=OLLAMA_BASE_URL)
-        elif embedding_model_type == EmbeddingModelType.OPENAI.value:
-            return OpenAIEmbeddingModel()
-        raise ValueError("Embedding Model is not selected. Chose the correct one.")
-
     def get_prompt_template_for_retrieval(self):
         """Get the prompt template"""
         system_prompt = self._system_prompt_for_retrieval()
@@ -100,12 +97,10 @@ class LLMBase:
         )
         return llm_response_prompt
 
-    def get_db_retriever(
-        self, collection_name: str, embedding_model: Any, top_k_items: int = 5, score_threshold: float = 0.5
-    ):
+    def get_db_retriever(self, collection_name: str, top_k_items: int = 5, score_threshold: float = 0.5):
         """Get the database retriever"""
         db_retriever = QdrantVectorStore(
-            client=self.qdrant_client, collection_name=collection_name, embedding=embedding_model
+            client=self.qdrant_client, collection_name=collection_name, embedding=self.embedding_model
         )
         retriever = db_retriever.as_retriever(
             search_type="similarity_score_threshold", search_kwargs={"k": top_k_items, "score_threshold": score_threshold}
@@ -117,11 +112,10 @@ class LLMBase:
         if not self.llm_model:
             raise Exception("The LLM model is not loaded.")
 
-        embedding_model = self.get_selected_embedding_model(EMBEDDING_MODEL_CHOICE)
         context_prompt_template = self.get_prompt_template_for_retrieval()
         response_prompt_template = self.get_prompt_template_for_response()
 
-        retriever = self.get_db_retriever(collection_name=db_collection_name, embedding_model=embedding_model)
+        retriever = self.get_db_retriever(collection_name=db_collection_name)
 
         history_aware_retriever = create_history_aware_retriever(self.llm_model, retriever, context_prompt_template)
 
@@ -134,9 +128,10 @@ class LLMBase:
         """
         Executes the chain
         """
-        rag_chain = self.create_chain(db_collection_name=db_collection_name)
+        if not self.rag_chain:
+            self.rag_chain = self.create_chain(db_collection_name=db_collection_name)
 
-        response = rag_chain.invoke({"input": query, "chat_history": self.get_message_history()["chat_history"]})
+        response = self.rag_chain.invoke({"input": query, "chat_history": self.get_message_history()["chat_history"]})
         self.memory.chat_memory.add_message(HumanMessage(content=query))
         self.memory.chat_memory.add_message(AIMessage(content=response["answer"]))
         return response["answer"] if "answer" in response else ""
@@ -152,26 +147,25 @@ class LLMBase:
 class OpenAIHandler(LLMBase):
     """LLM handler using OpenAI for RAG"""
 
-    model: str = "gpt-3.5-turbo-1106"
     temperature: float = 0.2
 
     def __post_init__(self):
         super().__post_init__()
-
-        self.llm_model = ChatOpenAI(model=self.model, temperature=self.temperature)
+        try:
+            self.llm_model = ChatOpenAI(model=LLM_MODEL_NAME, temperature=self.temperature)
+        except Exception as e:
+            raise Exception(f"OpenAI LLM model is not successfully loaded. {str(e)}")
 
 
 @dataclass
 class OllamaHandler(LLMBase):
     """LLM Handler using Ollama for RAG"""
 
-    model: str = "mistral:latest"
-    base_url: str = "http://localhost:11434"
     temperature: float = 0.2
 
     def __post_init__(self):
         super().__post_init__()
         try:
-            self.llm_model = Ollama(model=self.model, base_url=self.base_url, temperature=self.temperature)
-        except Exception as exc:
-            logger.error("Ollama LLM model is not successfully loaded. %s", str(exc), exc_info=True)
+            self.llm_model = Ollama(model=LLM_MODEL_NAME, base_url=LLM_OLLAMA_BASE_URL, temperature=self.temperature)
+        except Exception as e:
+            raise Exception(f"Ollama LLM model is not successfully loaded. {str(e)}")

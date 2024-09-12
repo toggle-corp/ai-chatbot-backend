@@ -1,6 +1,5 @@
 import logging
 from dataclasses import dataclass, field
-from typing import List
 from uuid import uuid4
 
 from qdrant_client import QdrantClient
@@ -15,8 +14,8 @@ class QdrantDatabase:
     """Qdrant Vector Database"""
 
     collection_name: str
-    host: str = "localhost"
-    port: int = 6333
+    host: str
+    port: int
     db_client: QdrantClient = field(init=False)
 
     def __post_init__(self):
@@ -40,7 +39,7 @@ class QdrantDatabase:
         else:
             logger.info(f"Collection {self.collection_name} already exists. Using the existing one.")
 
-    def store_data(self, data: List) -> None:
+    def store_data(self, data: list) -> None:
         """Stores data in vector db"""
         point_vectors = [
             {"id": str(uuid4()), "vector": v_representation, "payload": metadata} for v_representation, metadata in data

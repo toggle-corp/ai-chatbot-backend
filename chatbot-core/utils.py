@@ -1,6 +1,5 @@
 import re
 from enum import Enum
-from typing import List
 
 
 class EmbeddingModelType(Enum):
@@ -18,7 +17,7 @@ class LLMType(Enum):
     OPENAI = 2
 
 
-def preprocess_text(texts: List[str]) -> List[str]:
+def preprocess_text(texts: list[str]) -> list[str]:
     """
     Preprocessing of the texts
     """
