@@ -47,10 +47,14 @@ env = environ.Env(
     QDRANT_DB_PORT=int,
     QDRANT_DB_COLLECTION_NAME=str,
     # Embedding Model
-    EMBEDDING_MODEL=int,
-    LLM=int,
-    # Ollama url
-    OLLAMA_BASE_URL=str,
+    EMBEDDING_MODEL_URL=str,
+    EMBEDDING_MODEL_NAME=str,
+    EMBEDDING_MODEL_TYPE=int,
+    OLLAMA_EMBEDDING_MODEL_BASE_URL=str,
+    # LLM Type
+    LLM_TYPE=int,
+    LLM_MODEL_NAME=str,
+    LLM_OLLAMA_BASE_URL=str,
 )
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -64,16 +68,18 @@ DEBUG = env("DJANGO_DEBUG")
 ALLOWED_HOSTS = env("DJANGO_ALLOWED_HOST")
 
 # Embedding Model selection
-EMBEDDING_MODEL_CHOICE = env("EMBEDDING_MODEL")
+EMBEDDING_MODEL_TYPE = env("EMBEDDING_MODEL_TYPE")
+EMBEDDING_MODEL_URL = env("EMBEDDING_MODEL_URL")
+EMBEDDING_MODEL_NAME = env("EMBDDING_MODEL_NAME")
+OLLAMA_EMBEDDING_MODEL_BASE_URL = env("OLLAMA_EMBEDDING_MODEL_BASE_URL")
 # LLM selection
-LLM_CHOICE = env("LLM")
+LLM_TYPE = env("LLM_TYPE")
+LLM_MODEL_NAME = env("LLM_MODEL_NAME")
+LLM_OLLAMA_BASE_URL = env("LLM_OLLAMA_BASE_URL")
 # Qdrant database
 QDRANT_DB_HOST = env("QDRANT_DB_HOST")
 QDRANT_DB_PORT = env("QDRANT_DB_PORT")
 QDRANT_DB_COLLECTION_NAME = env("QDRANT_DB_COLLECTION_NAME")
-# Ollama base url
-OLLAMA_BASE_URL = env("OLLAMA_BASE_URL")
-
 
 # Application definition
 
