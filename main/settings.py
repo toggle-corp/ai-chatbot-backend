@@ -55,6 +55,8 @@ env = environ.Env(
     LLM_TYPE=int,
     LLM_MODEL_NAME=str,
     LLM_OLLAMA_BASE_URL=str,
+    # OpenAI API key
+    OPENAI_API_KEY=str,
 )
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -80,6 +82,9 @@ LLM_OLLAMA_BASE_URL = env("LLM_OLLAMA_BASE_URL")
 QDRANT_DB_HOST = env("QDRANT_DB_HOST")
 QDRANT_DB_PORT = env("QDRANT_DB_PORT")
 QDRANT_DB_COLLECTION_NAME = env("QDRANT_DB_COLLECTION_NAME")
+# OPENAI API KEY
+OPENAI_API_KEY = env("OPENAI_API_KEY")
+
 
 # Application definition
 

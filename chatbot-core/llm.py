@@ -14,17 +14,7 @@ from langchain_openai import ChatOpenAI
 from langchain_qdrant import QdrantVectorStore
 from qdrant_client import QdrantClient
 
-from main.settings import (
-    EMBEDDING_MODEL_NAME,
-    EMBEDDING_MODEL_TYPE,
-    EMBEDDING_MODEL_URL,
-    LLM_MODEL_NAME,
-    LLM_OLLAMA_BASE_URL,
-    OLLAMA_EMBEDDING_MODEL_BASE_URL,
-    QDRANT_DB_COLLECTION_NAME,
-    QDRANT_DB_HOST,
-    QDRANT_DB_PORT,
-)
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
@@ -45,16 +35,16 @@ class LLMBase:
         self.memory = None
 
         try:
-            self.qdrant_client = QdrantClient(host=QDRANT_DB_HOST, port=QDRANT_DB_PORT)
+            self.qdrant_client = QdrantClient(host=settings.QDRANT_DB_HOST, port=settings.QDRANT_DB_PORT)
         except Exception as e:
             raise Exception(f"Qdrant client is not properly setup. {str(e)}")
         self.memory = ConversationBufferWindowMemory(k=conversation_max_window, memory_key=mem_key, return_messages=True)
 
         self.embedding_model = CustomEmbeddingsWrapper(
-            url=EMBEDDING_MODEL_URL,
-            model_name=EMBEDDING_MODEL_NAME,
-            model_type=EMBEDDING_MODEL_TYPE,
-            base_url=OLLAMA_EMBEDDING_MODEL_BASE_URL,
+            url=settings.EMBEDDING_MODEL_URL,
+            model_name=settings.EMBEDDING_MODEL_NAME,
+            model_type=settings.EMBEDDING_MODEL_TYPE,
+            base_url=settings.OLLAMA_EMBEDDING_MODEL_BASE_URL,
         )
 
     def _system_prompt_for_retrieval(self):
@@ -124,7 +114,7 @@ class LLMBase:
         rag_chain = create_retrieval_chain(history_aware_retriever, chat_response_chain)
         return rag_chain
 
-    def execute_chain(self, query: str, db_collection_name: str = QDRANT_DB_COLLECTION_NAME):
+    def execute_chain(self, query: str, db_collection_name: str = settings.QDRANT_DB_COLLECTION_NAME):
         """
         Executes the chain
         """
@@ -152,7 +142,7 @@ class OpenAIHandler(LLMBase):
     def __post_init__(self):
         super().__post_init__()
         try:
-            self.llm_model = ChatOpenAI(model=LLM_MODEL_NAME, temperature=self.temperature)
+            self.llm_model = ChatOpenAI(model=settings.LLM_MODEL_NAME, temperature=self.temperature)
         except Exception as e:
             raise Exception(f"OpenAI LLM model is not successfully loaded. {str(e)}")
 
@@ -166,6 +156,6 @@ class OllamaHandler(LLMBase):
     def __post_init__(self):
         super().__post_init__()
         try:
-            self.llm_model = Ollama(model=LLM_MODEL_NAME, base_url=LLM_OLLAMA_BASE_URL, temperature=self.temperature)
+            self.llm_model = Ollama(model=settings.LLM_MODEL_NAME, base_url=settings.LLM_OLLAMA_BASE_URL, temperature=self.temperature)
         except Exception as e:
             raise Exception(f"Ollama LLM model is not successfully loaded. {str(e)}")
