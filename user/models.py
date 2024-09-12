@@ -1,13 +1,14 @@
-from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.db import models
 from django.utils.translation import gettext_lazy as _
+
 from .managers import CustomUserManager
 
 
 # Create your models here.
 class User(AbstractUser):
     class UserType(models.IntegerChoices):
-        HR = 1000, _("HR")
+        HR = 1, _("HR")
 
     EMAIL_FIELD = USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []

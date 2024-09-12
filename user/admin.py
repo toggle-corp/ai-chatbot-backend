@@ -28,7 +28,7 @@ class UserAdmin(DjangoUserAdmin):
                 "fields": (
                     "first_name",
                     "last_name",
-                    "department",
+                    "user_type",
                 )
             },
         ),
