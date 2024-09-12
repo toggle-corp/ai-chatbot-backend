@@ -16,13 +16,13 @@ services:
   qdrant:
     image: qdrant/qdrant:v1.11.3
     ports:
-      - 127.0.0.1:6333:6333 
+      - 6333:6333
     volumes:
       - qdrant_data:/qdrant/storage
     restart: always
     environment:
-        QDRANT_DB_HOST: 0.0.0.0
-        QDRANT_DB_PORT: 6333
+        QDRANT__SERVICE__HOST: 0.0.0.0
+        QDRANT__SERVICE__HTTP_PORT: 6333
   
   web:
     build: .
@@ -39,7 +39,7 @@ services:
       DATABASE_HOST: ${DATABASE_HOST:-db}
       QDRANT_DB_HOST: ${QDRANT_DB_HOST:-0.0.0.0}
       QDRANT_DB_PORT: ${QDRANT_DB_PORT:-6333}
-    command: bash -c 'python manage.py runserver 0.0.0.0:8100'
+    command: bash -c 'python manage.py runserver 0.0.0.0:8001'
     volumes:
       - .:/code
     ports:
