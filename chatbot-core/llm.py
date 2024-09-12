@@ -3,6 +3,7 @@ from dataclasses import dataclass, field
 from typing import Any, Optional
 
 from custom_embeddings import CustomEmbeddingsWrapper
+from django.conf import settings
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains.history_aware_retriever import create_history_aware_retriever
 from langchain.chains.retrieval import create_retrieval_chain
@@ -13,8 +14,6 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_openai import ChatOpenAI
 from langchain_qdrant import QdrantVectorStore
 from qdrant_client import QdrantClient
-
-from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
@@ -156,6 +155,8 @@ class OllamaHandler(LLMBase):
     def __post_init__(self):
         super().__post_init__()
         try:
-            self.llm_model = Ollama(model=settings.LLM_MODEL_NAME, base_url=settings.LLM_OLLAMA_BASE_URL, temperature=self.temperature)
+            self.llm_model = Ollama(
+                model=settings.LLM_MODEL_NAME, base_url=settings.LLM_OLLAMA_BASE_URL, temperature=self.temperature
+            )
         except Exception as e:
             raise Exception(f"Ollama LLM model is not successfully loaded. {str(e)}")
