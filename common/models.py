@@ -26,4 +26,3 @@ class UserResource(models.Model):
     class Meta:
         abstract = True
         ordering = ["-id"]
-# Create your models here.
