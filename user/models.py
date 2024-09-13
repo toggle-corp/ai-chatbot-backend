@@ -7,7 +7,7 @@ from .managers import CustomUserManager
 
 # Create your models here.
 class User(AbstractUser):
-    class UserType(models.IntegerChoices):
+    class Department(models.IntegerChoices):
         HR = 1, _("HR")
 
     EMAIL_FIELD = USERNAME_FIELD = "email"
@@ -20,7 +20,7 @@ class User(AbstractUser):
         blank=True,
         max_length=255,
     )
-    user_type = models.PositiveSmallIntegerField(choices=UserType.choices, null=True)
+    department = models.PositiveSmallIntegerField(choices=Department.choices, null=True)
 
     objects: CustomUserManager = CustomUserManager()
 
