@@ -16,12 +16,15 @@ services:
   qdrant:
     image: qdrant/qdrant:v1.11.3
     ports:
-      - 127.0.0.1:6333:6333 
+      - 6333:6333
     volumes:
       - qdrant_data:/qdrant/storage
     restart: always
     environment:
-      - QDRANT_HOST=0.0.0.0
+        # https://qdrant.tech/documentation/guides/configuration/#environment-variables
+        # https://github.com/qdrant/qdrant/blob/master/config/config.yaml
+        QDRANT__SERVICE__HOST: 0.0.0.0
+        QDRANT__SERVICE__HTTP_PORT: 6333
   
   web:
     build: .
@@ -36,6 +39,18 @@ services:
       DATABASE_PASSWORD: ${DATABASE_PASSWORD:-postgres}
       DATABASE_PORT: ${DATABASE_PORT:-5432}
       DATABASE_HOST: ${DATABASE_HOST:-db}
+      QDRANT_DB_HOST: ${QDRANT_DB_HOST:-0.0.0.0}
+      QDRANT_DB_PORT: ${QDRANT_DB_PORT:-6333}
+      QDRANT_DB_COLLECTION_NAME: ${QDRANT_DB_COLLECTION_NAME:-test}
+      EMBEDDING_MODEL_URL: ${EMBEDDING_MODEL_URL:-localhost}
+      EMBEDDING_MODEL_NAME: ${EMBEDDING_MODEL_NAME:-embedding_model}
+      EMBEDDING_MODEL_VECTOR_SIZE: ${EMBEDDING_MODEL_VECTOR_SIZE:-384}
+      EMBEDDING_MODEL_TYPE: ${EMBEDDING_MODEL_TYPE:-1}
+      OLLAMA_EMBEDDING_MODEL_BASE_URL: ${OLLAMA_EMBEDDING_MODEL_BASE_URL:-model}
+      LLM_TYPE: ${LLM_TYPE:-1}
+      LLM_MODEL_NAME: ${LLM_MODEL_NAME:-"mistral:latest"}
+      LLM_OLLAMA_BASE_URL: ${LLM_OLLAMA_BASE_URL:-localhost}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-test_key}
     command: bash -c 'python manage.py runserver 0.0.0.0:8001'
     volumes:
       - .:/code

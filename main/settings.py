@@ -42,6 +42,22 @@ env = environ.Env(
     SENTRY_TRACES_SAMPLE_RATE=(float, 0.2),
     SENTRY_PROFILE_SAMPLE_RATE=(float, 0.2),
     # App Domain
+    # Vector Database
+    QDRANT_DB_HOST=str,
+    QDRANT_DB_PORT=int,
+    QDRANT_DB_COLLECTION_NAME=str,
+    # Embedding Model
+    EMBEDDING_MODEL_URL=str,
+    EMBEDDING_MODEL_NAME=str,
+    EMBEDDING_MODEL_VECTOR_SIZE=int,
+    EMBEDDING_MODEL_TYPE=int,
+    OLLAMA_EMBEDDING_MODEL_BASE_URL=(str, None),
+    # LLM Type
+    LLM_TYPE=int,
+    LLM_MODEL_NAME=str,
+    LLM_OLLAMA_BASE_URL=(str, None),
+    # OpenAI API key
+    OPENAI_API_KEY=(str, None),
 )
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -53,6 +69,38 @@ SECRET_KEY = env("DJANGO_SECRET_KEY")
 DEBUG = env("DJANGO_DEBUG")
 
 ALLOWED_HOSTS = env("DJANGO_ALLOWED_HOST")
+
+
+# Note: The embedding model and vector size both should be compatible
+# and chosen carefully
+# If the embedding model is changed, we need to re-vectorize all the
+# texts in the vector database
+
+# Embedding Model selection
+EMBEDDING_MODEL_TYPE = env("EMBEDDING_MODEL_TYPE")
+EMBEDDING_MODEL_URL = env("EMBEDDING_MODEL_URL")
+EMBEDDING_MODEL_NAME = env("EMBEDDING_MODEL_NAME")
+EMBEDDING_MODEL_VECTOR_SIZE = env("EMBEDDING_MODEL_VECTOR_SIZE")
+OLLAMA_EMBEDDING_MODEL_BASE_URL = env("OLLAMA_EMBEDDING_MODEL_BASE_URL")
+# LLM selection
+LLM_TYPE = env("LLM_TYPE")
+LLM_MODEL_NAME = env("LLM_MODEL_NAME")
+LLM_OLLAMA_BASE_URL = env("LLM_OLLAMA_BASE_URL")
+# Qdrant database
+QDRANT_DB_HOST = env("QDRANT_DB_HOST")
+QDRANT_DB_PORT = env("QDRANT_DB_PORT")
+QDRANT_DB_COLLECTION_NAME = env("QDRANT_DB_COLLECTION_NAME")
+# OPENAI API KEY
+OPENAI_API_KEY = env("OPENAI_API_KEY")
+
+if EMBEDDING_MODEL_TYPE == 2 and not OLLAMA_EMBEDDING_MODEL_BASE_URL:
+    raise ValueError("Ollama base url is not set.")
+
+if (EMBEDDING_MODEL_TYPE == 3 or LLM_TYPE == 1) and not OPENAI_API_KEY:
+    raise ValueError("OpenAI API key is not set.")
+
+if LLM_TYPE == 2 and not LLM_OLLAMA_BASE_URL:
+    raise ValueError("Ollama base url is not set.")
 
 
 # Application definition
