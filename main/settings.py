@@ -57,7 +57,7 @@ env = environ.Env(
     LLM_MODEL_NAME=str,
     LLM_OLLAMA_BASE_URL=(str, None),
     # OpenAI API key
-    OPENAI_API_KEY=(str, None)
+    OPENAI_API_KEY=(str, None),
 )
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/

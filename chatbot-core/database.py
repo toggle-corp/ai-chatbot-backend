@@ -1,6 +1,7 @@
 import logging
 from dataclasses import dataclass, field
 from uuid import uuid4
+
 from django.conf import settings
 from qdrant_client import QdrantClient
 from qdrant_client.http.exceptions import UnexpectedResponse
@@ -34,7 +35,8 @@ class QdrantDatabase:
         """Create the database collection"""
         if not self._collection_exists(self.collection_name):
             self.db_client.create_collection(
-                collection_name=self.collection_name, vectors_config=VectorParams(size=settings.EMBEDDING_MODEL_VECTOR_SIZE, distance=Distance.COSINE)
+                collection_name=self.collection_name,
+                vectors_config=VectorParams(size=settings.EMBEDDING_MODEL_VECTOR_SIZE, distance=Distance.COSINE),
             )
         else:
             logger.info(f"Collection {self.collection_name} already exists. Using the existing one.")
