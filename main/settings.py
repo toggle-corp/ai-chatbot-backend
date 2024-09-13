@@ -70,6 +70,12 @@ DEBUG = env("DJANGO_DEBUG")
 
 ALLOWED_HOSTS = env("DJANGO_ALLOWED_HOST")
 
+
+# Note: The embedding model and vector size both should be compatible
+# and chosen carefully
+# If the embedding model is changed, we need to re-vectorize all the
+# texts in the vector database
+
 # Embedding Model selection
 EMBEDDING_MODEL_TYPE = env("EMBEDDING_MODEL_TYPE")
 EMBEDDING_MODEL_URL = env("EMBEDDING_MODEL_URL")
