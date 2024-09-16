@@ -3,7 +3,7 @@ from typing import List, Optional
 
 import requests
 from langchain.embeddings.base import Embeddings
-from utils import EmbeddingModelType
+from chatbotcore.utils import EmbeddingModelType
 
 
 @dataclass
@@ -13,7 +13,7 @@ class CustomEmbeddingsWrapper(Embeddings):
     embedding models
     """
 
-    url: str
+    url= "http://192.168.88.11:8000/get_embeddings/"
     model_name: str
     model_type: EmbeddingModelType
     base_url: Optional[str]

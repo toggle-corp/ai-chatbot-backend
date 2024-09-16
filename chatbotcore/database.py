@@ -56,7 +56,6 @@ class QdrantDatabase:
             {"id": str(uuid.uuid4()), "vector": v_representation, "payload": metadata} for v_representation, metadata in data
         ]
 
-        response = self.db_client.upsert(collection_name=self.collection_name, points=point_vectors)
         return response
 
     def data_search(
