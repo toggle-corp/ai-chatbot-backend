@@ -70,6 +70,7 @@ DEBUG = env("DJANGO_DEBUG")
 
 ALLOWED_HOSTS = env("DJANGO_ALLOWED_HOST")
 
+ALLOWED_HOSTS = ["192.168.87.13", "localhost", "127.0.0.1"]
 
 # Note: The embedding model and vector size both should be compatible
 # and chosen carefully
@@ -92,6 +93,7 @@ QDRANT_DB_PORT = env("QDRANT_DB_PORT")
 QDRANT_DB_COLLECTION_NAME = env("QDRANT_DB_COLLECTION_NAME")
 # OPENAI API KEY
 OPENAI_API_KEY = env("OPENAI_API_KEY")
+print("------------------------>", LLM_OLLAMA_BASE_URL)
 
 if EMBEDDING_MODEL_TYPE == 2 and not OLLAMA_EMBEDDING_MODEL_BASE_URL:
     raise ValueError("Ollama base url is not set.")
@@ -115,6 +117,7 @@ INSTALLED_APPS = [
     "user",
     "common",
     "content",
+    "rest_framework",
 ]
 
 MIDDLEWARE = [

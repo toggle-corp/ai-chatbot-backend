@@ -2,7 +2,6 @@ import logging
 from dataclasses import dataclass, field
 from typing import Any, Optional
 
-from chatbotcore.custom_embeddings import CustomEmbeddingsWrapper
 from django.conf import settings
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains.history_aware_retriever import create_history_aware_retriever
@@ -15,6 +14,8 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_openai import ChatOpenAI
 from langchain_qdrant import QdrantVectorStore
 from qdrant_client import QdrantClient
+
+from chatbotcore.custom_embeddings import CustomEmbeddingsWrapper
 
 logger = logging.getLogger(__name__)
 
@@ -94,12 +95,8 @@ class LLMBase:
 
     def get_db_retriever(self, collection_name: str, top_k_items: int = 5, score_threshold: float = 0.5):
         """Get the database retriever"""
-        print("db_retriever","///////")
-        print(
-            self.qdrant_client,
-            collection_name,
-            self.embedding_model
-        )
+        print("db_retriever", "///////")
+        print(self.qdrant_client, collection_name, self.embedding_model)
         db_retriever = QdrantVectorStore(
             client=self.qdrant_client, collection_name=collection_name, embedding=self.embedding_model
         )
@@ -118,7 +115,7 @@ class LLMBase:
         response_prompt_template = self.get_prompt_template_for_response()
 
         retriever = self.get_db_retriever(collection_name=db_collection_name)
-        print(retriever,"res")
+        print(retriever, "res")
 
         history_aware_retriever = create_history_aware_retriever(self.llm_model, retriever, context_prompt_template)
 
@@ -127,7 +124,14 @@ class LLMBase:
         rag_chain = create_retrieval_chain(history_aware_retriever, chat_response_chain)
         return rag_chain
 
+<<<<<<< HEAD
     def execute_chain(self, user_id: str, query: str, db_collection_name: str = settings.QDRANT_DB_COLLECTION_NAME):
+||||||| parent of efaacc1 (Integrate LLM service for user query)
+    def execute_chain(self, query: str, db_collection_name: str = settings.QDRANT_DB_COLLECTION_NAME):
+        print("...........")
+=======
+    def execute_chain(self, query: str, db_collection_name: str = settings.QDRANT_DB_COLLECTION_NAME):
+>>>>>>> efaacc1 (Integrate LLM service for user query)
         """
         Executes the chain
         """
@@ -192,7 +196,7 @@ class OllamaHandler(LLMBase):
         super().__post_init__()
         try:
             self.llm_model = Ollama(
-                model=settings.LLM_MODEL_NAME,  temperature=self.temperature
+                model=settings.LLM_MODEL_NAME, base_url=settings.LLM_OLLAMA_BASE_URL, temperature=self.temperature
             )
         except Exception as e:
             raise Exception(f"Ollama LLM model is not successfully loaded. {str(e)}")

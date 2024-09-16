@@ -6,13 +6,22 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('content', '0002_alter_content_deleted_at_alter_content_deleted_by_and_more'),
+        ("content", "0002_alter_content_deleted_at_alter_content_deleted_by_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='content',
-            name='document_status',
-            field=models.PositiveSmallIntegerField(choices=[(1, 'Pending'), (2, 'Text extracted'), (3, 'Added to vector'), (4, 'Deleted from vector'), (5, 'Failure')], default=1),
+            model_name="content",
+            name="document_status",
+            field=models.PositiveSmallIntegerField(
+                choices=[
+                    (1, "Pending"),
+                    (2, "Text extracted"),
+                    (3, "Added to vector"),
+                    (4, "Deleted from vector"),
+                    (5, "Failure"),
+                ],
+                default=1,
+            ),
         ),
     ]

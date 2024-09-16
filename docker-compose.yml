@@ -49,13 +49,13 @@ services:
       OLLAMA_EMBEDDING_MODEL_BASE_URL: ${OLLAMA_EMBEDDING_MODEL_BASE_URL:-model}
       LLM_TYPE: ${LLM_TYPE:-1}
       LLM_MODEL_NAME: ${LLM_MODEL_NAME:-"mistral:latest"}
-      LLM_OLLAMA_BASE_URL: ${LLM_OLLAMA_BASE_URL:-localhost}
+      LLM_OLLAMA_BASE_URL: ${LLM_OLLAMA_BASE_URL}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-test_key}
     command: bash -c 'python manage.py runserver 0.0.0.0:8001'
     volumes:
       - .:/code
     ports:
-      - 127.0.0.1:8001:8001 
+      - 8001:8001 
 
     depends_on:
       - db
@@ -85,7 +85,7 @@ services:
       OLLAMA_EMBEDDING_MODEL_BASE_URL: ${OLLAMA_EMBEDDING_MODEL_BASE_URL:-model}
       LLM_TYPE: ${LLM_TYPE:-1}
       LLM_MODEL_NAME: ${LLM_MODEL_NAME:-"mistral:latest"}
-      LLM_OLLAMA_BASE_URL: ${LLM_OLLAMA_BASE_URL:-localhost}
+      LLM_OLLAMA_BASE_URL: ${LLM_OLLAMA_BASE_URL}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-test_key}
 
     command: celery -A main worker --loglevel=info
