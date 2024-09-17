@@ -1,6 +1,7 @@
 import logging
 import uuid
 from dataclasses import dataclass, field
+from typing import Any
 
 import qdrant_client.http.models as q_models
 from django.conf import settings
@@ -74,12 +75,12 @@ class QdrantDatabase:
         # Note the results shall contain score key; sort the results using score key and get top 5 among them.
         return results
 
-    def delete_data_by_src_uuid(self, collection_name: str, doc_uuid: uuid.UUID, key: str = "doc_uuid") -> bool:
+    def delete_data_by_src_uuid(self, collection_name: str, key: str, value: Any) -> bool:
         """
         Delete data by source uuid
         Note that the document source key should be doc_uuid
         """
-        points_selector = FilterSelector(filter=Filter(must=[FieldCondition(key=key, match=MatchValue(value=doc_uuid))]))
+        points_selector = FilterSelector(filter=Filter(must=[FieldCondition(key=key, match=MatchValue(value=value))]))
         result = self.db_client.delete(collection_name=collection_name, points_selector=points_selector)
 
         return result.status == q_models.UpdateStatus.COMPLETED
