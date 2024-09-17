@@ -40,7 +40,6 @@ class LoaderFromText(DocumentLoader):
         """
         documents = [Document(page_content=self.text)]
         doc_chunks = self._get_split_documents(documents=documents)
-        print(doc_chunks)
         return doc_chunks
 
 

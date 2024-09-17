@@ -32,7 +32,7 @@ services:
       - .env
     environment:
       DJANGO_DEBUG: ${DJANGO_DEBUG:-True}
-      DJANGO_ALLOWED_HOST: ${DJANGO_ALLOWED_HOST:-localhost}
+      DJANGO_ALLOWED_HOST: ${DJANGO_ALLOWED_HOST}
       DJNAGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
       DATABASE_NAME: ${DATABASE_NAME:-postgres}
       DATABASE_USER: ${DATABASE_USER:-postgres}

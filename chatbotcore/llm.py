@@ -48,6 +48,7 @@ class LLMBase:
         self.user_memory_mapping = {}
 
         self.embedding_model = CustomEmbeddingsWrapper(
+            url=settings.EMBEDDING_MODEL_URL,
             model_name=settings.EMBEDDING_MODEL_NAME,
             model_type=settings.EMBEDDING_MODEL_TYPE,
             base_url=settings.OLLAMA_EMBEDDING_MODEL_BASE_URL,
@@ -95,8 +96,6 @@ class LLMBase:
 
     def get_db_retriever(self, collection_name: str, top_k_items: int = 5, score_threshold: float = 0.5):
         """Get the database retriever"""
-        print("db_retriever", "///////")
-        print(self.qdrant_client, collection_name, self.embedding_model)
         db_retriever = QdrantVectorStore(
             client=self.qdrant_client, collection_name=collection_name, embedding=self.embedding_model
         )
@@ -111,11 +110,9 @@ class LLMBase:
             raise Exception("The LLM model is not loaded.")
 
         context_prompt_template = self.get_prompt_template_for_retrieval()
-        print("context_prompt_template")
         response_prompt_template = self.get_prompt_template_for_response()
 
         retriever = self.get_db_retriever(collection_name=db_collection_name)
-        print(retriever, "res")
 
         history_aware_retriever = create_history_aware_retriever(self.llm_model, retriever, context_prompt_template)
 
@@ -136,7 +133,6 @@ class LLMBase:
         Executes the chain
         """
         if not self.rag_chain:
-            print("hello")
             self.rag_chain = self.create_chain(db_collection_name=db_collection_name)
 
         if "user_id" not in self.user_memory_mapping:

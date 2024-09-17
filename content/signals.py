@@ -7,5 +7,4 @@ from .tasks import create_embedding_for_content_task
 
 @receiver(post_save, sender=Content)
 def content_handler(sender, instance, created, **kwargs):
-    print(sender, instance, created, kwargs)
     create_embedding_for_content_task.delay(instance.id)
