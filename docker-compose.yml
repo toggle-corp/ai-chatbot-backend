@@ -51,6 +51,8 @@ services:
       LLM_MODEL_NAME: ${LLM_MODEL_NAME:-"mistral:latest"}
       LLM_OLLAMA_BASE_URL: ${LLM_OLLAMA_BASE_URL}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-test_key}
+      APP_HTTP_PROTOCOL: ${APP_HTTP_PROTOCOL},
+      APP_ENVIRONMENT: ${APP_ENVIRONMENT},
     command: bash -c 'python manage.py runserver 0.0.0.0:8001'
     volumes:
       - .:/code
@@ -87,6 +89,8 @@ services:
       LLM_MODEL_NAME: ${LLM_MODEL_NAME:-"mistral:latest"}
       LLM_OLLAMA_BASE_URL: ${LLM_OLLAMA_BASE_URL}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-test_key}
+      APP_HTTP_PROTOCOL: ${APP_HTTP_PROTOCOL},
+      APP_ENVIRONMENT: ${APP_ENVIRONMENT},
 
     command: celery -A main worker --loglevel=info
     depends_on:
