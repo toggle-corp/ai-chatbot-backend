@@ -1,11 +1,20 @@
 import logging
+import uuid
 from dataclasses import dataclass, field
-from uuid import uuid4
+from typing import Any
 
+import qdrant_client.http.models as q_models
 from django.conf import settings
 from qdrant_client import QdrantClient
 from qdrant_client.http.exceptions import UnexpectedResponse
-from qdrant_client.http.models import Distance, VectorParams
+from qdrant_client.http.models import (
+    Distance,
+    FieldCondition,
+    Filter,
+    FilterSelector,
+    MatchValue,
+    VectorParams,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +53,7 @@ class QdrantDatabase:
     def store_data(self, data: list) -> None:
         """Stores data in vector db"""
         point_vectors = [
-            {"id": str(uuid4()), "vector": v_representation, "payload": metadata} for v_representation, metadata in data
+            {"id": str(uuid.uuid4()), "vector": v_representation, "payload": metadata} for v_representation, metadata in data
         ]
 
         response = self.db_client.upsert(collection_name=self.collection_name, points=point_vectors)
@@ -65,3 +74,13 @@ class QdrantDatabase:
         ]
         # Note the results shall contain score key; sort the results using score key and get top 5 among them.
         return results
+
+    def delete_data_by_src_uuid(self, collection_name: str, key: str, value: Any) -> bool:
+        """
+        Delete data by source uuid
+        Note that the document source key should be doc_uuid
+        """
+        points_selector = FilterSelector(filter=Filter(must=[FieldCondition(key=key, match=MatchValue(value=value))]))
+        result = self.db_client.delete(collection_name=collection_name, points_selector=points_selector)
+
+        return result.status == q_models.UpdateStatus.COMPLETED
