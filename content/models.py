@@ -43,6 +43,7 @@ class Content(UserResource):
 
     def save(self, *args, **kwargs):
         """Save the content to the database."""
-        if self.document_type == self.DocumentType.TEXT:
-            self.extracted_file = self.document_file
-        super().save(*args, **kwargs)
+        if self.pk is None:
+            if self.document_type == self.DocumentType.TEXT:
+                self.extracted_file = self.document_file
+            super().save(*args, **kwargs)
