@@ -1,3 +1,62 @@
+
+name: chatbot
+
+x-server: &base_server_setup
+  build:
+    context: .
+  # Used for python debugging.
+  stdin_open: true
+  tty: true
+  env_file:
+    - .env
+  environment:
+    APP_ENVIRONMENT: ${APP_ENVIRONMENT:-development}
+    APP_TYPE: web
+    DJANGO_DEBUG: ${DJANGO_DEBUG:-true}
+    DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY?error}
+    DJANGO_TIME_ZONE: ${DJANGO_TIME_ZONE:-Asia/Kathmandu}
+    # -- Domain configurations
+    DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:-*}
+    APP_DOMAIN: localhost:8000
+    APP_HTTP_PROTOCOL: ${APP_HTTP_PROTOCOL:-http}
+    SESSION_COOKIE_DOMAIN: ${SESSION_COOKIE_DOMAIN:-localhost}
+    # Database config
+    DATABASE_NAME: ${DATABASE_NAME:-postgres}
+    DATABASE_USER: ${DATABASE_USER:-postgres}
+    DATABASE_PASSWORD: ${DATABASE_PASSWORD:-postgres}
+    DATABASE_PORT: ${DATABASE_PORT:-5432}
+    DATABASE_HOST: ${DATABASE_HOST:-db}
+    # # Redis config
+    CELERY_REDIS_URL: ${CELERY_REDIS_URL:-redis://redis:6379/0}
+    DJANGO_CACHE_REDIS_URL: ${DJANGO_CACHE_REDIS_URL:-redis://redis:6379/1}
+
+    # EMBEDDING MODEL
+    QDRANT_DB_HOST: ${QDRANT_DB_HOST:-0.0.0.0}
+    QDRANT_DB_PORT: ${QDRANT_DB_PORT:-6333}
+    QDRANT_DB_COLLECTION_NAME: ${QDRANT_DB_COLLECTION_NAME:-test}
+    EMBEDDING_MODEL_URL: ${EMBEDDING_MODEL_URL:-localhost}
+    EMBEDDING_MODEL_NAME: ${EMBEDDING_MODEL_NAME:-embedding_model}
+    EMBEDDING_MODEL_VECTOR_SIZE: ${EMBEDDING_MODEL_VECTOR_SIZE:-384}
+    EMBEDDING_MODEL_TYPE: ${EMBEDDING_MODEL_TYPE:-1}
+    OLLAMA_EMBEDDING_MODEL_BASE_URL: ${OLLAMA_EMBEDDING_MODEL_BASE_URL:-model}
+    LLM_TYPE: ${LLM_TYPE:-1}
+    LLM_MODEL_NAME: ${LLM_MODEL_NAME:-"mistral:latest"}
+    LLM_OLLAMA_BASE_URL: ${LLM_OLLAMA_BASE_URL}
+    OPENAI_API_KEY: ${OPENAI_API_KEY:-test_key}
+
+  volumes:
+    - .:/code
+
+  depends_on:
+    - db
+    - redis
+
+  logging:
+    driver: "json-file"
+    options:
+      max-size: "100m"
+      max-file: "5"
+
 services:
   db:
     image: postgres:16-alpine
@@ -27,35 +86,8 @@ services:
         QDRANT__SERVICE__HTTP_PORT: 6333
   
   web:
-    build: .
-    env_file:
-      - .env
-    environment:
-      DJANGO_DEBUG: ${DJANGO_DEBUG:-True}
-      DJANGO_ALLOWED_HOST: ${DJANGO_ALLOWED_HOST}
-      DJNAGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
-      DATABASE_NAME: ${DATABASE_NAME:-postgres}
-      DATABASE_USER: ${DATABASE_USER:-postgres}
-      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-postgres}
-      DATABASE_PORT: ${DATABASE_PORT:-5432}
-      DATABASE_HOST: ${DATABASE_HOST:-db}
-      QDRANT_DB_HOST: ${QDRANT_DB_HOST:-0.0.0.0}
-      QDRANT_DB_PORT: ${QDRANT_DB_PORT:-6333}
-      QDRANT_DB_COLLECTION_NAME: ${QDRANT_DB_COLLECTION_NAME:-test}
-      EMBEDDING_MODEL_URL: ${EMBEDDING_MODEL_URL:-localhost}
-      EMBEDDING_MODEL_NAME: ${EMBEDDING_MODEL_NAME:-embedding_model}
-      EMBEDDING_MODEL_VECTOR_SIZE: ${EMBEDDING_MODEL_VECTOR_SIZE:-384}
-      EMBEDDING_MODEL_TYPE: ${EMBEDDING_MODEL_TYPE:-1}
-      OLLAMA_EMBEDDING_MODEL_BASE_URL: ${OLLAMA_EMBEDDING_MODEL_BASE_URL:-model}
-      LLM_TYPE: ${LLM_TYPE:-1}
-      LLM_MODEL_NAME: ${LLM_MODEL_NAME:-"mistral:latest"}
-      LLM_OLLAMA_BASE_URL: ${LLM_OLLAMA_BASE_URL}
-      OPENAI_API_KEY: ${OPENAI_API_KEY:-test_key}
-      APP_HTTP_PROTOCOL: ${APP_HTTP_PROTOCOL},
-      APP_ENVIRONMENT: ${APP_ENVIRONMENT},
+    <<: *base_server_setup
     command: bash -c 'python manage.py runserver 0.0.0.0:8001'
-    volumes:
-      - .:/code
     ports:
       - 8001:8001 
 
@@ -65,33 +97,7 @@ services:
       - qdrant
 
   worker:
-    build: .
-    env_file:
-      - .env
-    environment:
-      DJANGO_DEBUG: ${DJANGO_DEBUG:-True}
-      DJANGO_ALLOWED_HOST: ${DJANGO_ALLOWED_HOST:-localhost}
-      DJNAGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
-      DATABASE_NAME: ${DATABASE_NAME:-chatbot}
-      DATABASE_USER: ${DATABASE_USER:-postgres}
-      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-postgres}
-      DATABASE_PORT: ${DATABASE_PORT:-5432}
-      DATABASE_HOST: ${DATABASE_HOST:-db}
-      QDRANT_DB_HOST: ${QDRANT_DB_HOST:-0.0.0.0}
-      QDRANT_DB_PORT: ${QDRANT_DB_PORT:-6333}
-      QDRANT_DB_COLLECTION_NAME: ${QDRANT_DB_COLLECTION_NAME:-test}
-      EMBEDDING_MODEL_URL: ${EMBEDDING_MODEL_URL:-localhost}
-      EMBEDDING_MODEL_NAME: ${EMBEDDING_MODEL_NAME:-embedding_model}
-      EMBEDDING_MODEL_VECTOR_SIZE: ${EMBEDDING_MODEL_VECTOR_SIZE:-384}
-      EMBEDDING_MODEL_TYPE: ${EMBEDDING_MODEL_TYPE:-1}
-      OLLAMA_EMBEDDING_MODEL_BASE_URL: ${OLLAMA_EMBEDDING_MODEL_BASE_URL:-model}
-      LLM_TYPE: ${LLM_TYPE:-1}
-      LLM_MODEL_NAME: ${LLM_MODEL_NAME:-"mistral:latest"}
-      LLM_OLLAMA_BASE_URL: ${LLM_OLLAMA_BASE_URL}
-      OPENAI_API_KEY: ${OPENAI_API_KEY:-test_key}
-      APP_HTTP_PROTOCOL: ${APP_HTTP_PROTOCOL},
-      APP_ENVIRONMENT: ${APP_ENVIRONMENT},
-
+    <<: *base_server_setup
     command: celery -A main worker --loglevel=info
     depends_on:
       - redis

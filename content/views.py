@@ -11,6 +11,6 @@ def chat(request):
     data = OllamaHandler()
     serializer = UserQuerySerializer(data=request.data)
     if serializer.is_valid():
-        result = data.execute_chain(request.data["message"])
+        result = data.execute_chain(request.data["query"])
         return Response(result)
     return Response(serializer.errors)

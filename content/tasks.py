@@ -13,18 +13,18 @@ def create_embedding_for_content_task(content_id):
     content = Content.objects.get(id=content_id)
     url = settings.EMBEDDING_MODEL_URL
     headers = {"Content-Type": "application/json"}
-
-    loader = LoaderFromText(text=content.description)
+    data = content.extracted_file.read()
+    loader = LoaderFromText(text=data)
     split_docs = loader.create_document_chunks()
 
     payload = {
-        "type_model": 1,
-        "name_model": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+        "type_model": settings.EMBEDDING_MODEL_TYPE,
+        "name_model": settings.EMBEDDING_MODEL_NAME,
         "texts": [split_docs[i].page_content for i in range(len(split_docs))],
     }
     response = requests.post(url, headers=headers, json=payload)
     metadata = [
-        {"source": "plain-text", "page_content": split_docs[i].page_content, "uuid": content.uuid}
+        {"source": "plain-text", "page_content": split_docs[i].page_content, "uuid": content.content_id}
         for i in range(len(split_docs))
     ]
     if response.status_code == 200:

@@ -13,15 +13,8 @@ class Tag(models.Model):
     def __str__(self):
         return self.name
 
-<<<<<<< HEAD
 
 class Content(UserResource):
-||||||| parent of 096f4f9 (Add common model)
-class Content(models.Model):
-    # TODO need to create UserResource  models for user model
-=======
-class Content(UserResource):
->>>>>>> 096f4f9 (Add common model)
     class DocumentType(models.IntegerChoices):
         WORD = 1, _("Word")
         PDF = 2, _("PDF")
