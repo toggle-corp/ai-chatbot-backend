@@ -46,4 +46,4 @@ class Content(UserResource):
         if self.pk is None:
             if self.document_type == self.DocumentType.TEXT:
                 self.extracted_file = self.document_file
-            super().save(*args, **kwargs)
+        super().save(*args, **kwargs)
