@@ -8,3 +8,4 @@ from content.models import Content
 @admin.register(Content)
 class ContentAdmin(admin.ModelAdmin):
     list_display = ["title", "content_id"]
+    autocomplete_fields = ["created_by", "modified_by"]
