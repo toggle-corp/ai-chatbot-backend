@@ -7,4 +7,3 @@ max-complexity = 10
 per-file-ignores =
     /**/tests/*_mock_data.py: E501
     **/snap_test_*.py: E501
-    /**/apps.py: F401

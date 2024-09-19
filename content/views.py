@@ -1,5 +1,6 @@
 # Create your views here.
 from rest_framework.decorators import api_view
+from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 
 from chatbotcore.llm import OllamaHandler
@@ -14,3 +15,14 @@ def chat(request):
         result = data.execute_chain(request.data["query"])
         return Response(result)
     return Response(serializer.errors)
+
+
+class UserQuery(GenericAPIView):
+    llm = OllamaHandler()
+
+    def post(self, request, *arg, **kwargs):
+        serializer = UserQuerySerializer(data=request.data)
+        if serializer.is_valid():
+            result = self.llm.execute_chain(request.data["query"])
+            return Response(result)
+        return Response(serializer.errors, 422)

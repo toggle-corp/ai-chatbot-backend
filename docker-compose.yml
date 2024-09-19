@@ -13,7 +13,7 @@ x-server: &base_server_setup
     APP_ENVIRONMENT: ${APP_ENVIRONMENT:-development}
     APP_TYPE: web
     DJANGO_DEBUG: ${DJANGO_DEBUG:-true}
-    DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+    DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY?error}
     DJANGO_TIME_ZONE: ${DJANGO_TIME_ZONE:-Asia/Kathmandu}
     # -- Domain configurations
     DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:-*}
@@ -84,7 +84,7 @@ services:
         # https://github.com/qdrant/qdrant/blob/master/config/config.yaml
         QDRANT__SERVICE__HOST: 0.0.0.0
         QDRANT__SERVICE__HTTP_PORT: 6333
-  
+
   web:
     <<: *base_server_setup
     command: bash -c 'python manage.py runserver 0.0.0.0:8001'
@@ -99,10 +99,6 @@ services:
   worker:
     <<: *base_server_setup
     command: celery -A main worker --loglevel=info
-    depends_on:
-      - redis
-      - web
-  
 
 volumes:
   postgres-data16:
