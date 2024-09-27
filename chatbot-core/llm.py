@@ -8,7 +8,8 @@ from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains.history_aware_retriever import create_history_aware_retriever
 from langchain.chains.retrieval import create_retrieval_chain
 from langchain.memory import ConversationBufferWindowMemory
-from langchain.schema import AIMessage, HumanMessage
+
+# from langchain.schema import AIMessage, HumanMessage
 from langchain_community.llms.ollama import Ollama
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_openai import ChatOpenAI
@@ -31,7 +32,7 @@ class LLMBase:
     embedding_model: CustomEmbeddingsWrapper = field(init=False)
     rag_chain: Optional[Any] = None
 
-    def __post_init__(self, mem_key: str = "chat_history", conversation_max_window: int = 3):
+    def __post_init__(self, mem_key: str = "chat_history", conversation_max_window: int = 5):
         self.llm_model = None
         self.qdrant_client = None
 
@@ -136,11 +137,11 @@ class LLMBase:
         response = self.rag_chain.invoke(
             {"input": query, "chat_history": self.get_message_history(user_id=user_id)["chat_history"]}
         )
-        memory.chat_memory.add_message(HumanMessage(content=query))
-        memory.chat_memory.add_message(AIMessage(content=response["answer"]))
+        response_text = response["answer"] if "answer" in response else "I don't know the answer."
+        memory.save_context({"input": query}, {"output": response_text})
         self.user_memory_mapping[user_id] = memory
 
-        return response["answer"] if "answer" in response else ""
+        return response_text
 
     def get_message_history(self, user_id: str):
         """
