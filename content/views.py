@@ -1,4 +1,6 @@
 # Create your views here.
+import asyncio
+
 from rest_framework.decorators import api_view
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
@@ -23,6 +25,6 @@ class UserQuery(GenericAPIView):
     def post(self, request, *arg, **kwargs):
         serializer = UserQuerySerializer(data=request.data)
         if serializer.is_valid():
-            result = self.llm.execute_chain(request.data["query"])
+            result = asyncio.run(self.llm.execute_chain(request.data['user_id'], request.data["query"]))
             return Response(result)
         return Response(serializer.errors, 422)

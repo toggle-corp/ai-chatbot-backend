@@ -121,28 +121,21 @@ class LLMBase:
         rag_chain = create_retrieval_chain(history_aware_retriever, chat_response_chain)
         return rag_chain
 
-<<<<<<< HEAD
-    def execute_chain(self, user_id: str, query: str, db_collection_name: str = settings.QDRANT_DB_COLLECTION_NAME):
-||||||| parent of efaacc1 (Integrate LLM service for user query)
-    def execute_chain(self, query: str, db_collection_name: str = settings.QDRANT_DB_COLLECTION_NAME):
-        print("...........")
-=======
-    def execute_chain(self, query: str, db_collection_name: str = settings.QDRANT_DB_COLLECTION_NAME):
->>>>>>> efaacc1 (Integrate LLM service for user query)
+    async def execute_chain(self, user_id: str, query: str, db_collection_name: str = settings.QDRANT_DB_COLLECTION_NAME):
         """
         Executes the chain
         """
         if not self.rag_chain:
             self.rag_chain = self.create_chain(db_collection_name=db_collection_name)
 
-        if "user_id" not in self.user_memory_mapping:
+        if user_id not in self.user_memory_mapping:
             self.user_memory_mapping[user_id] = ConversationBufferWindowMemory(
                 k=self.conversation_max_window, memory_key=self.mem_key, return_messages=True
             )
 
         memory = self.user_memory_mapping[user_id]
 
-        response = self.rag_chain.invoke(
+        response = await self.rag_chain.ainvoke(
             {"input": query, "chat_history": self.get_message_history(user_id=user_id)["chat_history"]}
         )
         response_text = response["answer"] if "answer" in response else "I don't know the answer."
@@ -155,13 +148,13 @@ class LLMBase:
         """
         Returns the historical conversational data
         """
-        if "user_id" in self.user_memory_mapping:
+        if user_id in self.user_memory_mapping:
             return self.user_memory_mapping[user_id].load_memory_variables({})
-        return {}
+        return {"chat_history": []}
 
     def delete_message_history_by_user(self, user_id: str) -> bool:
         """Deletes the message history based on user id"""
-        if "user_id" in self.user_memory_mapping:
+        if user_id in self.user_memory_mapping:
             del self.user_memory_mapping[user_id]
             logger.info(f"Successfully delete the {user_id} conversational history.")
             return True
