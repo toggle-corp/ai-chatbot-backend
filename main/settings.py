@@ -28,6 +28,8 @@ env = environ.Env(
     DJANGO_STATIC_URL=(str, "/static/"),
     DJANGO_MEDIA_URL=(str, "/media/"),
     DJANGO_TIME_ZONE=(str, "UTC"),
+    APP_HTTP_PROTOCOL=str,
+    APP_ENVIRONMENT=str,
     # Database
     DATABASE_NAME=str,
     DATABASE_USER=str,
@@ -70,7 +72,22 @@ DEBUG = env("DJANGO_DEBUG")
 
 ALLOWED_HOSTS = env("DJANGO_ALLOWED_HOST")
 
+APP_HTTP_PROTOCOL = env("APP_HTTP_PROTOCOL")
+APP_ENVIRONMENT = env("APP_ENVIRONMENT")
+APP_DOMAIN = env("APP_DOMAIN")
 
+SESSION_COOKIE_NAME = f"aichatbot-{APP_ENVIRONMENT}-sessionid"
+if APP_HTTP_PROTOCOL == "https":
+    SESSION_COOKIE_NAME = f"__Secure-{SESSION_COOKIE_NAME}"
+    SESSION_COOKIE_SECURE = True
+    SESSION_COOKIE_HTTPONLY = True
+    SECURE_HSTS_SECONDS = 30  # TODO: Increase this slowly
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    CSRF_TRUSTED_ORIGINS = [
+        f"{APP_HTTP_PROTOCOL}://{APP_DOMAIN}",
+    ]
 # Note: The embedding model and vector size both should be compatible
 # and chosen carefully
 # If the embedding model is changed, we need to re-vectorize all the
@@ -115,6 +132,7 @@ INSTALLED_APPS = [
     "user",
     "common",
     "content",
+    "rest_framework",
 ]
 
 MIDDLEWARE = [
@@ -208,3 +226,11 @@ MEDIA_ROOT = env("DJANGO_MEDIA_ROOT")
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+CELERY_BROKER_URL = "redis://redis:6379/0"
+CELERY_RESULT_BACKEND = "redis://redis:6379/0"
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TIMEZONE = "UTC"

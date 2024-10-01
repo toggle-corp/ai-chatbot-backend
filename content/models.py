@@ -4,6 +4,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from common.models import UserResource
+from content.tasks import create_embedding_for_content_task
 
 
 class Tag(models.Model):
@@ -46,4 +47,6 @@ class Content(UserResource):
         if self.pk is None:
             if self.document_type == self.DocumentType.TEXT:
                 self.extracted_file = self.document_file
+        if self.document_status == self.DocumentStatus.PENDING:
+            create_embedding_for_content_task(self.id)
         super().save(*args, **kwargs)
