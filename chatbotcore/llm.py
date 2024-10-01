@@ -94,7 +94,7 @@ class LLMBase:
         )
         return llm_response_prompt
 
-    def get_db_retriever(self, collection_name: str, top_k_items: int = 5, score_threshold: float = 0.5):
+    def get_db_retriever(self, collection_name: str, top_k_items: int = 5, score_threshold: float = 0.7):
         """Get the database retriever"""
         db_retriever = QdrantVectorStore(
             client=self.qdrant_client, collection_name=collection_name, embedding=self.embedding_model
