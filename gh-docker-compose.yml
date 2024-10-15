@@ -5,6 +5,7 @@ services:
     environment:
       CI: "true"
       DJANGO_SECRET_KEY: "test"
+      LLM_OLLAMA_BASE_URL: "http://localhost:8000"
       APP_ENVIRONMENT: CI
       APP_TYPE: web
 
