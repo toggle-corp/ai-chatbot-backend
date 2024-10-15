@@ -46,7 +46,6 @@ x-server: &base_server_setup
 
   volumes:
     - .:/code
-
   depends_on:
     - db
     - redis

@@ -60,6 +60,13 @@ env = environ.Env(
     LLM_OLLAMA_BASE_URL=(str, None),
     # OpenAI API key
     OPENAI_API_KEY=(str, None),
+    # Celery
+    CELERY_BROKER_URL=str,
+    CELERY_RESULT_BACKEND=str,
+    CELERY_ACCEPT_CONTENT=(list, ["json"]),
+    CELERY_TASK_SERIALIZER=(str, "json"),
+    CELERY_RESULT_SERIALIZER=(str, "json"),
+    CELERY_TIMEZONE=(str, "UTC"),
 )
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -228,9 +235,9 @@ MEDIA_ROOT = env("DJANGO_MEDIA_ROOT")
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
-CELERY_BROKER_URL = "redis://redis:6379/0"
-CELERY_RESULT_BACKEND = "redis://redis:6379/0"
-CELERY_ACCEPT_CONTENT = ["json"]
-CELERY_TASK_SERIALIZER = "json"
-CELERY_RESULT_SERIALIZER = "json"
-CELERY_TIMEZONE = "UTC"
+CELERY_BROKER_URL = env("CELERY_BROKER_URL")
+CELERY_RESULT_BACKEND = env("CELERY_RESULT_BACKEND")
+CELERY_ACCEPT_CONTENT = env("CELERY_ACCEPT_CONTENT")
+CELERY_TASK_SERIALIZER = env("CELERY_TASK_SERIALIZER")
+CELERY_RESULT_SERIALIZER = env("CELERY_RESULT_SERIALIZER")
+CELERY_TIMEZONE = env("CELERY_TIMEZONE")
