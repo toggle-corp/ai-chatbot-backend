@@ -20,9 +20,9 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path
 
-urlpatterns = [
-    path("admin/", admin.site.urls),
-]
+from content.views import UserQuery
+
+urlpatterns = [path("admin/", admin.site.urls), path("chat_message", UserQuery.as_view())]
 if settings.DEBUG:
 
     # Static and media file URLs

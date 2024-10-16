@@ -12,7 +12,7 @@ class DocumentLoader:
     Base Class for Document Loaders
     """
 
-    chunk_size: int = 200
+    chunk_size: int = 100
     chunk_overlap: int = 20
 
     def _get_split_documents(self, documents: List[Document]):
