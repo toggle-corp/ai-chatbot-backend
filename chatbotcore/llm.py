@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 from dataclasses import dataclass, field
 from typing import Any, Optional
 
@@ -69,10 +70,11 @@ class LLMBase:
         System prompt for response generation
         """
         system_prompt = """
-                You are an assistant for question-answering tasks.\n,
-                Use the following retrieved context to answer the question.\n,
-                If you don't get the answer from the provided context, \n,
-                say that 'I don't know. How can I help with the office related queries ?'
+                You are an assistant to answer the office related relevant questions based on provided contexts and chat history only.\n,
+                Use the retrieved context to answer the question strictly. The response should be concise and to the point.\n,
+                If the input query includes date or time information, use today's date {today} as a reference otherwise ignore it.\n
+                If the retrieved context is not available, do not use your own knowledge or the chat history,
+                Just say 'Sorry, can't answer as relevant context is not available. How can I help with other office related queries ?'
                 \n\n,
                 Context: {context}
             """
@@ -94,7 +96,7 @@ class LLMBase:
         )
         return llm_response_prompt
 
-    def get_db_retriever(self, collection_name: str, top_k_items: int = 5, score_threshold: float = 0.7):
+    def get_db_retriever(self, collection_name: str, top_k_items: int = 5, score_threshold: float = 0.6):
         """Get the database retriever"""
         db_retriever = QdrantVectorStore(
             client=self.qdrant_client, collection_name=collection_name, embedding=self.embedding_model
@@ -136,7 +138,7 @@ class LLMBase:
         memory = self.user_memory_mapping[user_id]
 
         response = await self.rag_chain.ainvoke(
-            {"input": query, "chat_history": self.get_message_history(user_id=user_id)["chat_history"]}
+            {"input": query, "today": datetime.now().isoformat(), "chat_history": self.get_message_history(user_id=user_id)["chat_history"]}
         )
         response_text = response["answer"] if "answer" in response else "I don't know the answer."
         memory.save_context({"input": query}, {"output": response_text})
@@ -165,7 +167,7 @@ class LLMBase:
 class OpenAIHandler(LLMBase):
     """LLM handler using OpenAI for RAG"""
 
-    temperature: float = 0.2
+    temperature: float = 0.1
 
     def __post_init__(self):
         super().__post_init__()
@@ -179,7 +181,7 @@ class OpenAIHandler(LLMBase):
 class OllamaHandler(LLMBase):
     """LLM Handler using Ollama for RAG"""
 
-    temperature: float = 0.2
+    temperature: float = 0.1
 
     def __post_init__(self):
         super().__post_init__()

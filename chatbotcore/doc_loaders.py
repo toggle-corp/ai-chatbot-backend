@@ -1,10 +1,10 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List
 
 from langchain.schema import Document
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import WebBaseLoader
-
+from chatbotcore.contextual_chunks import ContextualChunking
 
 @dataclass(kw_only=True)
 class DocumentLoader:
@@ -14,6 +14,10 @@ class DocumentLoader:
 
     chunk_size: int = 100
     chunk_overlap: int = 20
+    context_retrieval: ContextualChunking = field(init=False)
+
+    def __post_init__(self):
+        self.context_retrieval = ContextualChunking()
 
     def _get_split_documents(self, documents: List[Document]):
         """
@@ -40,7 +44,11 @@ class LoaderFromText(DocumentLoader):
         """
         documents = [Document(page_content=self.text)]
         doc_chunks = self._get_split_documents(documents=documents)
-        return doc_chunks
+        contextualized_chunks = self.context_retrieval.generate_contextualized_chunks(
+            document=self.text,
+            chunks=doc_chunks
+        )
+        return contextualized_chunks
 
 
 @dataclass
@@ -58,4 +66,8 @@ class LoaderFromWeb(DocumentLoader):
         loader = WebBaseLoader(web_path=self.url)
         docs = loader.load()
         doc_chunks = self._get_split_documents(documents=docs)
-        return doc_chunks
+        contextualized_chunks = self.context_retrieval.generate_contextualized_chunks(
+            document=docs,
+            chunks=doc_chunks
+        )
+        return contextualized_chunks
