@@ -30,6 +30,7 @@ env = environ.Env(
     DJANGO_TIME_ZONE=(str, "UTC"),
     APP_HTTP_PROTOCOL=str,
     APP_ENVIRONMENT=str,
+    APP_DOMAIN=str,
     # Database
     DATABASE_NAME=str,
     DATABASE_USER=str,
@@ -120,7 +121,7 @@ OPENAI_API_KEY = env("OPENAI_API_KEY")
 if EMBEDDING_MODEL_TYPE == 2 and not OLLAMA_EMBEDDING_MODEL_BASE_URL:
     raise ValueError("Ollama base url is not set.")
 
-if (EMBEDDING_MODEL_TYPE == 3 or LLM_TYPE == 1) and not OPENAI_API_KEY:
+if (EMBEDDING_MODEL_TYPE == 3 and LLM_TYPE == 1) and not OPENAI_API_KEY:
     raise ValueError("OpenAI API key is not set.")
 
 if LLM_TYPE == 2 and not LLM_OLLAMA_BASE_URL:
