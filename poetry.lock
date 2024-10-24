@@ -567,6 +567,21 @@ argon2 = ["argon2-cffi (>=19.1.0)"]
 bcrypt = ["bcrypt"]
 
 [[package]]
+name = "django-cors-headers"
+version = "4.5.0"
+description = "django-cors-headers is a Django application for handling the server headers required for Cross-Origin Resource Sharing (CORS)."
+optional = false
+python-versions = ">=3.9"
+files = [
+    {file = "django_cors_headers-4.5.0-py3-none-any.whl", hash = "sha256:28c1ded847aa70208798de3e42422a782f427b8b720e8d7319d34b654b5978e6"},
+    {file = "django_cors_headers-4.5.0.tar.gz", hash = "sha256:6c01a85cf1ec779a7bde621db853aa3ce5c065a5ba8e27df7a9f9e8dac310f4f"},
+]
+
+[package.dependencies]
+asgiref = ">=3.6"
+django = ">=3.2"
+
+[[package]]
 name = "django-environ"
 version = "0.11.2"
 description = "A package that allows you to utilize 12factor inspired environment variables to configure your Django application."
@@ -748,6 +763,17 @@ files = [
     {file = "frozenlist-1.4.1-cp39-cp39-win_amd64.whl", hash = "sha256:e6a20a581f9ce92d389a8c7d7c3dd47c81fd5d6e655c8dddf341e14aa48659d0"},
     {file = "frozenlist-1.4.1-py3-none-any.whl", hash = "sha256:04ced3e6a46b4cfffe20f9ae482818e34eba9b5fb0ce4056e4cc9b6e212d09b7"},
     {file = "frozenlist-1.4.1.tar.gz", hash = "sha256:c037a86e8513059a2613aaba4d817bb90b9d9b6b69aace3ce9c877e8c8ed402b"},
+]
+
+[[package]]
+name = "graphql-core"
+version = "3.2.5"
+description = "GraphQL implementation for Python, a port of GraphQL.js, the JavaScript reference implementation for GraphQL."
+optional = false
+python-versions = "<4,>=3.6"
+files = [
+    {file = "graphql_core-3.2.5-py3-none-any.whl", hash = "sha256:2f150d5096448aa4f8ab26268567bbfeef823769893b39c1a2e1409590939c8a"},
+    {file = "graphql_core-3.2.5.tar.gz", hash = "sha256:e671b90ed653c808715645e3998b7ab67d382d55467b7e2978549111bbabf8d5"},
 ]
 
 [[package]]
@@ -2372,6 +2398,60 @@ dev = ["build", "hatch"]
 doc = ["sphinx"]
 
 [[package]]
+name = "strawberry-graphql"
+version = "0.247.0"
+description = "A library for creating GraphQL APIs"
+optional = false
+python-versions = "<4.0,>=3.8"
+files = [
+    {file = "strawberry_graphql-0.247.0-py3-none-any.whl", hash = "sha256:607714c537f8c3e98b80b0de14467f012dd839bff5e4961eee311a39d27786ba"},
+    {file = "strawberry_graphql-0.247.0.tar.gz", hash = "sha256:a8ea47b37cf75eca31acc7929ec045d2c32a54b76a95e0cad3e9bf33d79f53ab"},
+]
+
+[package.dependencies]
+graphql-core = ">=3.2.0,<3.4.0"
+python-dateutil = ">=2.7.0,<3.0.0"
+typing-extensions = ">=4.5.0"
+
+[package.extras]
+aiohttp = ["aiohttp (>=3.7.4.post0,<4.0.0)"]
+asgi = ["python-multipart (>=0.0.7)", "starlette (>=0.18.0)"]
+chalice = ["chalice (>=1.22,<2.0)"]
+channels = ["asgiref (>=3.2,<4.0)", "channels (>=3.0.5)"]
+cli = ["graphlib_backport", "libcst (>=0.4.7)", "pygments (>=2.3,<3.0)", "rich (>=12.0.0)", "typer (>=0.7.0)"]
+debug = ["libcst (>=0.4.7)", "rich (>=12.0.0)"]
+debug-server = ["libcst (>=0.4.7)", "pygments (>=2.3,<3.0)", "python-multipart (>=0.0.7)", "rich (>=12.0.0)", "starlette (>=0.18.0)", "typer (>=0.7.0)", "uvicorn (>=0.11.6)"]
+django = ["Django (>=3.2)", "asgiref (>=3.2,<4.0)"]
+fastapi = ["fastapi (>=0.65.2)", "python-multipart (>=0.0.7)"]
+flask = ["flask (>=1.1)"]
+litestar = ["litestar (>=2)"]
+opentelemetry = ["opentelemetry-api (<2)", "opentelemetry-sdk (<2)"]
+pydantic = ["pydantic (>1.6.1)"]
+pyinstrument = ["pyinstrument (>=4.0.0)"]
+quart = ["quart (>=0.19.3)"]
+sanic = ["sanic (>=20.12.2)"]
+
+[[package]]
+name = "strawberry-graphql-django"
+version = "0.47.1"
+description = "Strawberry GraphQL Django extension"
+optional = false
+python-versions = "<4.0,>=3.8"
+files = [
+    {file = "strawberry_graphql_django-0.47.1-py3-none-any.whl", hash = "sha256:9afef91933c6b7a87b80a61b6634a278086f8880b3fbc0d2aa56f78747043cbc"},
+    {file = "strawberry_graphql_django-0.47.1.tar.gz", hash = "sha256:864c3f41de741639ce1b33107ee16ccd400167d5d0bc4e1fe01b1f3f556e127e"},
+]
+
+[package.dependencies]
+asgiref = ">=3.8"
+django = ">=3.2"
+strawberry-graphql = ">=0.236.0"
+
+[package.extras]
+debug-toolbar = ["django-debug-toolbar (>=3.4)"]
+enum = ["django-choices-field (>=2.2.2)"]
+
+[[package]]
 name = "tenacity"
 version = "8.5.0"
 description = "Retry code until it succeeds"
@@ -2642,4 +2722,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "927382c991963915a27733b32e328c101efa78df8227492bffdb38aa88fcb1c1"
+content-hash = "a300f658ad0171df38ecbf1077f3cbde1b90d9028fc9f6623ce384ae09212b2d"
