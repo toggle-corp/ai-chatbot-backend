@@ -1,6 +1,6 @@
 import logging
-from datetime import datetime
 from dataclasses import dataclass, field
+from datetime import datetime
 from typing import Any, Optional
 
 from django.conf import settings
@@ -77,7 +77,7 @@ class LLMBase:
                 Just say 'Sorry, can't answer as relevant context is not available. How can I help with other office related queries ?'
                 \n\n,
                 Context: {context}
-            """
+            """  # noqa: E501
         return system_prompt
 
     def get_prompt_template_for_retrieval(self):
@@ -138,7 +138,11 @@ class LLMBase:
         memory = self.user_memory_mapping[user_id]
 
         response = await self.rag_chain.ainvoke(
-            {"input": query, "today": datetime.now().isoformat(), "chat_history": self.get_message_history(user_id=user_id)["chat_history"]}
+            {
+                "input": query,
+                "today": datetime.now().isoformat(),
+                "chat_history": self.get_message_history(user_id=user_id)["chat_history"],
+            }
         )
         response_text = response["answer"] if "answer" in response else "I don't know the answer."
         memory.save_context({"input": query}, {"output": response_text})
