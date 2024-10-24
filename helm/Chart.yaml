@@ -1,0 +1,7 @@
+apiVersion: v2
+name: ai-chatbot-backend-helm
+description: "Helm Chart to deploy the TC chatbot backend Infrastructure"
+type: application
+version: 0.0.1-SET-BY-CICD
+sources:
+  - https://github.com/toggle-corp/ai-chatbot-backend

@@ -1,0 +1,24 @@
+{{- if .Values.streamlit.enabled -}}
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "tc-chatbot-backend.fullname" . }}-streamlit-svc
+  labels:
+    app: {{ template "tc-chatbot-backend.name" . }}
+    component: streamlit-service
+    environment: {{ .Values.environment }}
+    release: {{ .Release.Name }}
+spec:
+  type: ClusterIP
+  selector:
+    app: {{ template "tc-chatbot-backend.name" . }}
+    release: {{ .Release.Name }}
+    run: {{ .Release.Name }}-streamlit
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: {{ .Values.streamlit.containerPort }}
+      nodePort: null
+
+{{- end }}

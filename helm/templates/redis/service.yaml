@@ -1,0 +1,24 @@
+{{- if .Values.redis.enabled -}}
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "tc-chatbot-backend.fullname" . }}-redis
+  labels:
+    app: {{ template "tc-chatbot-backend.name" . }}
+    component: redis-service
+    environment: {{ .Values.environment }}
+    release: {{ .Release.Name }}
+spec:
+  type: ClusterIP
+  ports:
+    - protocol: TCP
+      port: 6379
+      targetPort: 6379
+      nodePort: null
+  selector:
+    app: {{ template "tc-chatbot-backend.name" . }}
+    release: {{ .Release.Name }}
+    run: {{ .Release.Name }}-redis
+
+{{- end }}

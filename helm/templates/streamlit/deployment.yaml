@@ -1,0 +1,57 @@
+{{- if .Values.streamlit.enabled }}
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "tc-chatbot-backend.fullname" . }}-streamlit
+  labels:
+    component: streamlit-deployment
+    environment: {{ .Values.environment }}
+    release: {{ .Release.Name }}
+    # XXX: Add global lables?
+spec:
+  replicas: {{ .Values.streamlit.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "tc-chatbot-backend.name" . }}
+      release: {{ .Release.Name }}
+      run: {{ .Release.Name }}-streamlit
+  template:
+    metadata:
+      annotations:
+        checksum/secret: {{ include (print .Template.BasePath "/config/secret.yaml") . | sha256sum }}
+        checksum/configmap: {{ include (print .Template.BasePath "/config/configmap.yaml") . | sha256sum }}
+      labels:
+        app: {{ template "tc-chatbot-backend.name" . }}
+        release: {{ .Release.Name }}
+        run: {{ .Release.Name }}-streamlit
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}-streamlit
+          image: "{{ .Values.streamlit.image.name }}:{{ .Values.streamlit.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["streamlit", "run", "app.py", "--server.address", "0.0.0.0"]
+          ports:
+            - name: http
+              containerPort: {{ .Values.streamlit.containerPort }}
+              protocol: TCP
+          livenessProbe: # FIXME: Fix Liveness Probe
+            httpGet:
+              path: /  # TODO
+              port: {{ .Values.streamlit.containerPort }}
+            initialDelaySeconds: 10180  # TODO:?
+            periodSeconds: 5  # TODO:?
+          resources:
+            requests:
+              cpu: {{ .Values.streamlit.resources.requests.cpu }}
+              memory: {{ .Values.streamlit.resources.requests.memory }}
+            limits:
+              cpu: {{ .Values.streamlit.resources.limits.cpu }}
+              memory: {{ .Values.streamlit.resources.limits.memory }}
+          env:
+            - name: SERVER_IP
+              value: {{ template "tc-chatbot-backend.fullname" . }}-api-svc
+            - name: SERVER_PORT
+              value: {{ .Values.api.containerPort | quote }}
+
+{{- end }}

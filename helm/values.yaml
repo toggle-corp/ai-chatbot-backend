@@ -1,0 +1,109 @@
+environment: prod
+
+image:
+  name: SET-BY-CICD-IMAGE
+  tag: SET-BY-CICD-TAG
+  imagePullPolicy: IfNotPresent
+
+ingress:
+  className: nginx
+  api:
+    enabled: false
+    host:
+  streamlit:
+    enabled: false
+    host:
+
+redis:
+  # TODO: Add persistent storage
+  enabled: true
+  resources:
+    requests:
+      cpu: "0.5"
+      memory: 100Mi
+    limits:
+      cpu: "1"
+      memory: 200Mi
+
+api:
+  enabled: true
+  replicaCount: 1
+  containerPort: 80
+  resources:
+    requests:
+      cpu: "2"
+      memory: 0.5Gi
+    limits:
+      cpu: "2"
+      memory: 1Gi
+
+worker:
+  enabled: true
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: "2"
+      memory: 1.5Gi
+    limits:
+      cpu: "2"
+      memory: 2Gi
+
+streamlit:
+  enabled: true
+  image:
+    name: ghcr.io/toggle-corp/expt-streamlit-chatapp
+    tag: latest
+  replicaCount: 1
+  containerPort: 8501
+  resources:
+    requests:
+      cpu: "2"
+      memory: 0.5Gi
+    limits:
+      cpu: "2"
+      memory: 1Gi
+
+env:
+  # APP_ENVIRONMENT:
+  DJANGO_DEBUG: false
+  DJANGO_TIME_ZONE: UTC
+  DJANGO_ALLOWED_HOST: "*"
+  APP_HTTP_PROTOCOL: https
+  APP_DOMAIN:
+  # Redis (Required if redis.enabled is false)
+  CELERY_REDIS_URL:
+  DJANGO_CACHE_REDIS_URL:
+  # -- Celery
+  CELERY_BROKER_URL:
+  CELERY_RESULT_BACKEND:
+  # Sentry
+  SENTRY_TRACES_SAMPLE_RATE: 0.2
+  SENTRY_PROFILE_SAMPLE_RATE: 0.2
+  # App Domain
+  # Vector Database
+  QDRANT_DB_HOST:
+  QDRANT_DB_PORT: 6333
+  QDRANT_DB_COLLECTION_NAME:
+  # Embedding Model
+  EMBEDDING_MODEL_URL:
+  EMBEDDING_MODEL_NAME:
+  EMBEDDING_MODEL_VECTOR_SIZE: 768
+  EMBEDDING_MODEL_TYPE: 1
+  OLLAMA_EMBEDDING_MODEL_BASE_URL:
+  # LLM Type
+  LLM_TYPE: 1
+  LLM_MODEL_NAME:
+  LLM_OLLAMA_BASE_URL:
+
+secrets:
+  DJANGO_SECRET_KEY:
+  # Database
+  DATABASE_NAME:
+  DATABASE_USER:
+  DATABASE_PASSWORD:
+  DATABASE_HOST:
+  DATABASE_PORT: 5432
+  # Sentry
+  SENTRY_DSN:
+  # OpenAI API key
+  OPENAI_API_KEY:

@@ -95,3 +95,19 @@ jobs:
         run: |
           rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+
+  validate_helm:
+    name: 🚴 Validate Helm 🚴
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@main
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+
+      - name: 🐳 Helm lint
+        run: helm lint ./helm --values ./helm/values-test.yaml
+
+      - name: 🐳 Helm template
+        run: helm template ./helm --values ./helm/values-test.yaml
