@@ -1,8 +1,9 @@
-FROM python:3.12-slim-bullseye as base
+FROM python:3.12-slim-bullseye
 
 LABEL maintainer="Togglecorp Dev"
+LABEL org.opencontainers.image.source="https://github.com/toggle-corp/ai-chatbot-backend"
 
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONUNBUFFERED=1
 
 WORKDIR /code
 

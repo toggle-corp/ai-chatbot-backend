@@ -1,0 +1,38 @@
+environment: test
+
+image:
+  name: ghcr.io/toggle-corp/ai-chatbot-backend
+  tag: test
+
+ingress:
+  host: api.test.com
+
+env:
+  # App Domain
+  # Vector Database
+  QDRANT_DB_HOST: test.com
+  QDRANT_DB_PORT: 1234
+  QDRANT_DB_COLLECTION_NAME: test
+  # Embedding Model
+  EMBEDDING_MODEL_URL: test.com
+  EMBEDDING_MODEL_NAME: test
+  EMBEDDING_MODEL_VECTOR_SIZE: 1234
+  EMBEDDING_MODEL_TYPE: test
+  OLLAMA_EMBEDDING_MODEL_BASE_URL: test.com
+  # LLM Type
+  LLM_TYPE: test
+  LLM_MODEL_NAME: test
+  LLM_OLLAMA_BASE_URL: test.com
+
+secrets:
+  DJANGO_SECRET_KEY: test
+  # Database
+  DATABASE_NAME: test
+  DATABASE_USER: test
+  DATABASE_PASSWORD: test
+  DATABASE_HOST: test
+  DATABASE_PORT: 5432
+  # Sentry
+  SENTRY_DSN: test.com/1234
+  # OpenAI API key
+  OPENAI_API_KEY: test

@@ -1,0 +1,48 @@
+{{- if .Values.worker.enabled }}
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "tc-chatbot-backend.fullname" . }}-worker
+  labels:
+    component: worker-deployment
+    environment: {{ .Values.environment }}
+    release: {{ .Release.Name }}
+    # XXX: Add global lables?
+spec:
+  replicas: {{ .Values.worker.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "tc-chatbot-backend.name" . }}
+      release: {{ .Release.Name }}
+      run: {{ .Release.Name }}-worker
+  template:
+    metadata:
+      annotations:
+        checksum/secret: {{ include (print .Template.BasePath "/config/secret.yaml") . | sha256sum }}
+        checksum/configmap: {{ include (print .Template.BasePath "/config/configmap.yaml") . | sha256sum }}
+      labels:
+        app: {{ template "tc-chatbot-backend.name" . }}
+        release: {{ .Release.Name }}
+        run: {{ .Release.Name }}-worker
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}-worker
+          image: "{{ .Values.image.name }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          # TODO: Add health-check
+          command: ["bash", "/code/scripts/run_worker.sh"]
+          resources:
+            requests:
+              cpu: {{ .Values.worker.resources.requests.cpu }}
+              memory: {{ .Values.worker.resources.requests.memory }}
+            limits:
+              cpu: {{ .Values.worker.resources.limits.cpu }}
+              memory: {{ .Values.worker.resources.limits.memory }}
+          envFrom:
+            - secretRef:
+                name: {{ template "tc-chatbot-backend.fullname" . }}-api-secret
+            - configMapRef:
+                name: {{ template "tc-chatbot-backend.fullname" . }}-api-configmap
+
+{{- end }}

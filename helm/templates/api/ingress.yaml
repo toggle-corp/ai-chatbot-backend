@@ -1,0 +1,26 @@
+{{- if .Values.ingress.api.enabled }}
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ template "tc-chatbot-backend.fullname" . }}-api-ingress
+  labels:
+    app: {{ template "tc-chatbot-backend.name" . }}
+    component: api-service
+    environment: {{ .Values.environment }}
+    release: {{ .Release.Name }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  rules:
+    - host: {{ required "ingress.api.host" .Values.ingress.api.host | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ template "tc-chatbot-backend.fullname" . }}-api-svc
+                port:
+                  number: 80
+
+{{- end }}
