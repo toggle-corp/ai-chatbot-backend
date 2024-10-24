@@ -1,0 +1,26 @@
+{{- if .Values.ingress.streamlit.enabled }}
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ template "tc-chatbot-backend.fullname" . }}-streamlit-ingress
+  labels:
+    app: {{ template "tc-chatbot-backend.name" . }}
+    component: streamlit-service
+    environment: {{ .Values.environment }}
+    release: {{ .Release.Name }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  rules:
+    - host: {{ required "ingress.streamlit.host" .Values.ingress.streamlit.host | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ template "tc-chatbot-backend.fullname" . }}-streamlit-svc
+                port:
+                  number: 80
+
+{{- end }}
