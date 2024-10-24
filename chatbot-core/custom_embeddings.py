@@ -3,6 +3,7 @@ from typing import List, Optional
 
 import requests
 from langchain.embeddings.base import Embeddings
+
 from utils import EmbeddingModelType
 
 
