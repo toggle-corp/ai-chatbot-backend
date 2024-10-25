@@ -4,10 +4,8 @@ on:
   push:
     branches:
       - develop
-      - feature/*  # Delete this
       - project/*
-    tags:
-      - '*'
+    # XXX: To add tags: Update the -beta logic
 
 permissions:
   packages: write
@@ -50,6 +48,12 @@ jobs:
     - name: Package Helm Chart
       id: set-variables
       run: |
+        # XXX: Check if there is a slash in the BRANCH_NAME eg: project/add-docker
+        if [[ "$GITHUB_REF_NAME" == *"/"* ]]; then
+            # XXX: Change the helm chart to <chart-name>-beta
+            sed -i 's/^name: \(.*\)/name: \1-beta/' helm/Chart.yaml
+        fi
+
         SHA_SHORT=$(git rev-parse --short HEAD)
         sed -i "s/SET-BY-CICD/$SHA_SHORT/g" helm/Chart.yaml
         helm package ./helm -d .helm-charts
@@ -57,6 +61,7 @@ jobs:
     - name: Push Helm Chart
       env:
         IMAGE: ${{ needs.ci.outputs.docker_image }}
+        OCI_REPO: oci://ghcr.io/${{ github.repository }}
       run: |
         PACKAGE_FILE=$(ls .helm-charts/*.tgz | head -n 1)
         echo "# Helm Chart" >> $GITHUB_STEP_SUMMARY
@@ -66,5 +71,5 @@ jobs:
         echo "Helm push output" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo '```bash' >> $GITHUB_STEP_SUMMARY
-        helm push "$PACKAGE_FILE" oci://ghcr.io/${{ github.repository }} >> $GITHUB_STEP_SUMMARY
+        helm push "$PACKAGE_FILE" $OCI_REPO >> $GITHUB_STEP_SUMMARY
         echo '```' >> $GITHUB_STEP_SUMMARY
