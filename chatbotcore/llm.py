@@ -2,7 +2,6 @@ import logging
 from dataclasses import dataclass, field
 from typing import Any, Optional
 
-from custom_embeddings import CustomEmbeddingsWrapper
 from django.conf import settings
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains.history_aware_retriever import create_history_aware_retriever
@@ -15,6 +14,8 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_openai import ChatOpenAI
 from langchain_qdrant import QdrantVectorStore
 from qdrant_client import QdrantClient
+
+from chatbotcore.custom_embeddings import CustomEmbeddingsWrapper
 
 logger = logging.getLogger(__name__)
 
@@ -93,7 +94,7 @@ class LLMBase:
         )
         return llm_response_prompt
 
-    def get_db_retriever(self, collection_name: str, top_k_items: int = 5, score_threshold: float = 0.5):
+    def get_db_retriever(self, collection_name: str, top_k_items: int = 5, score_threshold: float = 0.7):
         """Get the database retriever"""
         db_retriever = QdrantVectorStore(
             client=self.qdrant_client, collection_name=collection_name, embedding=self.embedding_model
@@ -120,21 +121,21 @@ class LLMBase:
         rag_chain = create_retrieval_chain(history_aware_retriever, chat_response_chain)
         return rag_chain
 
-    def execute_chain(self, user_id: str, query: str, db_collection_name: str = settings.QDRANT_DB_COLLECTION_NAME):
+    async def execute_chain(self, user_id: str, query: str, db_collection_name: str = settings.QDRANT_DB_COLLECTION_NAME):
         """
         Executes the chain
         """
         if not self.rag_chain:
             self.rag_chain = self.create_chain(db_collection_name=db_collection_name)
 
-        if "user_id" not in self.user_memory_mapping:
+        if user_id not in self.user_memory_mapping:
             self.user_memory_mapping[user_id] = ConversationBufferWindowMemory(
                 k=self.conversation_max_window, memory_key=self.mem_key, return_messages=True
             )
 
         memory = self.user_memory_mapping[user_id]
 
-        response = self.rag_chain.invoke(
+        response = await self.rag_chain.ainvoke(
             {"input": query, "chat_history": self.get_message_history(user_id=user_id)["chat_history"]}
         )
         response_text = response["answer"] if "answer" in response else "I don't know the answer."
@@ -147,13 +148,13 @@ class LLMBase:
         """
         Returns the historical conversational data
         """
-        if "user_id" in self.user_memory_mapping:
+        if user_id in self.user_memory_mapping:
             return self.user_memory_mapping[user_id].load_memory_variables({})
-        return {}
+        return {"chat_history": []}
 
     def delete_message_history_by_user(self, user_id: str) -> bool:
         """Deletes the message history based on user id"""
-        if "user_id" in self.user_memory_mapping:
+        if user_id in self.user_memory_mapping:
             del self.user_memory_mapping[user_id]
             logger.info(f"Successfully delete the {user_id} conversational history.")
             return True

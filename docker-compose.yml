@@ -1,3 +1,66 @@
+
+name: chatbot
+
+x-server: &base_server_setup
+  build:
+    context: .
+  # Used for python debugging.
+  stdin_open: true
+  tty: true
+  env_file:
+    - .env
+  environment:
+    APP_ENVIRONMENT: ${APP_ENVIRONMENT:-development}
+    APP_TYPE: web
+    DJANGO_DEBUG: ${DJANGO_DEBUG:-true}
+    DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+    DJANGO_TIME_ZONE: ${DJANGO_TIME_ZONE:-Asia/Kathmandu}
+    # -- Domain configurations
+    DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:-*}
+    APP_DOMAIN: localhost:8000
+    APP_HTTP_PROTOCOL: ${APP_HTTP_PROTOCOL:-http}
+    SESSION_COOKIE_DOMAIN: ${SESSION_COOKIE_DOMAIN:-localhost}
+    # Database config
+    DATABASE_NAME: ${DATABASE_NAME:-postgres}
+    DATABASE_USER: ${DATABASE_USER:-postgres}
+    DATABASE_PASSWORD: ${DATABASE_PASSWORD:-postgres}
+    DATABASE_PORT: ${DATABASE_PORT:-5432}
+    DATABASE_HOST: ${DATABASE_HOST:-db}
+    # # Redis config
+    CELERY_REDIS_URL: ${CELERY_REDIS_URL:-redis://redis:6379/0}
+    DJANGO_CACHE_REDIS_URL: ${DJANGO_CACHE_REDIS_URL:-redis://redis:6379/1}
+    CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis:6379/0}
+    CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND:-redis://redis:6379/0}
+    CELERY_ACCEPT_CONTENT:  ${CELERY_ACCEPT_CONTENT},
+    CELERY_TASK_SERIALIZER:  ${CELERY_TASK_SERIALIZER:-json}
+    CELERY_RESULT_SERIALIZER:  ${CELERY_RESULT_SERIALIZER:-json}
+    CELERY_TIMEZONE:  ${CELERY_TIMEZONE:-UTC}
+
+    # EMBEDDING MODEL
+    QDRANT_DB_HOST: ${QDRANT_DB_HOST:-0.0.0.0}
+    QDRANT_DB_PORT: ${QDRANT_DB_PORT:-6333}
+    QDRANT_DB_COLLECTION_NAME: ${QDRANT_DB_COLLECTION_NAME:-test}
+    EMBEDDING_MODEL_URL: ${EMBEDDING_MODEL_URL:-localhost}
+    EMBEDDING_MODEL_NAME: ${EMBEDDING_MODEL_NAME:-embedding_model}
+    EMBEDDING_MODEL_VECTOR_SIZE: ${EMBEDDING_MODEL_VECTOR_SIZE:-384}
+    EMBEDDING_MODEL_TYPE: ${EMBEDDING_MODEL_TYPE:-1}
+    OLLAMA_EMBEDDING_MODEL_BASE_URL: ${OLLAMA_EMBEDDING_MODEL_BASE_URL:-model}
+    LLM_TYPE: ${LLM_TYPE:-1}
+    LLM_MODEL_NAME: ${LLM_MODEL_NAME:-"mistral:latest"}
+    LLM_OLLAMA_BASE_URL: ${LLM_OLLAMA_BASE_URL:-localhost:9000}
+    OPENAI_API_KEY: ${OPENAI_API_KEY:-test_key}
+
+  volumes:
+    - .:/code
+  depends_on:
+    - db
+    - redis
+  logging:
+    driver: "json-file"
+    options:
+      max-size: "100m"
+      max-file: "5"
+
 services:
   db:
     image: postgres:16-alpine
@@ -25,43 +88,21 @@ services:
         # https://github.com/qdrant/qdrant/blob/master/config/config.yaml
         QDRANT__SERVICE__HOST: 0.0.0.0
         QDRANT__SERVICE__HTTP_PORT: 6333
-  
+
   web:
-    build: .
-    env_file:
-      - .env
-    environment:
-      DJANGO_DEBUG: ${DJANGO_DEBUG:-True}
-      DJANGO_ALLOWED_HOST: ${DJANGO_ALLOWED_HOST:-localhost}
-      DJNAGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
-      DATABASE_NAME: ${DATABASE_NAME:-postgres}
-      DATABASE_USER: ${DATABASE_USER:-postgres}
-      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-postgres}
-      DATABASE_PORT: ${DATABASE_PORT:-5432}
-      DATABASE_HOST: ${DATABASE_HOST:-db}
-      QDRANT_DB_HOST: ${QDRANT_DB_HOST:-0.0.0.0}
-      QDRANT_DB_PORT: ${QDRANT_DB_PORT:-6333}
-      QDRANT_DB_COLLECTION_NAME: ${QDRANT_DB_COLLECTION_NAME:-test}
-      EMBEDDING_MODEL_URL: ${EMBEDDING_MODEL_URL:-localhost}
-      EMBEDDING_MODEL_NAME: ${EMBEDDING_MODEL_NAME:-embedding_model}
-      EMBEDDING_MODEL_VECTOR_SIZE: ${EMBEDDING_MODEL_VECTOR_SIZE:-384}
-      EMBEDDING_MODEL_TYPE: ${EMBEDDING_MODEL_TYPE:-1}
-      OLLAMA_EMBEDDING_MODEL_BASE_URL: ${OLLAMA_EMBEDDING_MODEL_BASE_URL:-model}
-      LLM_TYPE: ${LLM_TYPE:-1}
-      LLM_MODEL_NAME: ${LLM_MODEL_NAME:-"mistral:latest"}
-      LLM_OLLAMA_BASE_URL: ${LLM_OLLAMA_BASE_URL:-localhost}
-      OPENAI_API_KEY: ${OPENAI_API_KEY:-test_key}
+    <<: *base_server_setup
     command: bash -c 'python manage.py runserver 0.0.0.0:8001'
-    volumes:
-      - .:/code
     ports:
-      - 127.0.0.1:8001:8001 
+      - 8001:8001 
 
     depends_on:
       - db
       - redis
       - qdrant
 
+  worker:
+    <<: *base_server_setup
+    command: celery -A main worker --loglevel=info
 
 volumes:
   postgres-data16:

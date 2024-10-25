@@ -4,6 +4,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from common.models import UserResource
+from content.tasks import create_embedding_for_content_task
 
 
 class Tag(models.Model):
@@ -43,7 +44,10 @@ class Content(UserResource):
 
     def save(self, *args, **kwargs):
         """Save the content to the database."""
-        if self.pk is None:
-            if self.document_type == self.DocumentType.TEXT:
-                self.extracted_file = self.document_file
+        if self.pk is None and self.document_type == self.DocumentType.TEXT:
+            self.extracted_file = self.document_file
+            self.document_status = self.DocumentStatus.TEXT_EXTRACTED
+
         super().save(*args, **kwargs)
+        if self.document_status == self.DocumentStatus.TEXT_EXTRACTED:
+            create_embedding_for_content_task(self.id)
