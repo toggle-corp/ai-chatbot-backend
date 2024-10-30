@@ -2,11 +2,9 @@ from django.contrib.auth import authenticate
 from rest_framework import serializers
 
 
-
 class LoginSerializer(serializers.Serializer):
     email = serializers.CharField()
     password = serializers.CharField(write_only=True)
-
 
     def validate(self, attrs):
         # NOTE: authenticate only works for active users
