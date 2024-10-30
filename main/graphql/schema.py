@@ -1,13 +1,13 @@
 import strawberry
 from strawberry.django.views import AsyncGraphQLView
 
-from user import queries as user_queries
 from user import mutations as user_mutations
+from user import queries as user_queries
+
 from .context import GraphQLContext
 from .dataloaders import GlobalDataLoader
 from .enums import AppEnumCollection, AppEnumCollectionData
 from .permissions import IsAuthenticated
-
 
 
 class CustomAsyncGraphQLView(AsyncGraphQLView):
@@ -41,8 +41,7 @@ class PublicMutation(
 
 
 @strawberry.type
-class PrivateMutation(
-):
+class PrivateMutation:
     id: strawberry.ID = strawberry.ID("private")
 
 
@@ -62,6 +61,7 @@ class Mutation:
         resolver=lambda: PrivateMutation(),
         permission_classes=[IsAuthenticated],
     )
+
 
 schema = strawberry.Schema(
     query=Query,
