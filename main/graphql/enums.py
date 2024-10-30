@@ -1,8 +1,8 @@
 import dataclasses
 
 import strawberry
-from user.enums import enum_map as user_enum_map
 
+from user.enums import enum_map as user_enum_map
 
 ENUM_TO_STRAWBERRY_ENUM_MAP: dict[str, type] = {
     **user_enum_map,
