@@ -12,7 +12,6 @@ class UserType:
     first_name: strawberry.auto
     last_name: strawberry.auto
     department: enum_field(User.department)
-    
 
     @strawberry_django.field
     def display_name(self, root: User) -> str:

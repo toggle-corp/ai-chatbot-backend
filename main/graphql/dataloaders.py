@@ -1,5 +1,7 @@
 from django.utils.functional import cached_property
+
 from user.dataloaders import UserDataLoader
+
 
 class GlobalDataLoader:
 
