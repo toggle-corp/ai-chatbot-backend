@@ -1,5 +1,8 @@
 from django.contrib.auth import authenticate
+from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
+
+from user.models import User
 
 
 class LoginSerializer(serializers.Serializer):
@@ -16,3 +19,20 @@ class LoginSerializer(serializers.Serializer):
         if authenticate_user is None:
             raise serializers.ValidationError("No active account found with the given credentials")
         return {"user": authenticate_user}
+
+
+class UserRegisterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = "__all__"
+
+    def validate_password(self, value):
+        validate_password(value)
+        return value
+
+    def create(self, validated_data):
+        password = validated_data.pop("password")
+        user = User(**validated_data)
+        user.set_password(password)
+        user.save()
+        return user

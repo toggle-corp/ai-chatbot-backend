@@ -4,6 +4,7 @@ from django.contrib.auth import login, logout
 from strawberry.types import Info
 
 from utils.strawberry.mutations import (
+    ModelMutation,
     MutationEmptyResponseType,
     MutationResponseType,
     mutation_is_not_valid,
@@ -12,9 +13,10 @@ from utils.strawberry.mutations import (
 from utils.strawberry.transformers import convert_serializer_to_type
 
 from .queries import UserMeType
-from .serializers import LoginSerializer
+from .serializers import LoginSerializer, UserRegisterSerializer
 
 LoginInput = convert_serializer_to_type(LoginSerializer, name="LoginInput")
+UserRegisterMutation = ModelMutation("UserRegister", UserRegisterSerializer)
 
 
 @strawberry.type
@@ -46,3 +48,11 @@ class PublicMutation:
             logout(info.context.request)
             return MutationEmptyResponseType(ok=True)
         return MutationEmptyResponseType(ok=False)
+
+    @strawberry.mutation
+    async def user_register(
+        self,
+        data: UserRegisterMutation.InputType,  # type: ignore[reportInvalidTypeForm]
+        info: Info,
+    ) -> MutationResponseType[UserMeType]:
+        return await UserRegisterMutation.handle_create_mutation(data, info, None)
