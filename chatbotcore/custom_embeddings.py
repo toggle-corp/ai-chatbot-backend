@@ -27,7 +27,7 @@ class CustomEmbeddingsWrapper(Embeddings):
             if not (self.url and self.model_name and self.base_url):
                 raise Exception("Url or base_url or both are not provided.")
 
-    def embed_query(self, text: str, timeout: int = 30) -> List[float]:
+    def embed_query(self, text: str, timeout: int = 240) -> List[float]:
         """
         Sends the request to Embedding module to
         embed the query to the vector representation
