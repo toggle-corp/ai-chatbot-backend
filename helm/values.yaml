@@ -53,6 +53,7 @@ streamlit:
   image:
     name: ghcr.io/toggle-corp/expt-streamlit-chatapp
     tag: latest
+    pullPolicy: IfNotPresent
   replicaCount: 1
   containerPort: 8501
   resources:

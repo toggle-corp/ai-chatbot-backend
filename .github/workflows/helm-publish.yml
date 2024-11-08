@@ -5,7 +5,7 @@ on:
     branches:
       - develop
       - project/*
-    # XXX: To add tags: Update the -beta logic
+    # XXX: To add tags: Update the -alpha logic
 
 permissions:
   packages: write
@@ -50,8 +50,8 @@ jobs:
       run: |
         # XXX: Check if there is a slash in the BRANCH_NAME eg: project/add-docker
         if [[ "$GITHUB_REF_NAME" == *"/"* ]]; then
-            # XXX: Change the helm chart to <chart-name>-beta
-            sed -i 's/^name: \(.*\)/name: \1-beta/' helm/Chart.yaml
+            # XXX: Change the helm chart to <chart-name>-alpha
+            sed -i 's/^name: \(.*\)/name: \1-alpha/' helm/Chart.yaml
         fi
 
         SHA_SHORT=$(git rev-parse --short HEAD)
