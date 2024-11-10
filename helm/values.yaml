@@ -14,35 +14,68 @@ ingress:
     enabled: false
     host:
 
-redis:
-  # TODO: Add persistent storage
+postgresql:
   enabled: true
+  architecture: standalone
+  auth:
+    database: chatbot
+    # NOTE: For production. Use existingSecret.
+    # TODO: Pass existingSecret to api/worker instances
+    username: chatbot
+    password: chatbot
+  primary:
+    resourcesPreset: "nano"
+    persistence:
+      enabled: true
+      size: 1Gi
+      storageClass: "longhorn"
+
+redis:
+  enabled: true
+  architecture: standalone
+  auth:
+    enabled: false
+  master:
+    resourcesPreset: "nano"
+    persistence:
+      enabled: true
+      size: .5Gi
+      storageClass: "longhorn"
+
+qdrant:
+  enabled: true
+  persistence:
+    storageClassName: "longhorn"
+    accessModes:
+      - "ReadWriteOnce"
+    size: 2Gi
   resources:
     requests:
-      cpu: "0.5"
+      cpu: "100m"
       memory: 100Mi
     limits:
-      cpu: "1"
+      cpu: "100m"
       memory: 200Mi
 
+# TODO: persistence for uploaded files
 api:
   enabled: true
   replicaCount: 1
   containerPort: 80
   resources:
     requests:
-      cpu: "2"
-      memory: 0.5Gi
-    limits:
-      cpu: "2"
+      cpu: "200m"
       memory: 1Gi
+    limits:
+      cpu: "2000m"
+      memory: 2Gi
 
 worker:
   enabled: true
   replicaCount: 1
   resources:
     requests:
-      cpu: "2"
+      cpu: "200m"
       memory: 1.5Gi
     limits:
       cpu: "2"
@@ -58,7 +91,26 @@ streamlit:
   containerPort: 8501
   resources:
     requests:
+      cpu: "200m"
+      memory: 0.5Gi
+    limits:
       cpu: "2"
+      memory: 1Gi
+
+embeddingModel:
+  enabled: true
+  image:
+    name: ghcr.io/toggle-corp/embedding-models
+    tag: latest
+    pullPolicy: IfNotPresent
+  persistence:  # Used to preserve downloaded models
+    storageClassName: ""
+    size: "30G"
+  replicaCount: 1
+  containerPort: 8000
+  resources:
+    requests:
+      cpu: "200m"
       memory: 0.5Gi
     limits:
       cpu: "2"
@@ -82,7 +134,7 @@ env:
   SENTRY_PROFILE_SAMPLE_RATE: 0.2
   # App Domain
   # Vector Database
-  QDRANT_DB_HOST:
+  # QDRANT_DB_HOST: (Required if qdrant.enabled is false)
   QDRANT_DB_PORT: 6333
   QDRANT_DB_COLLECTION_NAME:
   # Embedding Model
@@ -98,7 +150,7 @@ env:
 
 secrets:
   DJANGO_SECRET_KEY:
-  # Database
+  # Database (required if postgresql.enabled if false)
   DATABASE_NAME:
   DATABASE_USER:
   DATABASE_PASSWORD:

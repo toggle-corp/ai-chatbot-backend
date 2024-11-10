@@ -36,6 +36,10 @@ jobs:
     - name: Install Helm
       uses: azure/setup-helm@v3
 
+    - name: 🐳 Helm dependency
+      run: |
+        helm dependency build ./helm
+
     - name: Tag docker image in Helm Chart values.yaml
       env:
         IMAGE_NAME: ${{ needs.ci.outputs.docker_image_name }}

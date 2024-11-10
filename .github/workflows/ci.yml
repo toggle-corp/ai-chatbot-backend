@@ -121,6 +121,10 @@ jobs:
       - name: Install Helm
         uses: azure/setup-helm@v4
 
+      - name: 🐳 Helm dependency
+        run: |
+          helm dependency build ./helm
+
       - name: 🐳 Helm lint
         run: helm lint ./helm --values ./helm/values-test.yaml
 
