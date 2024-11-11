@@ -58,8 +58,15 @@ qdrant:
       memory: 200Mi
 
 argoHooks:
-  enableDatabaseMigration: true
-  enableCollectStatic: true
+  # NOTE: Make sure key are lowercase
+  database-migration:
+    enabled: true
+    hook: PostSync
+    command: ["./manage.py", "migrate"]
+  collect-static:
+    enabled: true
+    hook: PostSync
+    command: ["./manage.py", "collectstatic", "--noinput"]
 
 # TODO: persistence for uploaded files
 api:
