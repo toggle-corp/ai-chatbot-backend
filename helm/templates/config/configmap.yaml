@@ -15,27 +15,40 @@ data:
   APP_HTTP_PROTOCOL: {{ .Values.env.APP_HTTP_PROTOCOL | quote }}
 
   {{- if .Values.redis.enabled }}
-  # Redis
-  DJANGO_CACHE_REDIS_URL: "redis://{{ template "tc-chatbot-backend.fullname" . }}-redis:6379/1"
-  # -- Celery
-  CELERY_REDIS_URL: "redis://{{ template "tc-chatbot-backend.fullname" . }}-redis:6379/0"
-  CELERY_BROKER_URL: "redis://{{ template "tc-chatbot-backend.fullname" . }}-redis:6379/0"
-  CELERY_RESULT_BACKEND: "redis://{{ template "tc-chatbot-backend.fullname" . }}-redis:6379/0"
+  # Celery
+  CELERY_REDIS_URL: "redis://{{ printf "%s-master" (include "common.names.fullname" .Subcharts.redis) }}:6379/0"
+  CELERY_BROKER_URL: "redis://{{ printf "%s-master" (include "common.names.fullname" .Subcharts.redis) }}:6379/0"
+  CELERY_RESULT_BACKEND: "redis://{{ printf "%s-master" (include "common.names.fullname" .Subcharts.redis) }}:6379/0"
+  # Cache
+  DJANGO_CACHE_REDIS_URL: "redis://{{ printf "%s-master" (include "common.names.fullname" .Subcharts.redis) }}:6379/1"
   {{- else }}
-  CELERY_REDIS_URL: {{ required "env.CELERY_REDIS_URL" .Values.env.CELERY_REDIS_URL | quote }}
+  # Celery
+  CELERY_BROKER_URL: {{ required "env.CELERY_BROKER_URL" .Values.env.CELERY_BROKER_URL | quote }}
   CACHE_REDIS_URL: {{ required "env.CACHE_REDIS_URL" .Values.env.CACHE_REDIS_URL | quote }}
+  CELERY_RESULT_BACKEND: {{ required "env.CELERY_RESULT_BACKEND" .Values.env.CELERY_RESULT_BACKEND | quote }}
+  # Cache
+  DJANGO_CACHE_REDIS_URL: {{ required "env.DJANGO_CACHE_REDIS_URL" .Values.env.DJANGO_CACHE_REDIS_URL | quote }}
   {{- end }}
 
   # Sentry
   SENTRY_TRACES_SAMPLE_RATE: {{ .Values.env.SENTRY_TRACES_SAMPLE_RATE | quote }}
   SENTRY_PROFILE_SAMPLE_RATE: {{ .Values.env.SENTRY_PROFILE_SAMPLE_RATE | quote }}
-  # App Domain
+
   # Vector Database
-  QDRANT_DB_HOST: {{ .Values.env.QDRANT_DB_HOST | quote }}
-  QDRANT_DB_PORT: {{ .Values.env.QDRANT_DB_PORT | quote }}
-  QDRANT_DB_COLLECTION_NAME: {{ .Values.env.QDRANT_DB_COLLECTION_NAME | quote }}
+  {{- if .Values.redis.enabled }}
+  QDRANT_DB_HOST: {{ include "qdrant.fullname" .Subcharts.qdrant | quote }}
+  {{- else }}
+  QDRANT_DB_HOST: {{ required "env.QDRANT_DB_HOST" .Values.env.QDRANT_DB_HOST | quote }}
+  {{- end }}
+  QDRANT_DB_PORT: {{ required "env.QDRANT_DB_PORT" .Values.env.QDRANT_DB_PORT | quote }}
+  QDRANT_DB_COLLECTION_NAME: {{ required "env.QDRANT_DB_COLLECTION_NAME" .Values.env.QDRANT_DB_COLLECTION_NAME | quote }}
+
   # Embedding Model
-  EMBEDDING_MODEL_URL: {{ .Values.env.EMBEDDING_MODEL_URL | quote }}
+  {{- if .Values.embeddingModel.enabled }}
+  EMBEDDING_MODEL_URL: http://{{ template "tc-chatbot-backend.fullname" . }}-embedding-model-svc
+  {{- else }}
+  EMBEDDING_MODEL_URL: {{ required ".Values.env.EMBEDDING_MODEL_URL" .Values.env.EMBEDDING_MODEL_URL | quote }}
+  {{- end }}
   EMBEDDING_MODEL_NAME: {{ .Values.env.EMBEDDING_MODEL_NAME | quote }}
   EMBEDDING_MODEL_VECTOR_SIZE: {{ .Values.env.EMBEDDING_MODEL_VECTOR_SIZE | quote }}
   EMBEDDING_MODEL_TYPE: {{ .Values.env.EMBEDDING_MODEL_TYPE | quote }}

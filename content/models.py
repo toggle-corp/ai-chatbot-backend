@@ -1,6 +1,6 @@
 import uuid
 
-from django.db import models
+from django.db import models, transaction
 from django.utils.translation import gettext_lazy as _
 
 from common.models import UserResource
@@ -50,4 +50,4 @@ class Content(UserResource):
 
         super().save(*args, **kwargs)
         if self.document_status == self.DocumentStatus.TEXT_EXTRACTED:
-            create_embedding_for_content_task(self.id)
+            transaction.on_commit(lambda: create_embedding_for_content_task.delay(self.id))

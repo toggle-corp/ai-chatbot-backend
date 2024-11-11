@@ -1,12 +1,12 @@
-{{- if .Values.streamlit.enabled }}
+{{- if .Values.embeddingModel.enabled }}
 
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ template "tc-chatbot-backend.fullname" . }}-streamlit-svc
+  name: {{ template "tc-chatbot-backend.fullname" . }}-embedding-model-svc
   labels:
     app: {{ template "tc-chatbot-backend.name" . }}
-    component: streamlit-service
+    component: embedding-model-service
     environment: {{ .Values.environment }}
     release: {{ .Release.Name }}
 spec:
@@ -14,11 +14,11 @@ spec:
   selector:
     app: {{ template "tc-chatbot-backend.name" . }}
     release: {{ .Release.Name }}
-    run: {{ .Release.Name }}-streamlit
+    run: {{ .Release.Name }}-embedding-model
   ports:
     - protocol: TCP
       port: 80
-      targetPort: {{ .Values.streamlit.containerPort }}
+      targetPort: {{ .Values.embeddingModel.containerPort }}
       nodePort: null
 
 {{- end }}

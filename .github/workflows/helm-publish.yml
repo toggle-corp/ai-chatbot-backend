@@ -5,7 +5,7 @@ on:
     branches:
       - develop
       - project/*
-    # XXX: To add tags: Update the -beta logic
+    # XXX: To add tags: Update the -alpha logic
 
 permissions:
   packages: write
@@ -36,6 +36,11 @@ jobs:
     - name: Install Helm
       uses: azure/setup-helm@v3
 
+    - name: 🐳 Helm dependency
+      run: |
+        yq --indent 0 '.dependencies | map(["helm", "repo", "add", .name, .repository] | join(" ")) | .[]' ./helm/Chart.lock  | sh --
+        helm dependency build ./helm
+
     - name: Tag docker image in Helm Chart values.yaml
       env:
         IMAGE_NAME: ${{ needs.ci.outputs.docker_image_name }}
@@ -50,8 +55,8 @@ jobs:
       run: |
         # XXX: Check if there is a slash in the BRANCH_NAME eg: project/add-docker
         if [[ "$GITHUB_REF_NAME" == *"/"* ]]; then
-            # XXX: Change the helm chart to <chart-name>-beta
-            sed -i 's/^name: \(.*\)/name: \1-beta/' helm/Chart.yaml
+            # XXX: Change the helm chart to <chart-name>-alpha
+            sed -i 's/^name: \(.*\)/name: \1-alpha/' helm/Chart.yaml
         fi
 
         SHA_SHORT=$(git rev-parse --short HEAD)
