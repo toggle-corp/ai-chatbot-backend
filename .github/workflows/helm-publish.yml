@@ -5,7 +5,7 @@ on:
     branches:
       - develop
       - project/*
-    # XXX: To add tags: Update the -alpha logic
+      # XXX: To add tags: Update the -alpha logic
 
 permissions:
   packages: write

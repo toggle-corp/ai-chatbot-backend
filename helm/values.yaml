@@ -57,6 +57,17 @@ qdrant:
       cpu: "100m"
       memory: 200Mi
 
+argoHooks:
+  # NOTE: Make sure key are lowercase
+  database-migration:
+    enabled: true
+    hook: PostSync
+    command: ["./manage.py", "migrate"]
+  collect-static:
+    enabled: true
+    hook: PostSync
+    command: ["./manage.py", "collectstatic", "--noinput"]
+
 # TODO: persistence for uploaded files
 api:
   enabled: true
@@ -147,6 +158,12 @@ env:
   LLM_TYPE: 1
   LLM_MODEL_NAME:
   LLM_OLLAMA_BASE_URL:
+  # S3
+  USE_S3_BUCKET: true
+  AWS_S3_AWS_ENDPOINT_URL:
+  AWS_S3_REGION:
+  S3_STATIC_BUCKET_NAME:
+  S3_MEDIA_BUCKET_NAME:
 
 secrets:
   DJANGO_SECRET_KEY:
@@ -160,3 +177,6 @@ secrets:
   SENTRY_DSN:
   # OpenAI API key
   OPENAI_API_KEY:
+  # S3
+  AWS_S3_ACCESS_KEY_ID:
+  AWS_S3_SECRET_ACCESS_KEY:
