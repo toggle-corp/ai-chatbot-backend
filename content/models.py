@@ -50,6 +50,4 @@ class Content(UserResource):
 
         super().save(*args, **kwargs)
         if self.document_status == self.DocumentStatus.TEXT_EXTRACTED:
-            transaction.on_commit(
-                lambda: create_embedding_for_content_task.delay(self.id)
-            )
+            transaction.on_commit(lambda: create_embedding_for_content_task.delay(self.id))
