@@ -23,14 +23,23 @@ env = environ.Env(
     DJANGO_SECRET_KEY=str,
     DJANGO_CORS_ORIGIN_REGEX_WHITELIST=(list, []),
     DJANGO_ALLOWED_HOST=(list, ["*"]),
-    DJANGO_STATIC_ROOT=(str, os.path.join(BASE_DIR, "assets/static")),  # Where to store
-    DJANGO_MEDIA_ROOT=(str, os.path.join(BASE_DIR, "assets/media")),  # Where to store
-    DJANGO_STATIC_URL=(str, "/static/"),
-    DJANGO_MEDIA_URL=(str, "/media/"),
     DJANGO_TIME_ZONE=(str, "UTC"),
     APP_HTTP_PROTOCOL=str,
     APP_ENVIRONMENT=str,
     APP_DOMAIN=str,
+    # Storage
+    DJANGO_STATIC_ROOT=(str, os.path.join(BASE_DIR, "assets/static")),  # Where to store
+    DJANGO_MEDIA_ROOT=(str, os.path.join(BASE_DIR, "assets/media")),  # Where to store
+    DJANGO_STATIC_URL=(str, "/static/"),
+    DJANGO_MEDIA_URL=(str, "/media/"),
+    # -- S3
+    USE_S3_BUCKET=(bool, False),
+    AWS_S3_AWS_ENDPOINT_URL=str,
+    AWS_S3_ACCESS_KEY_ID=str,
+    AWS_S3_SECRET_ACCESS_KEY=str,
+    AWS_S3_REGION=str,
+    S3_STATIC_BUCKET_NAME=str,
+    S3_MEDIA_BUCKET_NAME=str,
     # Database
     DATABASE_NAME=str,
     DATABASE_USER=str,
@@ -225,11 +234,6 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATIC_URL = env("DJANGO_STATIC_URL")
-MEDIA_URL = env("DJANGO_MEDIA_URL")
-STATIC_ROOT = env("DJANGO_STATIC_ROOT")
-MEDIA_ROOT = env("DJANGO_MEDIA_ROOT")
-
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
@@ -242,3 +246,37 @@ CELERY_ACCEPT_CONTENT = env("CELERY_ACCEPT_CONTENT")
 CELERY_TASK_SERIALIZER = env("CELERY_TASK_SERIALIZER")
 CELERY_RESULT_SERIALIZER = env("CELERY_RESULT_SERIALIZER")
 CELERY_TIMEZONE = env("CELERY_TIMEZONE")
+
+
+STATIC_URL = env("DJANGO_STATIC_URL")
+MEDIA_URL = env("DJANGO_MEDIA_URL")
+
+# Django storage
+if env("USE_S3_BUCKET"):
+    AWS_S3_ENDPOINT_URL = env("AWS_S3_AWS_ENDPOINT_URL")
+
+    AWS_S3_ACCESS_KEY_ID = env("AWS_S3_ACCESS_KEY_ID")
+    AWS_S3_SECRET_ACCESS_KEY = env("AWS_S3_SECRET_ACCESS_KEY")
+    AWS_S3_REGION_NAME = env("AWS_S3_REGION")
+
+    STORAGES = {
+        "default": {
+            "BACKEND": "storages.backends.s3.S3Storage",
+            "OPTIONS": {
+                "bucket_name": env("S3_MEDIA_BUCKET_NAME"),
+                "location": "media/",
+                "file_overwrite": False,
+            },
+        },
+        "staticfiles": {
+            "BACKEND": "storages.backends.s3.S3Storage",
+            "OPTIONS": {
+                "bucket_name": env("S3_STATIC_BUCKET_NAME"),
+                "location": "static/",
+            },
+        },
+    }
+
+else:
+    STATIC_ROOT = env("DJANGO_STATIC_ROOT")
+    MEDIA_ROOT = env("DJANGO_MEDIA_ROOT")
