@@ -25,7 +25,11 @@ from content.views import UserQuery
 from main.graphql.schema import CustomAsyncGraphQLView
 from main.graphql.schema import schema as graphql_schema
 
-urlpatterns = [path("admin/", admin.site.urls), path("chat_message", UserQuery.as_view())]
+urlpatterns = [
+    path("admin/", admin.site.urls),
+    path("chat_message", UserQuery.as_view()),
+    path("graphql/", csrf_exempt(CustomAsyncGraphQLView.as_view(schema=graphql_schema))),
+]
 if settings.DEBUG:
     urlpatterns.append(path("graphiql/", csrf_exempt(CustomAsyncGraphQLView.as_view(schema=graphql_schema))))
 

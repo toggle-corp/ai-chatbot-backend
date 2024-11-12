@@ -1,13 +1,11 @@
-
 import strawberry
 import strawberry_django
+from django.db import models
 
-from utils.strawberry.enums import enum_field
-from utils.common import get_queryset_for_model
 from main.graphql.context import Info
+from utils.common import get_queryset_for_model
 
 from .models import Content
-from django.db import models
 
 
 @strawberry_django.type(Content)
