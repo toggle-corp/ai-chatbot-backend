@@ -1,6 +1,7 @@
 import strawberry
 from strawberry.django.views import AsyncGraphQLView
 
+from content import mutations as content_mutations
 from content import queries as content_queries
 from user import mutations as user_mutations
 from user import queries as user_queries
@@ -40,7 +41,7 @@ class PublicMutation(
 
 
 @strawberry.type
-class PrivateMutation:
+class PrivateMutation(content_mutations.PrivateMutation):
     id: strawberry.ID = strawberry.ID("private")
 
 
