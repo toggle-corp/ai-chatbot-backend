@@ -21,16 +21,24 @@ from django.contrib import admin
 from django.urls import path
 from django.views.decorators.csrf import csrf_exempt
 
-from content.views import UserQuery
 from main.graphql.schema import CustomAsyncGraphQLView
 from main.graphql.schema import schema as graphql_schema
+
+from content.views import UserQuery
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("chat_message", UserQuery.as_view()),
-    path("graphiql/", csrf_exempt(CustomAsyncGraphQLView.as_view(schema=graphql_schema))),
+    path(
+        "graphql/",
+        CustomAsyncGraphQLView.as_view(
+            schema=graphql_schema,
+            graphiql=False,
+        ),
+    ),
 ]
 if settings.DEBUG:
+    urlpatterns.append(path("graphiql/", csrf_exempt(CustomAsyncGraphQLView.as_view(schema=graphql_schema))))
 
     # Static and media file URLs
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
