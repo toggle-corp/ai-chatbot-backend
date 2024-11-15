@@ -122,10 +122,10 @@ embeddingModel:
   resources:
     requests:
       cpu: "200m"
-      memory: 0.5Gi
+      memory: 2Gi
     limits:
       cpu: "2"
-      memory: 1Gi
+      memory: 5Gi
 
 env:
   # APP_ENVIRONMENT:
