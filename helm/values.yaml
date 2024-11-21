@@ -126,6 +126,10 @@ embeddingModel:
     limits:
       cpu: "2"
       memory: 6Gi
+  env:
+    EMBEDDING_MODEL_NAME: "sentence-transformers/gtr-t5-large"
+    EMBEDDING_MODEL_TYPE: 1
+    EMBEDDING_MODEL_VECTOR_SIZE: 768
 
 env:
   # APP_ENVIRONMENT:

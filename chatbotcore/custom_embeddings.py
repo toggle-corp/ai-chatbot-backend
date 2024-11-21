@@ -32,7 +32,7 @@ class CustomEmbeddingsWrapper(Embeddings):
         Sends the request to Embedding module to
         embed the query to the vector representation
         """
-        payload = {"type_model": self.model_type, "name_model": self.model_name, "texts": text}
+        payload = {"texts": text}
         try:
             response = requests.post(url=self.url, json=payload, timeout=timeout)
         except requests.Timeout as e:
@@ -44,7 +44,7 @@ class CustomEmbeddingsWrapper(Embeddings):
         Sends the request to Embedding module to
         embed multiple queries to the vector representation
         """
-        payload = {"type_model": self.model_type, "name_model": self.model_name, "texts": texts}
+        payload = {"texts": texts}
         try:
             response = requests.post(url=self.url, json=payload, timeout=timeout)
         except requests.Timeout as e:
