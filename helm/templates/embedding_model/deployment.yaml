@@ -51,6 +51,13 @@ spec:
           volumeMounts:
           - mountPath: "/opt/models"
             name: downloaded-models
+          env:
+            - name: EMBEDDING_MODEL_NAME
+              value: {{ .Values.embeddingModel.env.EMBEDDING_MODEL_NAME }}
+            - name: EMBEDDING_MODEL_TYPE
+              value: {{ .Values.embeddingModel.env.EMBEDDING_MODEL_TYPE }}
+            - name: EMBEDDING_MODEL_VECTOR_SIZE
+              value: {{ .Values.embeddingModel.env.EMBEDDING_MODEL_VECTOR_SIZE }}
       volumes:
         - name: downloaded-models
           persistentVolumeClaim:
