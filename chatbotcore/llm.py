@@ -36,7 +36,7 @@ class LLMBase:
     rag_chain: Optional[Any] = None
     db_retriever: Optional[Any] = None
 
-    def __post_init__(self, mem_key: str = "chat_history", conversation_max_window: int = 5):
+    def __post_init__(self, mem_key: str = "chat_history", conversation_max_window: int = 3):
         self.llm_model = None
         self.qdrant_client = None
 
@@ -63,7 +63,7 @@ class LLMBase:
             base_url=settings.OLLAMA_EMBEDDING_MODEL_BASE_URL,
         )
 
-    def get_db_retriever(self, top_k_items: int = 10, score_threshold: float = 0.6):
+    def get_db_retriever(self, top_k_items: int = 5, score_threshold: float = 0.7):
         """Get the database retriever"""
         all_documents = self.qdrant_client.load_all_documents()
 
