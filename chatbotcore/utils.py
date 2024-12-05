@@ -120,7 +120,13 @@ class HybridRetriever(BaseRetriever):
 
         reranker = Reranker(query=query, documents=combined_docs)
         reranked_documents = reranker.rerank()
-        return reranked_documents
+        unique_docs = {}
+        for doc in reranked_documents:
+            doc_id = doc.metadata["_id"]
+            if doc_id not in unique_docs:
+                unique_docs[doc_id] = doc
+
+        return list(unique_docs.values())[:5]
 
     async def _aget_relevant_documents(self, query: str, run_manager: Optional[Any] = None):
         """
