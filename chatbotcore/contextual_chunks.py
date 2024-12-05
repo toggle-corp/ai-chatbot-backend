@@ -76,6 +76,7 @@ class ContextualChunking:
 
         Please give a short succint context (within 30 tokens) to situate this chunk within the overall document\n
         for the purposes of improving search retrieval of the chunk. Answer only with the succint context and nothing else.
+        Make sure that the context does not miss the factual informations in the chunk.
         """
         return prompt
 
