@@ -63,7 +63,7 @@ class LLMBase:
             base_url=settings.OLLAMA_EMBEDDING_MODEL_BASE_URL,
         )
 
-    def get_db_retriever(self, top_k_items: int = 5, score_threshold: float = 0.7):
+    def get_db_retriever(self, top_k_items: int = 4, score_threshold: float = 0.7):
         """Get the database retriever"""
         all_documents = self.qdrant_client.load_all_documents()
 
@@ -81,25 +81,24 @@ class LLMBase:
 
     def _system_prompt_for_retrieval(self):
         """System prompt for information retrieval"""
-        return """Given a chat history and the latest user question {input} \
-            which might reference context in the chat history, formulate a standalone question \
-            which can be understood without the chat history. Do NOT answer the question, \
-            just reformulate it if needed and otherwise return it as is."""
+        return """Given the following chat history and the latest user question, which may refer to prior context or information, 
+        rephrase the user's latest query into a standalone question.
+        Ensure that the rephrased question is clear, concise, and can be understood without needing access to the entire chat history,
+        while preserving the meaning and intent from previous exchanges.
+        If the question is already self-contained and does not rely on prior context, return it as is, with no modifications."""  # noqa
 
     def _system_prompt_for_response(self):
         """
         System prompt for response generation
         """
         system_prompt = """
-            You are an assistant to answer the office related relevant questions based on provided contexts according to the query {input}.\n,
-            Use the retrieved context to answer the question strictly. The response should be concise and to the point.\n,
-            If the retrieved context is not available, do not use your own knowledge or the chat history,\n
-            You will not invent anything that is not drawn directly from the provided context.\n
+            You are an assistant to answer the office related relevant questions according to the query {input}.\n,
+            Use the retrieved context {context} interpret it and answer the question.
+            You will not invent anything by your own and discard any history that is not relevant\n
             Just say 'Sorry, can't answer as relevant context is not available or didn't understand your question.\n
             How can I help with other office related queries ?'
             \n\n,
-            {context}
-        """
+        """  # noqa
 
         return system_prompt
 
@@ -180,12 +179,10 @@ class LLMBase:
                 "chat_history": relevant_history,
             }
         )
-        context_documents = response.get("context", [])
-        logger.info(f"Documents retrieved by the history aware retriever: {context_documents}")
         response_text = response["answer"] if "answer" in response else self.default_failure_message
 
         point_ids = [d.metadata["_id"] for d in response["context"]]
-        logger.info("the point_ids obtained by qdrant: %s", point_ids)
+
         relevant_vectors = self.qdrant_client.retrieve_vectors(points=point_ids)
 
         # page_contexts = [d.metadata.get("page_content") or d.page_content for d in response["context"]]
