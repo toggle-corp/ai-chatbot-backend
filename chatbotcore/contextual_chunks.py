@@ -92,6 +92,22 @@ class ContextualChunking:
         contextualized_chunks = []
         for chunk in chunks:
             context = self._generate_context(document, chunk.page_content)
-            contextualized_content = f"""{context.strip()}. {chunk.page_content.strip()}"""
+
+            # Strip both context and chunk content of leading/trailing spaces
+            context = context.strip()
+
+            chunk_content = chunk.page_content.strip()
+
+            if context.startswith('"'):
+                context = context[1:]  # Remove the first character (the opening quote)
+            if context.endswith('"'):
+                context = context[:-1]
+            if context.endswith("."):
+                context = context[:-1]
+
+            # Concatenate context with chunk content, ensuring no unwanted spaces or punctuation
+            contextualized_content = f"{context}. {chunk_content}"
+            # Add the cleaned-up content to the list of contextualized chunks
             contextualized_chunks.append(Document(page_content=contextualized_content, metadata=chunk.metadata))
+
         return contextualized_chunks
