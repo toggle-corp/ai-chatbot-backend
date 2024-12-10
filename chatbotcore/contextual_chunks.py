@@ -1,4 +1,5 @@
 import logging
+import re
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, List
@@ -76,6 +77,7 @@ class ContextualChunking:
 
         Please give a short succint context (within 30 tokens) to situate this chunk within the overall document\n
         for the purposes of improving search retrieval of the chunk. Answer only with the succint context and nothing else.
+        Make sure that the context does not miss the factual informations in the chunk.
         """
         return prompt
 
@@ -91,6 +93,17 @@ class ContextualChunking:
         contextualized_chunks = []
         for chunk in chunks:
             context = self._generate_context(document, chunk.page_content)
-            contextualized_content = f"""{context.strip()}. {chunk.page_content.strip()}"""
+
+            # Strip both context and chunk content of leading/trailing spaces
+            context = context.strip()
+
+            chunk_content = chunk.page_content.strip()
+            # Remove " or . or both appearing at the beginning or end of text
+            context = re.sub(r'^"|[".]+$', "", context)
+
+            # Concatenate context with chunk content, ensuring no unwanted spaces or punctuation
+            contextualized_content = f"{context}. {chunk_content}"
+            # Add the cleaned-up content to the list of contextualized chunks
             contextualized_chunks.append(Document(page_content=contextualized_content, metadata=chunk.metadata))
+
         return contextualized_chunks

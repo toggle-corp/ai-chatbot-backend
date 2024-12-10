@@ -1,6 +1,5 @@
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime
 from typing import Any, List, Optional
 
 from django.conf import settings
@@ -10,6 +9,7 @@ from langchain.chains.retrieval import create_retrieval_chain
 from langchain.memory import ConversationBufferWindowMemory
 from langchain_community.llms.ollama import Ollama
 from langchain_community.utils.math import cosine_similarity
+from langchain_core.messages.ai import AIMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_openai import ChatOpenAI
 from qdrant_client import QdrantClient
@@ -63,7 +63,7 @@ class LLMBase:
             base_url=settings.OLLAMA_EMBEDDING_MODEL_BASE_URL,
         )
 
-    def get_db_retriever(self, top_k_items: int = 5, score_threshold: float = 0.7):
+    def get_db_retriever(self, top_k_items: int = 4, score_threshold: float = 0.7):
         """Get the database retriever"""
         all_documents = self.qdrant_client.load_all_documents()
 
@@ -81,29 +81,25 @@ class LLMBase:
 
     def _system_prompt_for_retrieval(self):
         """System prompt for information retrieval"""
-        return (
-            "Given a chat history and the latest user question which might reference context in the chat history, "
-            "formulate a standalone question which can be understood without the chat history. Do NOT answer the question, "
-            "just reformulate it if needed and otherwise return it as is."
-        )
+        return """Given the following chat history and the latest user question, which may refer to prior context or information, 
+        rephrase the user's latest query into a standalone question.
+        Ensure that the rephrased question is clear, concise, and can be understood without needing access to the entire chat history,
+        while preserving the meaning and intent from previous exchanges.
+        If the question is already self-contained and does not rely on prior context, return it as is, with no modifications."""  # noqa
 
     def _system_prompt_for_response(self):
         """
         System prompt for response generation
         """
         system_prompt = """
-            You are an assistant to answer the office related relevant questions based on provided contexts.\n,
-            Use the retrieved context to answer the question strictly. The response should be concise and to the point.\n,
-            If the input query includes date or time information,\n
-            use today's date {today} as a reference otherwise ignore it.\n
-            If the chat history makes sense, use it otherwise ignore it.\n
-            If the retrieved context is not available, do not use your own knowledge or the chat history,\n
-            You will not invent anything that is not drawn directly from the provided context.\n
+            You are an assistant to answer the office related relevant questions according to the query {input}.\n,
+            Use the retrieved context {context} interpret it and answer the question.
+            You will not invent anything by your own and discard any history that is not relevant\n
             Just say 'Sorry, can't answer as relevant context is not available or didn't understand your question.\n
             How can I help with other office related queries ?'
             \n\n,
-            {context}
-        """
+        """  # noqa
+
         return system_prompt
 
     def get_prompt_template_for_retrieval(self):
@@ -137,6 +133,22 @@ class LLMBase:
         rag_chain = create_retrieval_chain(history_aware_retriever, chat_response_chain)
         return rag_chain
 
+    async def filter_relevant_history(self, user_id: str, query: str, similarity_threshold: float = 0.7):
+        """Filters relevant history based on query"""
+        current_query_vector = self.embedding_model.embed_query(query)
+        relevant_history = []
+        message_history = self.get_message_history(user_id=user_id)["chat_history"]
+        for i in range(1, len(message_history)):
+            if isinstance(message_history[i], AIMessage):
+                message_content_ai = message_history[i].content
+                query_vector_ai = self.embedding_model.embed_query(text=message_content_ai)
+                similarity_score_ai = cosine_similarity([query_vector_ai], [current_query_vector])[0][0]
+                if similarity_score_ai > similarity_threshold:
+                    relevant_history.append(message_history[i - 1])  # human query
+                    relevant_history.append(message_history[i])  # ai response
+
+        return relevant_history if relevant_history else []
+
     async def execute_chain(self, user_id: str, query: str):
         """
         Executes the chain
@@ -152,18 +164,19 @@ class LLMBase:
                 k=self.conversation_max_window, memory_key=self.mem_key, return_messages=True
             )
 
+        relevant_history = await self.filter_relevant_history(user_id=user_id, query=query, similarity_threshold=0.7)
         memory = self.user_memory_mapping[user_id]
 
         response = await self.rag_chain.ainvoke(
             {
                 "input": query,
-                "today": datetime.now().isoformat(),
-                "chat_history": self.get_message_history(user_id=user_id)["chat_history"],
+                "chat_history": relevant_history,
             }
         )
         response_text = response["answer"] if "answer" in response else self.default_failure_message
 
         point_ids = [d.metadata["_id"] for d in response["context"]]
+
         relevant_vectors = self.qdrant_client.retrieve_vectors(points=point_ids)
 
         # page_contexts = [d.metadata.get("page_content") or d.page_content for d in response["context"]]
@@ -176,7 +189,7 @@ class LLMBase:
         return self.default_failure_message
 
     async def postprocess_response(
-        self, relevant_vectors: List[List[float]], llm_response: str, threshold: float = 0.4
+        self, relevant_vectors: List[List[float]], llm_response: str, threshold: float = 0.5
     ) -> bool:
         """
         Check if the generated llm response is in sync with the retrieved contexts
