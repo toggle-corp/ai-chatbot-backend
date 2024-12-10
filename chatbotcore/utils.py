@@ -5,6 +5,7 @@ from typing import Any, List, Optional
 import requests
 from django.conf import settings
 from langchain.schema import Document
+from langchain_community.document_transformers import LongContextReorder
 from langchain_core.retrievers import BaseRetriever
 from langchain_core.runnables.config import run_in_executor
 from langchain_qdrant import QdrantVectorStore
@@ -55,12 +56,14 @@ class BM25DocRetriever(BaseRetriever):
     bm25: Any
     all_docs: Any
     k: Any
+    threshold: Any
     """BM25 retriever for text based search"""
 
-    def __init__(self, docs: List[Document], k_items: int):
+    def __init__(self, docs: List[Document], k_items: int, threshold: int = 10):
         super().__init__()
         self.all_docs = docs
         self.k = k_items
+        self.threshold = threshold
         document_contents = [doc.metadata["page_content"] for doc in docs]
         tokenized_docs = [doc.split() for doc in document_contents]
         self.bm25 = BM25Okapi(tokenized_docs)
@@ -70,7 +73,7 @@ class BM25DocRetriever(BaseRetriever):
         tokenized_query = query.split()
         scores = self.bm25.get_scores(tokenized_query)
         ranked_docs_indices = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)
-        return [self.all_docs[i] for i in ranked_docs_indices][: self.k]  # Returns top k items
+        return [self.all_docs[i] for i in ranked_docs_indices if scores[i] > self.threshold][: self.k]  # Returns top k items
 
     async def _aget_relevant_documents(self, query: str, run_manager=None):
         return await run_in_executor(None, self._get_relevant_documents, query, run_manager=run_manager)
@@ -97,11 +100,13 @@ class HybridRetriever(BaseRetriever):
 
     bm25_retriever: Any
     qdrant_retriever: Any
+    chunks_reordering: Any
 
     def __init__(self, bm25_retriever, qdrant_retriever):
         super().__init__()
         self.bm25_retriever = bm25_retriever
         self.qdrant_retriever = qdrant_retriever
+        self.chunks_reordering = LongContextReorder()
 
     def _get_relevant_documents(self, query: str, run_manager: Optional[Any] = None):
         """
@@ -118,15 +123,13 @@ class HybridRetriever(BaseRetriever):
 
         combined_docs = bm25_docs + qdrant_docs
 
-        reranker = Reranker(query=query, documents=combined_docs)
-        reranked_documents = reranker.rerank()
-        unique_docs = {}
-        for doc in reranked_documents:
+        reordered_documents = self.chunks_reordering.transform_documents(combined_docs)
+        unique_reordered_documents = {}
+        for doc in reordered_documents:
             doc_id = doc.metadata["_id"]
-            if doc_id not in unique_docs:
-                unique_docs[doc_id] = doc
-
-        return list(unique_docs.values())[:5]
+            if doc_id not in unique_reordered_documents:
+                unique_reordered_documents[doc_id] = doc
+        return list(unique_reordered_documents.values())
 
     async def _aget_relevant_documents(self, query: str, run_manager: Optional[Any] = None):
         """

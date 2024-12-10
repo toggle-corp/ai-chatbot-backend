@@ -133,25 +133,19 @@ class LLMBase:
         rag_chain = create_retrieval_chain(history_aware_retriever, chat_response_chain)
         return rag_chain
 
-    async def filter_relevant_history(self, user_id: str, query: str, similarity_threshold: float = 0.5):
-
+    async def filter_relevant_history(self, user_id: str, query: str, similarity_threshold: float = 0.7):
+        """Filters relevant history based on query"""
         current_query_vector = self.embedding_model.embed_query(query)
-
         relevant_history = []
-
         message_history = self.get_message_history(user_id=user_id)["chat_history"]
         for i in range(1, len(message_history)):
-
             if isinstance(message_history[i], AIMessage):
                 message_content_ai = message_history[i].content
-                logger.info(f"message content: {message_content_ai}")
                 query_vector_ai = self.embedding_model.embed_query(text=message_content_ai)
-
                 similarity_score_ai = cosine_similarity([query_vector_ai], [current_query_vector])[0][0]
-                logger.info(f"the cosine similarity of ai response is {similarity_score_ai}")
                 if similarity_score_ai > similarity_threshold:
-                    relevant_history.append(message_history[i - 1])
-                    relevant_history.append(message_history[i])
+                    relevant_history.append(message_history[i - 1])  # human query
+                    relevant_history.append(message_history[i])  # ai response
 
         return relevant_history if relevant_history else []
 
