@@ -1,4 +1,5 @@
 import logging
+import re
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, List
@@ -97,13 +98,8 @@ class ContextualChunking:
             context = context.strip()
 
             chunk_content = chunk.page_content.strip()
-
-            if context.startswith('"'):
-                context = context[1:]  # Remove the first character (the opening quote)
-            if context.endswith('"'):
-                context = context[:-1]
-            if context.endswith("."):
-                context = context[:-1]
+            # Remove " or . or both appearing at the beginning or end of text
+            context = re.sub(r'^"|[".]+$', "", context)
 
             # Concatenate context with chunk content, ensuring no unwanted spaces or punctuation
             contextualized_content = f"{context}. {chunk_content}"
