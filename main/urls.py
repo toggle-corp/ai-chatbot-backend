@@ -21,10 +21,9 @@ from django.contrib import admin
 from django.urls import path
 from django.views.decorators.csrf import csrf_exempt
 
+from content.views import UserQuery
 from main.graphql.schema import CustomAsyncGraphQLView
 from main.graphql.schema import schema as graphql_schema
-
-from content.views import UserQuery
 
 urlpatterns = [path("admin/", admin.site.urls), path("chat_message", UserQuery.as_view())]
 if settings.DEBUG:
