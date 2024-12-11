@@ -261,16 +261,6 @@ class ModelMutation:
     @staticmethod
     def check_permissions(info, permission) -> CustomErrorType | None:
         return None
-        # if permission and not info.context.has_perm(permission):
-        #     errors = CustomErrorType([
-        #         dict(
-        #             field="nonFieldErrors",
-        #             messages="You don't have enough permission",
-        #             object_errors=None,
-        #             array_errors=None,
-        #         )
-        #     ])
-        #     return errors
 
     @staticmethod
     @sync_to_async
