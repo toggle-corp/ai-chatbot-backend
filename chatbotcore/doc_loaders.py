@@ -9,6 +9,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import WebBaseLoader
 
 from chatbotcore.contextual_chunks import ContextualChunking
+from chatbotcore.utils import LLMType
 
 
 @dataclass(kw_only=True)
@@ -22,7 +23,7 @@ class DocumentLoader:
     context_retrieval: ContextualChunking = field(init=False)
 
     def __post_init__(self):
-        self.context_retrieval = ContextualChunking(model_type=settings.LLM_TYPE)
+        self.context_retrieval = ContextualChunking(model_type=LLMType(int(settings.LLM_TYPE)))
 
     def _get_split_documents_with_recursive_char(self, documents: List[Document], multiplier: int = 3):
         """
