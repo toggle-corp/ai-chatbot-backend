@@ -58,6 +58,8 @@ spec:
               value: {{ .Values.embeddingModel.env.EMBEDDING_MODEL_TYPE | quote }}
             - name: EMBEDDING_MODEL_VECTOR_SIZE
               value: {{ .Values.embeddingModel.env.EMBEDDING_MODEL_VECTOR_SIZE | quote }}
+            - name: OPENAI_API_KEY
+              value: {{ .Values.embeddingModel.env.OPENAI_API_KEY | quote }}
       volumes:
         - name: downloaded-models
           persistentVolumeClaim:
