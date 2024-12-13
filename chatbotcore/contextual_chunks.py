@@ -50,7 +50,7 @@ class ContextualChunking:
     """Context retrieval for the chunk documents"""
 
     model: Any = field(init=False)
-    model_type: Enum = LLMType.OLLAMA
+    model_type: LLMType = LLMType.OLLAMA
 
     def __post_init__(self):
         if self.model_type == LLMType.OLLAMA:
@@ -59,7 +59,7 @@ class ContextualChunking:
             self.model = OpenAIHandler()
         else:
             logger.error("Wrong LLM Type")
-            raise ValueError("Wront LLM Type")
+            raise ValueError("Wrong LLM Type")
 
     def get_prompt(self):
         """Creates a prompt"""
