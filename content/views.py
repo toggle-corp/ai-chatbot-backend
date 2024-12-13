@@ -4,12 +4,12 @@ import asyncio
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 
-from chatbotcore.llm import OllamaHandler
+from chatbotcore.llm import OpenAIHandler
 from content.serializers import UserQuerySerializer
 
 
 class UserQuery(GenericAPIView):
-    llm = OllamaHandler()
+    llm = OpenAIHandler()
 
     def post(self, request, *arg, **kwargs):
         serializer = UserQuerySerializer(data=request.data)
