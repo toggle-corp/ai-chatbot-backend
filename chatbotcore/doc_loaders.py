@@ -22,7 +22,7 @@ class DocumentLoader:
     context_retrieval: ContextualChunking = field(init=False)
 
     def __post_init__(self):
-        self.context_retrieval = ContextualChunking()
+        self.context_retrieval = ContextualChunking(model_type=settings.LLM_TYPE)
 
     def _get_split_documents_with_recursive_char(self, documents: List[Document], multiplier: int = 3):
         """
