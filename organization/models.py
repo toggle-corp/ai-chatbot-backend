@@ -1,5 +1,7 @@
 from django.db import models
+
 from common.models import UserResource
+
 # Create your models here.
 
 
