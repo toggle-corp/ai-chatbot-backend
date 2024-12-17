@@ -12,7 +12,7 @@ from content.serializers import UserQuerySerializer
 
 class UserQuery(GenericAPIView):
     if LLMType(int(settings.LLM_TYPE)) == LLMType.OLLAMA:
-        llm = OllamaHandler
+        llm = OllamaHandler()
     elif LLMType(int(settings.LLM_TYPE)) == LLMType.OPENAI:
         llm = OpenAIHandler()
     else:
