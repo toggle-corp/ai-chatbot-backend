@@ -149,6 +149,7 @@ INSTALLED_APPS = [
     "user",
     "common",
     "content",
+    "organization",
     "rest_framework",
 ]
 
