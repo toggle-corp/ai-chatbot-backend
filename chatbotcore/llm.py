@@ -81,7 +81,7 @@ class LLMBase:
 
     def _system_prompt_for_retrieval(self):
         """System prompt for information retrieval"""
-        return """Given the following chat history and the latest user question, which may refer to prior context or information, 
+        return """Given the following chat history and the latest user question {input}, which may refer to prior context or information, 
         rephrase the user's latest query into a standalone question.
         Ensure that the rephrased question is clear, concise, and can be understood without needing access to the entire chat history,
         while preserving the meaning and intent from previous exchanges.
@@ -92,12 +92,17 @@ class LLMBase:
         System prompt for response generation
         """
         system_prompt = """
-            You are an assistant to answer the office related relevant questions according to the query {input}.\n,
-            Use the retrieved context {context} interpret it and answer the question.
-            You will not invent anything by your own and discard any history that is not relevant\n
-            Just say 'Sorry, can't answer as relevant context is not available or didn't understand your question.\n
+            You are an assistant to answer the office related questions according to the query {input}.\n,
+            Use the retrieved context, do not miss the factual informations and answer the question.
+            Do not invent anything by yourself, however you can interpret the context thoroughly to derive answers. \n
+            Discard any history that is not relevant and keep the answer within 50 words.\n
+            If you cannot derive any information from the context passed then Just say 
+            'Sorry, can't answer as relevant context is not available or didn't understand your question.\n
             How can I help with other office related queries ?'
             \n\n,
+            <context>
+            {context}
+            </context>
         """  # noqa
 
         return system_prompt
