@@ -10,6 +10,7 @@ from langchain.memory import ConversationBufferWindowMemory
 from langchain_community.llms.ollama import Ollama
 from langchain_community.utils.math import cosine_similarity
 from langchain_core.messages.ai import AIMessage
+from langchain_core.messages.human import HumanMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_openai import ChatOpenAI
 from qdrant_client import QdrantClient
@@ -17,6 +18,7 @@ from qdrant_client import QdrantClient
 from chatbotcore.custom_embeddings import CustomEmbeddingsWrapper
 from chatbotcore.database import QdrantDatabase
 from chatbotcore.utils import BM25DocRetriever, HybridRetriever, QdrantDocRetriever
+from chatbotcore.history_summary import HistorySummaryOpenAI
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -39,6 +41,7 @@ class LLMBase:
     def __post_init__(self, mem_key: str = "chat_history", conversation_max_window: int = 3):
         self.llm_model = None
         self.qdrant_client = None
+        self.history_summary = HistorySummaryOpenAI()
 
         self.mem_key = mem_key
         self.conversation_max_window = conversation_max_window
@@ -81,7 +84,7 @@ class LLMBase:
 
     def _system_prompt_for_retrieval(self):
         """System prompt for information retrieval"""
-        return """Given the following chat history and the latest user question, which may refer to prior context or information, 
+        return """Given the following chat history and the latest user question {input}, which may refer to prior context or information, 
         rephrase the user's latest query into a standalone question.
         Ensure that the rephrased question is clear, concise, and can be understood without needing access to the entire chat history,
         while preserving the meaning and intent from previous exchanges.
@@ -92,12 +95,17 @@ class LLMBase:
         System prompt for response generation
         """
         system_prompt = """
-            You are an assistant to answer the office related relevant questions according to the query {input}.\n,
-            Use the retrieved context {context} interpret it and answer the question.
-            You will not invent anything by your own and discard any history that is not relevant\n
-            Just say 'Sorry, can't answer as relevant context is not available or didn't understand your question.\n
+            You are an assistant to answer the office related questions according to the query {input}.\n,
+            Use the retrieved context, do not miss the factual informations and answer the question.
+            Do not invent anything by yourself, however you can interpret the context thoroughly to derive answers. \n
+            Discard any history that is not relevant and keep the answer within 50 words.\n
+            If you cannot derive any information from the context passed then Just say 
+            'Sorry, can't answer as relevant context is not available or didn't understand your question.\n
             How can I help with other office related queries ?'
             \n\n,
+            <context>
+            {context}
+            </context>
         """  # noqa
 
         return system_prompt
@@ -169,24 +177,42 @@ class LLMBase:
             self.user_memory_mapping[user_id] = ConversationBufferWindowMemory(
                 k=self.conversation_max_window, memory_key=self.mem_key, return_messages=True
             )
+        
+        #relevant_history = await self.filter_relevant_history(user_id=user_id, query=query, similarity_threshold=0.55)
+        """
+        if relevant_history:
 
-        relevant_history = await self.filter_relevant_history(user_id=user_id, query=query, similarity_threshold=0.7)
+            summary = self.history_summary._generate_summary(message_history=relevant_history)
+            summary_formatted = [HumanMessage(content= summary)]
+            logging.info("the summary generated is %s", summary)
+
+        else:
+            summary_formatted =  relevant_history
+        """
+        """message_history = self.get_message_history(user_id=user_id)["chat_history"]
+        summary = await self.history_summary.create_summary(relevant_hist=message_history)
+        summary_formatted = [HumanMessage(content= summary)]"""
+
+        message_history = self.get_message_history(user_id=user_id)["chat_history"]
         memory = self.user_memory_mapping[user_id]
 
         response = await self.rag_chain.ainvoke(
             {
                 "input": query,
-                "chat_history": relevant_history,
+                "chat_history": message_history,
             }
         )
+        logging.info("the context passed to the llm chain is %s", response["context"])
         response_text = response["answer"] if "answer" in response else self.default_failure_message
+        logging.info("the unfiltered response is %s", response_text)
+    
 
         point_ids = [d.metadata["_id"] for d in response["context"]]
 
         relevant_vectors = self.qdrant_client.retrieve_vectors(points=point_ids)
 
         # page_contexts = [d.metadata.get("page_content") or d.page_content for d in response["context"]]
-
+        
         postprocess_results = await self.postprocess_response(relevant_vectors=relevant_vectors, llm_response=response_text)
         if postprocess_results:
             memory.save_context({"input": query}, {"output": response_text})

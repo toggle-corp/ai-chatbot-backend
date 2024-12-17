@@ -49,7 +49,7 @@ class ContextualChunking:
     """Context retrieval for the chunk documents"""
 
     model: Any = field(init=False)
-    model_type: Enum = LLMType.OLLAMA
+    model_type: Enum = LLMType.OPENAI
 
     def __post_init__(self):
         if self.model_type == LLMType.OLLAMA:
@@ -91,9 +91,10 @@ class ContextualChunking:
         """Generates contextualized document chunks"""
         contextualized_chunks = []
         for chunk in chunks:
-            context = self._generate_context(document, chunk.page_content)
+            context_openai = self._generate_context(document, chunk.page_content)
+            context = getattr(context_openai, 'content')
+            #print(context)
 
-            # Strip both context and chunk content of leading/trailing spaces
             context = context.strip()
 
             chunk_content = chunk.page_content.strip()

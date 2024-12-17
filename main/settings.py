@@ -73,7 +73,7 @@ env = environ.Env(
     # Celery
     CELERY_BROKER_URL=str,
     CELERY_RESULT_BACKEND=str,
-    CELERY_ACCEPT_CONTENT=(list, ["json"]),
+    CELERY_ACCEPT_CONTENT=(list,["json"]),
     CELERY_TASK_SERIALIZER=(str, "json"),
     CELERY_RESULT_SERIALIZER=(str, "json"),
     CELERY_TIMEZONE=(str, "UTC"),

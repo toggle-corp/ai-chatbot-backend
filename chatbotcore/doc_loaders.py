@@ -17,8 +17,8 @@ class DocumentLoader:
     Base Class for Document Loaders
     """
 
-    chunk_size: int = 200
-    chunk_overlap: int = 50
+    chunk_size: int = 100
+    chunk_overlap: int = 30
     context_retrieval: ContextualChunking = field(init=False)
 
     def __post_init__(self):
