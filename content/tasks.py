@@ -36,3 +36,15 @@ def create_embedding_for_content_task(content_id):
     else:
         content.document_status = Content.DocumentStatus.FAILURE
     content.save()
+
+
+@shared_task(blind=True)
+def retrigger_content_processing(queryset):
+    db = QdrantDatabase(
+        host=settings.QDRANT_DB_HOST, port=settings.QDRANT_DB_PORT, collection_name=settings.QDRANT_DB_COLLECTION_NAME
+    )
+    for content in queryset:
+        qdrant_chuck = db.delete_data_by_src_uuid(key= "uuid", value=str(content.content_id))
+        if qdrant_chuck:
+            create_embedding_for_content_task(content.id)
+    return queryset
