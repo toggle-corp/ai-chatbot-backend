@@ -95,7 +95,7 @@ class LLMBase:
             You are an assistant to answer the office related questions according to the query {input}.\n,
             Use the retrieved context, do not miss the factual informations and answer the question.
             Do not invent anything by yourself, however you can interpret the context thoroughly to derive answers. \n
-            Discard any history that is not relevant and keep the answer within 50 words.\n
+            Discard any history that is not relevant and keep the final answer below 200 words.\n
             If you cannot derive any information from the context passed then Just say 
             'Sorry, can't answer as relevant context is not available or didn't understand your question.\n
             How can I help with other office related queries ?'
