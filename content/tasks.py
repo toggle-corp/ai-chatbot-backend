@@ -26,14 +26,14 @@ def create_embedding_for_content_task(content_id):
         {"source": "plain-text", "page_content": split_docs[i].page_content, "uuid": content.content_id}
         for i in range(len(split_docs))
     ]
-    if response.status_code == 200:
+    try:
         db = QdrantDatabase(
             host=settings.QDRANT_DB_HOST, port=settings.QDRANT_DB_PORT, collection_name=settings.QDRANT_DB_COLLECTION_NAME
         )
         db.set_collection()
         db.store_data(zip(response.json(), metadata))
         content.document_status = Content.DocumentStatus.ADDED_TO_VECTOR
-    else:
+    except Exception:
         content.document_status = Content.DocumentStatus.FAILURE
     content.save()
 
@@ -44,7 +44,7 @@ def retrigger_content_processing(queryset):
         host=settings.QDRANT_DB_HOST, port=settings.QDRANT_DB_PORT, collection_name=settings.QDRANT_DB_COLLECTION_NAME
     )
     for content in queryset:
-        qdrant_chuck = db.delete_data_by_src_uuid(key= "uuid", value=str(content.content_id))
-        if qdrant_chuck:
+        qdrant_delete = db.delete_data_by_src_uuid(key="uuid", value=str(content.content_id))
+        if qdrant_delete:
             create_embedding_for_content_task(content.id)
     return queryset

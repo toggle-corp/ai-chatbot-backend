@@ -1,6 +1,6 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.utils.safestring import mark_safe
-from django.contrib import messages
+
 from common.admin import UserResourceAdmin
 from content.models import Content, Tag
 from content.tasks import retrigger_content_processing
@@ -17,13 +17,9 @@ class TagAdmin(admin.ModelAdmin):
 def action_test():
     def action(modeladmin, request, queryset):
         retrigger_content_processing(queryset)
-        messages.add_message(
-            request, messages.INFO,
-            mark_safe(
-                'Successfully Re-trigger content processing! '
-            )
-        )
-    action.short_description = 'Re-trigger content processing'
+        messages.add_message(request, messages.INFO, mark_safe("Successfully Re-trigger content processing! "))
+
+    action.short_description = "Re-trigger content processing"
     return action
 
 
@@ -31,5 +27,5 @@ def action_test():
 class ContentAdmin(UserResourceAdmin):
     list_display = ["title", "content_id"]
     autocomplete_fields = ["deleted_by", "tag"]
-    readonly_fields = ['extracted_file']
+    readonly_fields = ["extracted_file"]
     actions = [action_test()]
