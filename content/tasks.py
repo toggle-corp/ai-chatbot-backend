@@ -6,7 +6,7 @@ from chatbotcore.database import QdrantDatabase
 from chatbotcore.doc_loaders import LoaderFromText
 
 
-@shared_task(blind=True)
+@shared_task(bind=True)
 def create_embedding_for_content_task(content_id):
     from content.models import Content
 
@@ -33,12 +33,13 @@ def create_embedding_for_content_task(content_id):
         db.set_collection()
         db.store_data(zip(response.json(), metadata))
         content.document_status = Content.DocumentStatus.ADDED_TO_VECTOR
+    # NOTE: All exceptions have been handled with except
     except Exception:
         content.document_status = Content.DocumentStatus.FAILURE
     content.save()
 
 
-@shared_task(blind=True)
+@shared_task(bind=True)
 def retrigger_content_processing(queryset):
     db = QdrantDatabase(
         host=settings.QDRANT_DB_HOST, port=settings.QDRANT_DB_PORT, collection_name=settings.QDRANT_DB_COLLECTION_NAME
