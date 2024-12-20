@@ -78,6 +78,7 @@ class LoaderFromText(DocumentLoader):
         Creates multiple documents from the input texts
         """
         documents = [Document(page_content=self.text)]
+        # Note that the token based splitting can be used as shown below.
         # doc_chunks = self._get_split_documents_using_token_based(documents=documents)
         doc_chunks = self._get_split_documents_with_recursive_char(documents=documents)
         contextualized_chunks = self.context_retrieval.generate_contextualized_chunks(document=self.text, chunks=doc_chunks)
