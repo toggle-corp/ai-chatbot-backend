@@ -14,18 +14,14 @@ class TagAdmin(admin.ModelAdmin):
     search_fields = ["name"]
 
 
-def trigger_content_processing():
-    def action(modeladmin, request, queryset):
-        retrigger_content_processing(queryset)
-        messages.add_message(request, messages.INFO, mark_safe("Successfully Re-trigger content processing! "))
-
-    action.short_description = "Re-trigger content processing"
-    return action
-
-
 @admin.register(Content)
 class ContentAdmin(UserResourceAdmin):
     list_display = ["title", "content_id"]
     autocomplete_fields = ["deleted_by", "tag"]
     readonly_fields = ["extracted_file"]
-    actions = [trigger_content_processing()]
+    actions = ["trigger_content_processing"]
+
+    def trigger_content_processing(self, request, queryset):
+        retrigger_content_processing(queryset)
+        messages.add_message(request, messages.INFO, mark_safe("Successfully Re-trigger content processing! "))
+    trigger_content_processing.short_description = "Re-trigger content processing"
