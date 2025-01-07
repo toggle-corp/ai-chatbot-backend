@@ -87,10 +87,10 @@ worker:
   resources:
     requests:
       cpu: "200m"
-      memory: 1.5Gi
+      memory: 3Gi
     limits:
       cpu: "2"
-      memory: 2Gi
+      memory: 4Gi
 
 streamlit:
   enabled: true
@@ -122,10 +122,15 @@ embeddingModel:
   resources:
     requests:
       cpu: "200m"
-      memory: 0.5Gi
+      memory: 5Gi
     limits:
       cpu: "2"
-      memory: 1Gi
+      memory: 6Gi
+  env:
+    EMBEDDING_MODEL_NAME: "sentence-transformers/gtr-t5-large"
+    EMBEDDING_MODEL_TYPE: 1
+    EMBEDDING_MODEL_VECTOR_SIZE: 768
+    OPENAI_API_KEY: test
 
 env:
   # APP_ENVIRONMENT:
@@ -140,6 +145,7 @@ env:
   # -- Celery
   CELERY_BROKER_URL:
   CELERY_RESULT_BACKEND:
+  CELERY_ACCEPT_CONTENT: json, application/text
   # Sentry
   SENTRY_TRACES_SAMPLE_RATE: 0.2
   SENTRY_PROFILE_SAMPLE_RATE: 0.2

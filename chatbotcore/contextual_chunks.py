@@ -1,0 +1,109 @@
+import logging
+import re
+from dataclasses import dataclass, field
+from typing import Any, List
+
+from django.conf import settings
+from langchain.schema import Document
+from langchain_community.llms.ollama import Ollama
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_openai import ChatOpenAI
+
+from chatbotcore.utils import LLMType
+
+logger = logging.getLogger(__name__)
+
+
+@dataclass
+class OpenAIHandler:
+    """LLM handler using OpenAI for RAG"""
+
+    temperature: float = 0.1
+    llm: ChatOpenAI = field(init=False)
+
+    def __post_init__(self):
+        try:
+            self.llm = ChatOpenAI(model=settings.LLM_MODEL_NAME, temperature=self.temperature)
+        except Exception as e:
+            raise Exception(f"OpenAI LLM model is not successfully loaded. {str(e)}")
+
+
+@dataclass
+class OllamaHandler:
+    """LLM Handler using Ollama"""
+
+    temperature: float = 0.1
+    llm: Ollama = field(init=False)
+
+    def __post_init__(self):
+        try:
+            self.llm = Ollama(
+                model=settings.LLM_MODEL_NAME, base_url=settings.LLM_OLLAMA_BASE_URL, temperature=self.temperature
+            )
+        except Exception as e:
+            raise Exception(f"Ollama LLM model is not successfully loaded. {str(e)}")
+
+
+@dataclass
+class ContextualChunking:
+    """Context retrieval for the chunk documents"""
+
+    model: Any = field(init=False)
+    model_type: LLMType = LLMType.OLLAMA
+
+    def __post_init__(self):
+        if self.model_type == LLMType.OLLAMA:
+            self.model = OllamaHandler()
+        elif self.model_type == LLMType.OPENAI:
+            self.model = OpenAIHandler()
+        else:
+            logger.error("Wrong LLM Type")
+            raise ValueError("Wrong LLM Type")
+
+    def get_prompt(self):
+        """Creates a prompt"""
+        prompt = """
+        You are an AI assistant who can generate a short context of the chunk text from the document.
+        Here is the document:
+        <document>
+        {document}
+        </document>
+
+        Here is the chunk we want to situate within the whole document:
+        <chunk>
+        {chunk}
+        </chunk>
+
+        Please give a short succint context (within 30 tokens) to situate this chunk within the overall document\n
+        for the purposes of improving search retrieval of the chunk. Answer only with the succint context and nothing else.
+        Make sure that the context does not miss the factual informations in the chunk.
+        """
+        return prompt
+
+    def _generate_context(self, document: str, chunk: str):
+        """Generates contextualized document chunk response"""
+        prompt_template = ChatPromptTemplate.from_messages([("system", self.get_prompt())])
+        messages = prompt_template.format_messages(document=document, chunk=chunk)
+        response = self.model.llm.invoke(messages)
+        return response
+
+    def generate_contextualized_chunks(self, document: str, chunks: List[Document]):
+        """Generates contextualized document chunks"""
+        contextualized_chunks = []
+        for chunk in chunks:
+            context = self._generate_context(document, chunk.page_content)
+            context = getattr(context, "content")  # note: required when openai is used
+
+            # Strip both context and chunk content of leading/trailing spaces
+            context = context.strip()
+
+            chunk_content = chunk.page_content.strip()
+            # Remove " or . or both appearing at the beginning or end of text
+            context = re.sub(r'^"|[".]+$', "", context)
+
+            # Concatenate context with chunk content, ensuring no unwanted spaces or punctuation
+            contextualized_content = f"{context}. {chunk_content}"
+            # Add the cleaned-up content to the list of contextualized chunks
+            contextualized_chunks.append(Document(page_content=contextualized_content, metadata=chunk.metadata))
+
+        return contextualized_chunks

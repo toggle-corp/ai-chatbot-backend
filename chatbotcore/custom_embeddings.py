@@ -27,24 +27,24 @@ class CustomEmbeddingsWrapper(Embeddings):
             if not (self.url and self.model_name and self.base_url):
                 raise Exception("Url or base_url or both are not provided.")
 
-    def embed_query(self, text: str, timeout: int = 30) -> List[float]:
+    def embed_query(self, text: str, timeout: int = 45) -> List[float]:
         """
         Sends the request to Embedding module to
         embed the query to the vector representation
         """
-        payload = {"type_model": self.model_type, "name_model": self.model_name, "texts": text}
+        payload = {"texts": text}
         try:
             response = requests.post(url=self.url, json=payload, timeout=timeout)
         except requests.Timeout as e:
             raise Exception(e)
         return response.json()
 
-    def embed_documents(self, texts: List[str], timeout: int = 30) -> List[List[float]]:
+    def embed_documents(self, texts: List[str], timeout: int = 45) -> List[List[float]]:
         """
         Sends the request to Embedding module to
         embed multiple queries to the vector representation
         """
-        payload = {"type_model": self.model_type, "name_model": self.model_name, "texts": texts}
+        payload = {"texts": texts}
         try:
             response = requests.post(url=self.url, json=payload, timeout=timeout)
         except requests.Timeout as e:

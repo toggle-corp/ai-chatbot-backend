@@ -1,23 +1,25 @@
 import logging
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any, List, Optional
 
 from django.conf import settings
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains.history_aware_retriever import create_history_aware_retriever
 from langchain.chains.retrieval import create_retrieval_chain
 from langchain.memory import ConversationBufferWindowMemory
-
-# from langchain.schema import AIMessage, HumanMessage
 from langchain_community.llms.ollama import Ollama
+from langchain_community.utils.math import cosine_similarity
+from langchain_core.messages.ai import AIMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_openai import ChatOpenAI
-from langchain_qdrant import QdrantVectorStore
 from qdrant_client import QdrantClient
 
 from chatbotcore.custom_embeddings import CustomEmbeddingsWrapper
+from chatbotcore.database import QdrantDatabase
+from chatbotcore.utils import BM25DocRetriever, HybridRetriever, QdrantDocRetriever
 
 logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 
 @dataclass
@@ -32,50 +34,77 @@ class LLMBase:
     memory: Any = field(init=False)
     embedding_model: CustomEmbeddingsWrapper = field(init=False)
     rag_chain: Optional[Any] = None
+    db_retriever: Optional[Any] = None
 
-    def __post_init__(self, mem_key: str = "chat_history", conversation_max_window: int = 5):
+    def __post_init__(self, mem_key: str = "chat_history", conversation_max_window: int = 3):
         self.llm_model = None
         self.qdrant_client = None
 
         self.mem_key = mem_key
         self.conversation_max_window = conversation_max_window
 
+        self.default_failure_message = "Sorry, can't answer as relevant context is not available or didn't understand your question. How can I help with other office related queries ?"  # noqa
+
         try:
-            self.qdrant_client = QdrantClient(host=settings.QDRANT_DB_HOST, port=settings.QDRANT_DB_PORT)
+            self.qdrant_client = QdrantDatabase(
+                collection_name=settings.QDRANT_DB_COLLECTION_NAME,
+                host=settings.QDRANT_DB_HOST,
+                port=settings.QDRANT_DB_PORT,
+            )
         except Exception as e:
             raise Exception(f"Qdrant client is not properly setup. {str(e)}")
 
         self.user_memory_mapping = {}
 
         self.embedding_model = CustomEmbeddingsWrapper(
-            url=settings.EMBEDDING_MODEL_URL,
+            url=f"{settings.EMBEDDING_MODEL_URL}/get_embeddings",
             model_name=settings.EMBEDDING_MODEL_NAME,
             model_type=settings.EMBEDDING_MODEL_TYPE,
             base_url=settings.OLLAMA_EMBEDDING_MODEL_BASE_URL,
         )
 
+    def get_db_retriever(self, top_k_items: int = 4, score_threshold: float = 0.7):
+        """Get the database retriever"""
+        all_documents = self.qdrant_client.load_all_documents()
+
+        bm25_retriever = BM25DocRetriever(docs=all_documents, k_items=top_k_items)
+        qdrant_retriever = QdrantDocRetriever(
+            qdrant_client=self.qdrant_client,
+            collection_name=settings.QDRANT_DB_COLLECTION_NAME,
+            embedding_model=self.embedding_model,
+        )
+        hybrid_retriever = HybridRetriever(
+            bm25_retriever=bm25_retriever,
+            qdrant_retriever=qdrant_retriever.get_qdrant_retriever(top_k_items=top_k_items, score_threshold=score_threshold),
+        )
+        return hybrid_retriever
+
     def _system_prompt_for_retrieval(self):
         """System prompt for information retrieval"""
-        return (
-            "Given a chat history and the latest user question "
-            "which might reference context in the chat history, "
-            "formulate a standalone question which can be understood "
-            "without the chat history. Do NOT answer the question, "
-            "just reformulate it if needed and otherwise return it as is."
-        )
+        return """Given the following chat history and the latest user question {input}, which may refer to prior context or information, 
+        rephrase the user's latest query into a standalone question.
+        Ensure that the rephrased question is clear, concise, and can be understood without needing access to the entire chat history,
+        while preserving the meaning and intent from previous exchanges.
+        If the question is already self-contained and does not rely on prior context, return it as is, with no modifications."""  # noqa
 
     def _system_prompt_for_response(self):
         """
         System prompt for response generation
         """
         system_prompt = """
-                You are an assistant for question-answering tasks.\n,
-                Use the following retrieved context to answer the question.\n,
-                If you don't get the answer from the provided context, \n,
-                say that 'I don't know. How can I help with the office related queries ?'
-                \n\n,
-                Context: {context}
-            """
+            You are an assistant to answer the office related questions according to the query {input}.\n,
+            Use the retrieved context, do not miss the factual informations and answer the question.
+            Do not invent anything by yourself, however you can interpret the context thoroughly to derive answers. \n
+            Discard any history that is not relevant and keep the final answer below 200 words.\n
+            If you cannot derive any information from the context passed then Just say 
+            'Sorry, can't answer as relevant context is not available or didn't understand your question.\n
+            How can I help with other office related queries ?'
+            \n\n,
+            <context>
+            {context}
+            </context>
+        """  # noqa
+
         return system_prompt
 
     def get_prompt_template_for_retrieval(self):
@@ -94,17 +123,7 @@ class LLMBase:
         )
         return llm_response_prompt
 
-    def get_db_retriever(self, collection_name: str, top_k_items: int = 5, score_threshold: float = 0.7):
-        """Get the database retriever"""
-        db_retriever = QdrantVectorStore(
-            client=self.qdrant_client, collection_name=collection_name, embedding=self.embedding_model
-        )
-        retriever = db_retriever.as_retriever(
-            search_type="similarity_score_threshold", search_kwargs={"k": top_k_items, "score_threshold": score_threshold}
-        )
-        return retriever
-
-    def create_chain(self, db_collection_name: str):
+    def create_chain(self):
         """Creates a llm chain"""
         if not self.llm_model:
             raise Exception("The LLM model is not loaded.")
@@ -112,37 +131,82 @@ class LLMBase:
         context_prompt_template = self.get_prompt_template_for_retrieval()
         response_prompt_template = self.get_prompt_template_for_response()
 
-        retriever = self.get_db_retriever(collection_name=db_collection_name)
-
-        history_aware_retriever = create_history_aware_retriever(self.llm_model, retriever, context_prompt_template)
+        history_aware_retriever = create_history_aware_retriever(self.llm_model, self.db_retriever, context_prompt_template)
 
         chat_response_chain = create_stuff_documents_chain(self.llm_model, response_prompt_template)
 
         rag_chain = create_retrieval_chain(history_aware_retriever, chat_response_chain)
         return rag_chain
 
-    async def execute_chain(self, user_id: str, query: str, db_collection_name: str = settings.QDRANT_DB_COLLECTION_NAME):
+    async def filter_relevant_history(self, user_id: str, query: str, similarity_threshold: float = 0.7):
+        """Filters relevant history based on query"""
+        current_query_vector = self.embedding_model.embed_query(query)
+        relevant_history = []
+        message_history = self.get_message_history(user_id=user_id)["chat_history"]
+        for i in range(1, len(message_history)):
+            if isinstance(message_history[i], AIMessage):
+                message_content_ai = message_history[i].content
+                query_vector_ai = self.embedding_model.embed_query(text=message_content_ai)
+                similarity_score_ai = cosine_similarity([query_vector_ai], [current_query_vector])[0][0]
+                if similarity_score_ai > similarity_threshold:
+                    relevant_history.append(message_history[i - 1])  # human query
+                    relevant_history.append(message_history[i])  # ai response
+
+        return relevant_history if relevant_history else []
+
+    async def execute_chain(self, user_id: str, query: str):
         """
         Executes the chain
         """
+        if not self.db_retriever:
+            self.db_retriever = self.get_db_retriever()
+
         if not self.rag_chain:
-            self.rag_chain = self.create_chain(db_collection_name=db_collection_name)
+            self.rag_chain = self.create_chain()
 
         if user_id not in self.user_memory_mapping:
             self.user_memory_mapping[user_id] = ConversationBufferWindowMemory(
                 k=self.conversation_max_window, memory_key=self.mem_key, return_messages=True
             )
 
+        relevant_history = await self.filter_relevant_history(user_id=user_id, query=query, similarity_threshold=0.7)
         memory = self.user_memory_mapping[user_id]
 
         response = await self.rag_chain.ainvoke(
-            {"input": query, "chat_history": self.get_message_history(user_id=user_id)["chat_history"]}
+            {
+                "input": query,
+                "chat_history": relevant_history,
+            }
         )
-        response_text = response["answer"] if "answer" in response else "I don't know the answer."
-        memory.save_context({"input": query}, {"output": response_text})
-        self.user_memory_mapping[user_id] = memory
+        response_text = response["answer"] if "answer" in response else self.default_failure_message
 
-        return response_text
+        point_ids = [d.metadata["_id"] for d in response["context"]]
+
+        relevant_vectors = self.qdrant_client.retrieve_vectors(points=point_ids)
+
+        # page_contexts = [d.metadata.get("page_content") or d.page_content for d in response["context"]]
+
+        postprocess_results = await self.postprocess_response(relevant_vectors=relevant_vectors, llm_response=response_text)
+        if postprocess_results:
+            memory.save_context({"input": query}, {"output": response_text})
+            self.user_memory_mapping[user_id] = memory
+            return response_text
+        return self.default_failure_message
+
+    async def postprocess_response(
+        self, relevant_vectors: List[List[float]], llm_response: str, threshold: float = 0.5
+    ) -> bool:
+        """
+        Check if the generated llm response is in sync with the retrieved contexts
+        """
+        llm_response_vector = self.embedding_model.embed_query(text=llm_response)
+        similarity_results = cosine_similarity(relevant_vectors, [llm_response_vector])
+        similarity_results_flattend = [item for sublist in similarity_results for item in sublist]
+        logger.info("Similarity scores: %s", similarity_results_flattend)
+        results = [item >= threshold for item in similarity_results_flattend]
+        if any(results):
+            return True
+        return False
 
     def get_message_history(self, user_id: str):
         """
@@ -165,7 +229,7 @@ class LLMBase:
 class OpenAIHandler(LLMBase):
     """LLM handler using OpenAI for RAG"""
 
-    temperature: float = 0.2
+    temperature: float = 0.1
 
     def __post_init__(self):
         super().__post_init__()
@@ -179,7 +243,7 @@ class OpenAIHandler(LLMBase):
 class OllamaHandler(LLMBase):
     """LLM Handler using Ollama for RAG"""
 
-    temperature: float = 0.2
+    temperature: float = 0.1
 
     def __post_init__(self):
         super().__post_init__()
