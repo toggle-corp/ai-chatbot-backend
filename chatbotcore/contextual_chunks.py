@@ -92,9 +92,9 @@ class ContextualChunking:
         contextualized_chunks = []
         for chunk in chunks:
             context = self._generate_context(document, chunk.page_content)
-         
+
             if self.model_type == LLMType.OPENAI:
-                context = getattr(context, "content")# note: required when openai is used
+                context = getattr(context, "content")  # note: required when openai is used
 
             # Strip both context and chunk content of leading/trailing spaces
             context = context.strip()
