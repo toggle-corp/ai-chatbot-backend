@@ -57,4 +57,3 @@ reportMissingImports = true
 reportMissingTypeStubs = false
 venvPath = "."
 venv = ".venv"
-package-mode = false
