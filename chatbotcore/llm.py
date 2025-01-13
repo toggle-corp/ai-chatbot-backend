@@ -2,6 +2,7 @@ import logging
 from dataclasses import dataclass, field
 from typing import Any, List, Optional
 
+import tiktoken
 from django.conf import settings
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains.history_aware_retriever import create_history_aware_retriever
@@ -153,6 +154,11 @@ class LLMBase:
                     relevant_history.append(message_history[i])  # ai response
 
         return relevant_history if relevant_history else []
+    
+    async def user_query_size(self, query: str):
+        encoding = tiktoken.get_encoding("cl100k_base")
+        num_tokens = len(encoding.encode(query))
+        return num_tokens
 
     async def execute_chain(self, user_id: str, query: str):
         """
@@ -171,6 +177,7 @@ class LLMBase:
 
         relevant_history = await self.filter_relevant_history(user_id=user_id, query=query, similarity_threshold=0.7)
         memory = self.user_memory_mapping[user_id]
+        length = await self.user_query_size(query=query)
 
         response = await self.rag_chain.ainvoke(
             {
