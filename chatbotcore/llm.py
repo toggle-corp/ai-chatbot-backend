@@ -20,7 +20,7 @@ from qdrant_client import QdrantClient
 from chatbotcore.custom_embeddings import CustomEmbeddingsWrapper
 from chatbotcore.database import QdrantDatabase
 from chatbotcore.utils import BM25DocRetriever, HybridRetriever, QdrantDocRetriever
-from metrics.openai_metrics import InformationGap
+from metrics.openai_metrics import InformationGap, Metricsretrieval
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -66,6 +66,7 @@ class LLMBase:
             model_type=settings.EMBEDDING_MODEL_TYPE,
             base_url=settings.OLLAMA_EMBEDDING_MODEL_BASE_URL,
         )
+        self.retrieval_metrics = Metricsretrieval()
 
     def get_db_retriever(self, top_k_items: int = 4, score_threshold: float = 0.7):
         """Get the database retriever"""
@@ -208,6 +209,14 @@ class LLMBase:
         point_ids = [d.metadata["_id"] for d in response["context"]]
 
         relevant_vectors = self.qdrant_client.retrieve_vectors(points=point_ids)
+
+        min_, max_ = self.retrieval_metrics.min_max_score(
+            query=query, relevant_vectors=relevant_vectors, embedding_model=self.embedding_model
+        )
+
+        logging.info("the maximum value of the retreieved documents is %s", max_)
+        logging.info("the minimum value of the retreieved documents is %s", min_)
+
 
         # page_contexts = [d.metadata.get("page_content") or d.page_content for d in response["context"]]
 
