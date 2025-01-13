@@ -1,5 +1,8 @@
+import logging
 import re
+import time
 from enum import Enum
+from functools import wraps
 from typing import Any, List, Optional
 
 import requests
@@ -11,6 +14,20 @@ from langchain_core.runnables.config import run_in_executor
 from langchain_qdrant import QdrantVectorStore
 from qdrant_client import QdrantClient
 from rank_bm25 import BM25Okapi
+
+
+def time_it(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        start_time = time.perf_counter()
+        result = func(*args, **kwargs)
+        end_time = time.perf_counter()
+        global execution_time
+        execution_time = end_time - start_time
+        logging.info(f"{func.__name__} executed in {execution_time:.6f} seconds")
+        return result
+
+    return wrapper
 
 
 class EmbeddingModelType(Enum):
@@ -108,6 +125,7 @@ class HybridRetriever(BaseRetriever):
         self.qdrant_retriever = qdrant_retriever
         self.chunks_reordering = LongContextReorder()
 
+    @time_it
     def _get_relevant_documents(self, query: str, run_manager: Optional[Any] = None):
         """
         Get the relevant document based on re-ranking
