@@ -7,6 +7,7 @@ from django.conf import settings
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains.history_aware_retriever import create_history_aware_retriever
 from langchain.chains.retrieval import create_retrieval_chain
+from langchain_community.callbacks import get_openai_callback
 from langchain.memory import ConversationBufferWindowMemory
 from langchain_community.llms.ollama import Ollama
 from langchain_community.utils.math import cosine_similarity
@@ -15,9 +16,11 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_openai import ChatOpenAI
 from qdrant_client import QdrantClient
 
+
 from chatbotcore.custom_embeddings import CustomEmbeddingsWrapper
 from chatbotcore.database import QdrantDatabase
 from chatbotcore.utils import BM25DocRetriever, HybridRetriever, QdrantDocRetriever
+from metrics.openai_metrics import InformationGap
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -179,12 +182,27 @@ class LLMBase:
         memory = self.user_memory_mapping[user_id]
         length = await self.user_query_size(query=query)
 
-        response = await self.rag_chain.ainvoke(
-            {
-                "input": query,
-                "chat_history": relevant_history,
-            }
+        with get_openai_callback() as cb:
+
+            response = await self.rag_chain.ainvoke(
+                {
+                    "input": query,
+                    "chat_history": relevant_history,
+                }
+            )
+
+            # Create an InformationGap object with the data
+        information_gap = InformationGap(
+            total_tokens=cb.total_tokens,
+            prompt_tokens=cb.prompt_tokens,
+            completion_tokens=cb.completion_tokens,
+            total_cost=round(cb.total_cost, 4),
+            request_count=cb.successful_requests,
         )
+
+        # Get the metrics as a dictionary using the as_dict method
+        metrics = information_gap.as_dict()
+        logging.info("the metrices are %s", metrics)
         response_text = response["answer"] if "answer" in response else self.default_failure_message
 
         point_ids = [d.metadata["_id"] for d in response["context"]]
