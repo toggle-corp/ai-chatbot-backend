@@ -224,8 +224,30 @@ class LLMBase:
         if postprocess_results:
             memory.save_context({"input": query}, {"output": response_text})
             self.user_memory_mapping[user_id] = memory
-            return response_text
-        return self.default_failure_message
+            result = {
+                "response": response_text,
+                "metrics": metrics,
+                # "execution_time": get_execution_time(),
+                "retrieval_min_score": min_,
+                "retrieval_max_score": max_,
+                "point_ids": point_ids,
+                "successful_requests": cb.successful_requests,
+                "total_tokens": cb.total_tokens,
+                "cost": round(cb.total_cost, 4),
+            }
+            return result
+        return {
+            "response": self.default_failure_message,
+            "metrics": {},
+            # "execution_time": get_execution_time(),
+            "retrieval_min_score": None,
+            "retrieval_max_score": None,
+            "point_ids": [],
+            "successful_requests": 0,
+            "total_tokens": 0,
+            "cost": 0.0,
+        }
+
 
     async def postprocess_response(
         self, relevant_vectors: List[List[float]], llm_response: str, threshold: float = 0.5
