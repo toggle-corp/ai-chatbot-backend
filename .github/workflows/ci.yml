@@ -1,6 +1,7 @@
 name: Run test
 
 on:
+  workflow_dispatch:
   workflow_call:
     inputs:
       push_docker_image:
