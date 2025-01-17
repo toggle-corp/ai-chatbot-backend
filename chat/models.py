@@ -34,8 +34,8 @@ class UserChatMessage(models.Model):
 
     session = models.ForeignKey(UserChatSession, on_delete=models.CASCADE)
     type = models.IntegerField(choices=MessageType.choices, default=MessageType.USER)
-    question = models.TextField()
+    query = models.TextField()
     status = models.IntegerField(choices=Status.choices, default=Status.PENDING)
-    answer = models.TextField(null=True, blank=True)
+    response = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)

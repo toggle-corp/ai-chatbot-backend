@@ -12,5 +12,5 @@ class UserChatSessionAdmin(admin.ModelAdmin):
 
 @admin.register(UserChatMessage)
 class UserChatMessageAdmin(admin.ModelAdmin):
-    list_display = ["session", "type", "question", "answer", "status"]
+    list_display = ["session", "type", "query", "response", "status"]
     list_filter = ["status", "type", "session__platform"]
