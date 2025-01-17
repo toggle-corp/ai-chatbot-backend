@@ -151,6 +151,7 @@ INSTALLED_APPS = [
     "content",
     "organization",
     "rest_framework",
+    "chat",
 ]
 
 MIDDLEWARE = [
