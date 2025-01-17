@@ -4,7 +4,7 @@ from chat.models import UserChatMessage, UserChatSession
 class UserSession:
     def create_chat_session(self, data):
         obj, _ = UserChatSession.objects.get_or_create(
-            user_uuid=data.get("user_id"), defaults={"platform": data.get("platform")}
+            user_uuid=data.get("user_id"), defaults={"platform": data.get("platform", UserChatSession.Platform.STREAMLIT)}
         )
         return obj
 
