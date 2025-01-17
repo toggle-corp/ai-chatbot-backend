@@ -8,30 +8,38 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='UserChatSession',
+            name="UserChatSession",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('user_uuid', models.UUIDField()),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('platform', models.IntegerField(choices=[(0, 'Whatsapp'), (1, 'Facebook'), (2, 'Streamlit'), (3, 'Website'), (4, 'Automation')], default=2)),
+                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("user_uuid", models.UUIDField()),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "platform",
+                    models.IntegerField(
+                        choices=[(0, "Whatsapp"), (1, "Facebook"), (2, "Streamlit"), (3, "Website"), (4, "Automation")],
+                        default=2,
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='UserChatMessage',
+            name="UserChatMessage",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('type', models.IntegerField(choices=[(0, 'Bot'), (1, 'User')], default=1)),
-                ('question', models.TextField()),
-                ('status', models.IntegerField(choices=[(0, 'Pending'), (1, 'Started'), (2, 'Success'), (3, 'Failed')], default=0)),
-                ('answer', models.TextField(blank=True, null=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('modified_at', models.DateTimeField(auto_now=True)),
-                ('session', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='chat.userchatsession')),
+                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("type", models.IntegerField(choices=[(0, "Bot"), (1, "User")], default=1)),
+                ("question", models.TextField()),
+                (
+                    "status",
+                    models.IntegerField(choices=[(0, "Pending"), (1, "Started"), (2, "Success"), (3, "Failed")], default=0),
+                ),
+                ("answer", models.TextField(blank=True, null=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("modified_at", models.DateTimeField(auto_now=True)),
+                ("session", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="chat.userchatsession")),
             ],
         ),
     ]
