@@ -21,6 +21,8 @@ RUN apt-get update -y \
     # Configure to use system instead of virtualenvs
     && poetry config virtualenvs.create false \
     && poetry install --no-root \
+    # Download NLTK stopwords 
+    && python -m nltk.downloader stopwords \
     # Clean-up
     && rm -rf /root/.cache/pypoetry \
     && pip uninstall -y poetry virtualenv-clone virtualenv \
