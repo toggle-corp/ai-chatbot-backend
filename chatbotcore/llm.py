@@ -7,15 +7,14 @@ from django.conf import settings
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains.history_aware_retriever import create_history_aware_retriever
 from langchain.chains.retrieval import create_retrieval_chain
-from langchain_community.callbacks import get_openai_callback
 from langchain.memory import ConversationBufferWindowMemory
+from langchain_community.callbacks import get_openai_callback
 from langchain_community.llms.ollama import Ollama
 from langchain_community.utils.math import cosine_similarity
 from langchain_core.messages.ai import AIMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_openai import ChatOpenAI
 from qdrant_client import QdrantClient
-
 
 from chatbotcore.custom_embeddings import CustomEmbeddingsWrapper
 from chatbotcore.database import QdrantDatabase
@@ -158,7 +157,7 @@ class LLMBase:
                     relevant_history.append(message_history[i])  # ai response
 
         return relevant_history if relevant_history else []
-    
+
     async def user_query_size(self, query: str):
         encoding = tiktoken.get_encoding("cl100k_base")
         num_tokens = len(encoding.encode(query))
@@ -192,7 +191,6 @@ class LLMBase:
                 }
             )
 
-            # Create an InformationGap object with the data
         information_gap = InformationGap(
             total_tokens=cb.total_tokens,
             prompt_tokens=cb.prompt_tokens,
@@ -203,7 +201,6 @@ class LLMBase:
 
         # Get the metrics as a dictionary using the as_dict method
         metrics = information_gap.as_dict()
-        logging.info("the metrices are %s", metrics)
         response_text = response["answer"] if "answer" in response else self.default_failure_message
 
         point_ids = [d.metadata["_id"] for d in response["context"]]
@@ -213,12 +210,6 @@ class LLMBase:
         min_, max_ = self.retrieval_metrics.min_max_score(
             query=query, relevant_vectors=relevant_vectors, embedding_model=self.embedding_model
         )
-
-        logging.info("the maximum value of the retreieved documents is %s", max_)
-        logging.info("the minimum value of the retreieved documents is %s", min_)
-
-
-        # page_contexts = [d.metadata.get("page_content") or d.page_content for d in response["context"]]
 
         postprocess_results = await self.postprocess_response(relevant_vectors=relevant_vectors, llm_response=response_text)
         if postprocess_results:
@@ -230,10 +221,9 @@ class LLMBase:
                 # "execution_time": get_execution_time(),
                 "retrieval_min_score": min_,
                 "retrieval_max_score": max_,
-                "point_ids": point_ids,
-                "successful_requests": cb.successful_requests,
                 "total_tokens": cb.total_tokens,
                 "cost": round(cb.total_cost, 4),
+                "length_of_query": length,
             }
             return result
         return {
@@ -242,12 +232,10 @@ class LLMBase:
             # "execution_time": get_execution_time(),
             "retrieval_min_score": None,
             "retrieval_max_score": None,
-            "point_ids": [],
-            "successful_requests": 0,
             "total_tokens": 0,
             "cost": 0.0,
+            "length_of_query": length,
         }
-
 
     async def postprocess_response(
         self, relevant_vectors: List[List[float]], llm_response: str, threshold: float = 0.5
