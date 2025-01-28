@@ -16,3 +16,4 @@ class TagAdmin(admin.ModelAdmin):
 class ContentAdmin(UserResourceAdmin):
     list_display = ["title", "content_id"]
     autocomplete_fields = ["deleted_by", "tag"]
+    readonly_fields = ["document_status", "document_type"]
