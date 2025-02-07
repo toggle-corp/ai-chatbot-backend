@@ -15,6 +15,8 @@ from pathlib import Path
 
 import environ
 
+from main import sentry
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -28,6 +30,7 @@ env = environ.Env(
     APP_ENVIRONMENT=str,
     APP_DOMAIN=str,
     APP_FRONTEND_HOST=str,
+    DJANGO_APP_TYPE=str,  # web/worker/hook
     # Storage
     DJANGO_STATIC_ROOT=(str, os.path.join(BASE_DIR, "assets/static")),  # Where to store
     DJANGO_MEDIA_ROOT=(str, os.path.join(BASE_DIR, "assets/media")),  # Where to store
@@ -282,6 +285,23 @@ USE_I18N = True
 USE_TZ = True
 
 
+# Sentry Config
+SENTRY_DSN = env("SENTRY_DSN")
+SENTRY_ENABLED = False
+
+if SENTRY_DSN:
+    SENTRY_ENABLED = True
+    SENTRY_CONFIG = {
+        "app_type": env("DJANGO_APP_TYPE"),
+        "dsn": SENTRY_DSN,
+        "send_default_pii": True,
+        "traces_sample_rate": env("SENTRY_TRACES_SAMPLE_RATE"),
+        "profiles_sample_rate": env("SENTRY_PROFILE_SAMPLE_RATE"),
+        "tags": {
+            "site": ",".join(set(ALLOWED_HOSTS)),
+        },
+    }
+    sentry.init_sentry(**SENTRY_CONFIG)
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
