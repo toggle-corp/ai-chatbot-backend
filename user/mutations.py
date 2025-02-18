@@ -16,6 +16,7 @@ from user.serializers import (
     UserPasswordResetTriggerSerializer,
     UserResendInviteSerializer,
 )
+from user.types import UserMeType, UserType
 from utils.strawberry.mutations import (
     MutationEmptyResponseType,
     MutationResponseType,
@@ -24,11 +25,8 @@ from utils.strawberry.mutations import (
 )
 from utils.strawberry.transformers import convert_serializer_to_type
 
-from .queries import UserMeType
-
 LoginInput = convert_serializer_to_type(LoginSerializer, name="LoginInput")
 
-LoginInput = convert_serializer_to_type(LoginSerializer, name="LoginInput")
 AddUserInput = convert_serializer_to_type(AddUserSerializer, name="AddUserInput")
 EditUserInput = convert_serializer_to_type(EditUserSerializer, name="EditUserInput")
 UserResendInviteInput = convert_serializer_to_type(UserResendInviteSerializer, name="UserResendInviteInput")
@@ -68,7 +66,7 @@ class PublicMutation:
     @sync_to_async
     def add_user(
         self, info: Info, data: AddUserInput  # type: ignore[reportInvalidTypeForm]
-    ) -> MutationResponseType[UserMeType]:
+    ) -> MutationResponseType[UserType]:
         serializer = AddUserSerializer(data=process_input_data(data), context={"request": info.context.request})
         if errors := mutation_is_not_valid(serializer):
             return MutationResponseType(
@@ -82,7 +80,7 @@ class PublicMutation:
     @sync_to_async
     def edit_user(
         self, info: Info, data: EditUserInput  # type: ignore[reportInvalidTypeForm]
-    ) -> MutationResponseType[UserMeType]:
+    ) -> MutationResponseType[UserType]:
         user = User.objects.filter(id=data.id).first()
         if user is None:
             return MutationResponseType(ok=False, errors=[{f"User with ID {data.id} not found."}])

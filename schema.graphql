@@ -1,0 +1,160 @@
+input AddUserInput {
+  email: String!
+  password: String!
+  firstName: String
+  lastName: String
+  department: DepartmentTypeEnum
+}
+
+type AppEnumCollection {
+  UserDepartment: [AppEnumCollectionUserDepartment!]!
+}
+
+type AppEnumCollectionUserDepartment {
+  key: DepartmentTypeEnum!
+  label: String!
+}
+
+input ChangePasswordInput {
+  oldPassword: String!
+  newPassword: String!
+  confirmNewPassword: String!
+}
+
+"""A generic type to return error messages"""
+scalar CustomErrorType
+
+enum DepartmentTypeEnum {
+  HR
+}
+
+input EditUserInput {
+  id: Int!
+  firstName: String
+  lastName: String
+  department: DepartmentTypeEnum
+  isActive: Boolean
+}
+
+input LoginInput {
+  email: String!
+  password: String!
+}
+
+type Mutation {
+  public: PublicMutation!
+  private: PrivateMutation!
+}
+
+type MutationEmptyResponseType {
+  ok: Boolean!
+  errors: CustomErrorType
+}
+
+input OffsetPaginationInput {
+  offset: Int! = 0
+  limit: Int! = -1
+}
+
+type PrivateMutation {
+  logout: MutationEmptyResponseType!
+  changePassword(data: ChangePasswordInput!): MutationEmptyResponseType!
+  updateMe(data: UserMeInput!): UserMeTypeMutationResponseType!
+  id: ID!
+}
+
+type PrivateQuery {
+  noop: ID!
+  users(pagination: OffsetPaginationInput): UserTypeCountList!
+  allUsers: [UserType!]!
+  id: ID!
+}
+
+type PublicMutation {
+  login(data: LoginInput!): UserMeTypeMutationResponseType!
+  addUser(data: AddUserInput!): UserTypeMutationResponseType!
+  editUser(data: EditUserInput!): UserTypeMutationResponseType!
+  resendInvite(data: UserResendInviteInput!): MutationEmptyResponseType!
+  accountActivation(data: UserActivationInput!): MutationEmptyResponseType!
+  accountDeactivation(data: UserDeactivationInput!): MutationEmptyResponseType!
+  passwordResetTrigger(data: UserPasswordResetInput!): MutationEmptyResponseType!
+  passwordResetConfirm(data: UserPasswordResetConfirmInput!): MutationEmptyResponseType!
+  id: ID!
+}
+
+type PublicQuery {
+  me: UserMeType
+  id: ID!
+}
+
+type Query {
+  public: PublicQuery!
+  private: PrivateQuery!
+  enums: AppEnumCollection!
+}
+
+input UserActivationInput {
+  uuid: String!
+  token: String!
+}
+
+input UserDeactivationInput {
+  userId: String!
+}
+
+input UserMeInput {
+  email: String!
+  firstName: String
+  lastName: String
+}
+
+type UserMeType {
+  id: ID!
+  email: String!
+  firstName: String!
+  lastName: String!
+}
+
+type UserMeTypeMutationResponseType {
+  ok: Boolean!
+  errors: CustomErrorType
+  result: UserMeType
+}
+
+input UserPasswordResetConfirmInput {
+  uuid: String!
+  token: String!
+  newPassword: String!
+  confirmNewPassword: String!
+}
+
+input UserPasswordResetInput {
+  email: String!
+}
+
+input UserResendInviteInput {
+  userId: String!
+}
+
+type UserType {
+  id: ID!
+  email: String!
+  firstName: String!
+  lastName: String!
+  isActive: Boolean!
+  department: DepartmentTypeEnum
+  displayName: String!
+}
+
+type UserTypeCountList {
+  limit: Int!
+  offset: Int!
+  count: Int!
+  items: [UserType!]!
+}
+
+type UserTypeMutationResponseType {
+  ok: Boolean!
+  errors: CustomErrorType
+  result: UserType
+}
