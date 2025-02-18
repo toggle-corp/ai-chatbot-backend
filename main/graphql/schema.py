@@ -41,7 +41,7 @@ class PublicMutation(
 
 
 @strawberry.type
-class PrivateMutation:
+class PrivateMutation(user_mutations.PrivateMutation):
     id: strawberry.ID = strawberry.ID("private")
 
 
