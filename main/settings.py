@@ -86,7 +86,7 @@ env = environ.Env(
     EMAIL_PORT=int,
     EMAIL_HOST_USER=str,
     EMAIL_HOST_PASSWORD=str,
-    DEFAULT_FROM_EMAIL=str,
+    EMAIL_FROM=str,
 )
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -98,7 +98,7 @@ SECRET_KEY = env("DJANGO_SECRET_KEY")
 DEBUG = env("DJANGO_DEBUG")
 
 ALLOWED_HOSTS = env("DJANGO_ALLOWED_HOST")
-
+APP_FRONTEND_HOST = env("APP_FRONTEND_HOST")
 APP_HTTP_PROTOCOL = env("APP_HTTP_PROTOCOL")
 APP_ENVIRONMENT = env("APP_ENVIRONMENT")
 APP_DOMAIN = env("APP_DOMAIN")
@@ -332,8 +332,6 @@ if env("USE_S3_BUCKET"):
 else:
     STATIC_ROOT = env("DJANGO_STATIC_ROOT")
     MEDIA_ROOT = env("DJANGO_MEDIA_ROOT")
-
-APP_FRONTEND_HOST = env("APP_FRONTEND_HOST")
 # Email
 EMAIL_FROM = env("DEFAULT_FROM_EMAIL")
 SPECIFIED_EMAIL_BACKEND = env("EMAIL_BACKEND").upper()

@@ -18,8 +18,17 @@ x-server: &base_server_setup
     # -- Domain configurations
     DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:-*}
     APP_DOMAIN: localhost:8000
+    APP_FRONTEND_HOST : ${APP_FRONTEND_HOST:-localhost:3000}
     APP_HTTP_PROTOCOL: ${APP_HTTP_PROTOCOL:-http}
     SESSION_COOKIE_DOMAIN: ${SESSION_COOKIE_DOMAIN:-localhost}
+    #Email
+    EMAIL_FROM : ${DEFAULT_FROM_EMAIL:-fake}
+    SPECIFIED_EMAIL_BACKEND : ${EMAIL_BACKEND:-smtp}
+    EMAIL_HOST : ${EMAIL_HOST:-fake}
+    EMAIL_PORT : ${EMAIL_PORT:-1025}
+    EMAIL_HOST_USER : ${EMAIL_HOST_USER:-fake}
+    EMAIL_HOST_PASSWORD : ${EMAIL_HOST_PASSWORD:-fake}
+    EMAIL_USE_SSL : ${EMAIL_USE_SSL:-fake}
     # Database config
     DATABASE_NAME: ${DATABASE_NAME:-postgres}
     DATABASE_USER: ${DATABASE_USER:-postgres}
