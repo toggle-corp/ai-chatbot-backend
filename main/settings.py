@@ -79,14 +79,14 @@ env = environ.Env(
     CELERY_RESULT_SERIALIZER=(str, "json"),
     CELERY_TIMEZONE=(str, "UTC"),
     # Email
-    EMAIL_BACKEND=str,
+    SMTP_EMAIL_BACKEND=str,
     # -- SMTP
     EMAIL_HOST=str,
     EMAIL_USE_SSL=(bool, False),
     EMAIL_PORT=int,
     EMAIL_HOST_USER=str,
     EMAIL_HOST_PASSWORD=str,
-    EMAIL_FROM=str,
+    DEFAULT_FROM_EMAIL=str,
 )
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -333,8 +333,7 @@ else:
     STATIC_ROOT = env("DJANGO_STATIC_ROOT")
     MEDIA_ROOT = env("DJANGO_MEDIA_ROOT")
 # Email
-EMAIL_FROM = env("DEFAULT_FROM_EMAIL")
-SPECIFIED_EMAIL_BACKEND = env("EMAIL_BACKEND").upper()
+SPECIFIED_EMAIL_BACKEND = env("SMTP_EMAIL_BACKEND").upper()
 
 if SPECIFIED_EMAIL_BACKEND == "SMTP":
     # Configure SMTP backend settings
@@ -344,5 +343,6 @@ if SPECIFIED_EMAIL_BACKEND == "SMTP":
     EMAIL_HOST_USER = env("EMAIL_HOST_USER")
     EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
     EMAIL_USE_SSL = env("EMAIL_USE_SSL")
+    DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL")
 else:
     EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
