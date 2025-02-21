@@ -1,0 +1,180 @@
+type AppEnumCollection {
+  UserDepartment: [AppEnumCollectionUserDepartment!]!
+  ContentDocumentStatus: [AppEnumCollectionContentDocumentStatus!]!
+  ContentDocumentType: [AppEnumCollectionContentDocumentType!]!
+}
+
+type AppEnumCollectionContentDocumentStatus {
+  key: DocumentStatusTypeEnum!
+  label: String!
+}
+
+type AppEnumCollectionContentDocumentType {
+  key: DocumentTypeEnum!
+  label: String!
+}
+
+type AppEnumCollectionUserDepartment {
+  key: DepartmentTypeEnum!
+  label: String!
+}
+
+input ContentCreateInput {
+  title: String!
+  documentFile: Upload!
+  tag: [ID!]
+  documentType: DocumentTypeEnum
+}
+
+type ContentType {
+  id: ID!
+  title: String!
+  extractedFile: DjangoFileType
+  tag: [DjangoModelType!]!
+  documentStatus: DocumentStatusTypeEnum!
+  documentType: DocumentTypeEnum!
+}
+
+type ContentTypeCountList {
+  limit: Int!
+  offset: Int!
+  count: Int!
+  items: [ContentType!]!
+}
+
+type ContentTypeMutationResponseType {
+  ok: Boolean!
+  errors: CustomErrorType
+  result: ContentType
+}
+
+input CreateTagCreateInput {
+  name: String!
+  description: String
+}
+
+"""A generic type to return error messages"""
+scalar CustomErrorType
+
+enum DepartmentTypeEnum {
+  HR
+}
+
+type DjangoFileType {
+  name: String!
+  path: String!
+  size: Int!
+  url: String!
+}
+
+type DjangoModelType {
+  pk: ID!
+}
+
+enum DocumentStatusTypeEnum {
+  PENDING
+  TEXT_EXTRACTED
+  ADDED_TO_VECTOR
+  DELETED_FROM_VECTOR
+  FAILURE
+}
+
+enum DocumentTypeEnum {
+  PDF
+  TEXT
+}
+
+input LoginInput {
+  email: String!
+  password: String!
+}
+
+type Mutation {
+  public: PublicMutation!
+  private: PrivateMutation!
+}
+
+type MutationEmptyResponseType {
+  ok: Boolean!
+  errors: CustomErrorType
+}
+
+input OffsetPaginationInput {
+  offset: Int! = 0
+  limit: Int! = -1
+}
+
+type PrivateMutation {
+  createContent(data: ContentCreateInput!): ContentTypeMutationResponseType!
+  readFile(file: Upload!): String!
+  updateContentTitle(id: ID!, data: UpdateContentUpdateInput!): ContentTypeMutationResponseType!
+  archiveContent(id: ID!, data: archiveUpdateInput!): MutationEmptyResponseType!
+  createTag(data: CreateTagCreateInput!): TagTypeMutationResponseType!
+  id: ID!
+}
+
+type PrivateQuery {
+  noop: ID!
+  content(pagination: OffsetPaginationInput): ContentTypeCountList!
+  tag(pagination: OffsetPaginationInput): ContentTypeCountList!
+
+  """Return all content"""
+  allContent: [ContentType!]!
+  allTags: [TagType!]!
+  id: ID!
+}
+
+type PublicMutation {
+  login(data: LoginInput!): UserMeTypeMutationResponseType!
+  logout: MutationEmptyResponseType!
+  id: ID!
+}
+
+type PublicQuery {
+  me: UserMeType
+  id: ID!
+}
+
+type Query {
+  public: PublicQuery!
+  private: PrivateQuery!
+  enums: AppEnumCollection!
+}
+
+type TagType {
+  id: ID!
+  name: String!
+  description: String
+}
+
+type TagTypeMutationResponseType {
+  ok: Boolean!
+  errors: CustomErrorType
+  result: TagType
+}
+
+input UpdateContentUpdateInput {
+  title: String
+}
+
+scalar Upload
+
+type UserMeType {
+  id: ID!
+  email: String!
+  firstName: String!
+  lastName: String!
+  displayName: String!
+  department: Int
+  departmentDisplay: DepartmentTypeEnum
+}
+
+type UserMeTypeMutationResponseType {
+  ok: Boolean!
+  errors: CustomErrorType
+  result: UserMeType
+}
+
+input archiveUpdateInput {
+  isDeleted: Boolean
+}

@@ -17,7 +17,6 @@ class Tag(models.Model):
 
 class Content(UserResource):
     class DocumentType(models.IntegerChoices):
-        WORD = 1, _("Word")
         PDF = 2, _("PDF")
         TEXT = 3, _("Text")
 
