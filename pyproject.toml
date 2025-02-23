@@ -35,7 +35,7 @@ build-backend = "poetry.core.masonry.api"
 [tool.black]
 line-length = 125
 # NOTE: Update in .pre-commit-config.yaml as well
-extend-exclude = "(__pycache__|.*snap_test_.*\\.py|.+\\/.+\\/migrations\\/.*)"
+extend-exclude = "(__pycache__|.*snap_test_.*\\.py|.*/migrations/.*)"
 
 [tool.isort]
 profile = "black"
