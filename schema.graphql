@@ -1,9 +1,26 @@
+<<<<<<< HEAD
 input AddUserInput {
   emails: String!
 }
 
 type AppEnumCollection {
   UserDepartment: [AppEnumCollectionUserDepartment!]!
+=======
+type AppEnumCollection {
+  UserDepartment: [AppEnumCollectionUserDepartment!]!
+  ContentDocumentStatus: [AppEnumCollectionContentDocumentStatus!]!
+  ContentDocumentType: [AppEnumCollectionContentDocumentType!]!
+}
+
+type AppEnumCollectionContentDocumentStatus {
+  key: DocumentStatusTypeEnum!
+  label: String!
+}
+
+type AppEnumCollectionContentDocumentType {
+  key: DocumentTypeEnum!
+  label: String!
+>>>>>>> e5ce11f (Add content management queries and mutations)
 }
 
 type AppEnumCollectionUserDepartment {
@@ -11,10 +28,46 @@ type AppEnumCollectionUserDepartment {
   label: String!
 }
 
+<<<<<<< HEAD
 input ChangePasswordInput {
   oldPassword: String!
   newPassword: String!
   confirmNewPassword: String!
+=======
+input ContentCreateInput {
+  title: String!
+  documentFile: Upload
+  tag: [ID!]
+  documentType: DocumentTypeEnum
+  documentUrl: String
+}
+
+type ContentType {
+  id: ID!
+  title: String!
+  extractedFile: DjangoFileType
+  tag: [TagNameType!]!
+  documentStatus: DocumentStatusTypeEnum!
+  documentType: DocumentTypeEnum!
+}
+
+type ContentTypeCountList {
+  limit: Int!
+  offset: Int!
+  count: Int!
+  items: [ContentType!]!
+}
+
+type ContentTypeMutationResponseType {
+  ok: Boolean!
+  errors: CustomErrorType
+  result: ContentType
+}
+
+input CreateTagCreateInput {
+  name: String!
+  description: String
+>>>>>>> e5ce11f (Add content management queries and mutations)
 }
 
 """A generic type to return error messages"""
@@ -24,6 +77,30 @@ enum DepartmentTypeEnum {
   HR
 }
 
+<<<<<<< HEAD
+=======
+type DjangoFileType {
+  name: String!
+  path: String!
+  size: Int!
+  url: String!
+}
+
+enum DocumentStatusTypeEnum {
+  PENDING
+  TEXT_EXTRACTED
+  ADDED_TO_VECTOR
+  DELETED_FROM_VECTOR
+  FAILURE
+}
+
+enum DocumentTypeEnum {
+  WEB_URl
+  PDF
+  TEXT
+}
+
+>>>>>>> e5ce11f (Add content management queries and mutations)
 input LoginInput {
   email: String!
   password: String!
@@ -45,21 +122,39 @@ input OffsetPaginationInput {
 }
 
 type PrivateMutation {
+<<<<<<< HEAD
   logout: MutationEmptyResponseType!
   changePassword(data: ChangePasswordInput!): MutationEmptyResponseType!
   updateMe(data: UserMeInput!): UserMeTypeMutationResponseType!
+=======
+  createContent(data: ContentCreateInput!): ContentTypeMutationResponseType!
+  readFile(file: Upload!): String!
+  updateContentTitle(id: ID!, data: UpdateContentUpdateInput!): ContentTypeMutationResponseType!
+  archiveContent(id: ID!, data: archiveUpdateInput!): MutationEmptyResponseType!
+  createTag(data: CreateTagCreateInput!): TagTypeMutationResponseType!
+>>>>>>> e5ce11f (Add content management queries and mutations)
   id: ID!
 }
 
 type PrivateQuery {
   noop: ID!
+<<<<<<< HEAD
   users(pagination: OffsetPaginationInput): UserTypeCountList!
   allUsers: [UserType!]!
+=======
+  content(pagination: OffsetPaginationInput): ContentTypeCountList!
+  tag(pagination: OffsetPaginationInput): ContentTypeCountList!
+
+  """Return all content"""
+  allContent: [ContentType!]!
+  allTags: [TagType!]!
+>>>>>>> e5ce11f (Add content management queries and mutations)
   id: ID!
 }
 
 type PublicMutation {
   login(data: LoginInput!): UserMeTypeMutationResponseType!
+<<<<<<< HEAD
   addUser(data: AddUserInput!): MutationEmptyResponseType!
   registerUser(data: RegisterUserInput!): UserTypeMutationResponseType!
   resendInvite(data: UserResendInviteInput!): MutationEmptyResponseType!
@@ -67,11 +162,23 @@ type PublicMutation {
   accountDeactivation(data: UserDeactivationInput!): MutationEmptyResponseType!
   passwordResetTrigger(data: UserPasswordResetInput!): MutationEmptyResponseType!
   passwordResetConfirm(data: UserPasswordResetConfirmInput!): MutationEmptyResponseType!
+=======
+  logout: MutationEmptyResponseType!
+>>>>>>> e5ce11f (Add content management queries and mutations)
   id: ID!
 }
 
 type PublicQuery {
   me: UserMeType
+<<<<<<< HEAD
+=======
+  content(pagination: OffsetPaginationInput): ContentTypeCountList!
+  tag(pagination: OffsetPaginationInput): ContentTypeCountList!
+
+  """Return all content"""
+  allContent: [ContentType!]!
+  allTags: [TagType!]!
+>>>>>>> e5ce11f (Add content management queries and mutations)
   id: ID!
 }
 
@@ -81,6 +188,7 @@ type Query {
   enums: AppEnumCollection!
 }
 
+<<<<<<< HEAD
 input RegisterUserInput {
   uuid: String!
   token: String!
@@ -110,6 +218,36 @@ type UserMeType {
   email: String!
   firstName: String!
   lastName: String!
+=======
+type TagNameType {
+  name: String!
+}
+
+type TagType {
+  id: ID!
+  name: String!
+  description: String
+}
+
+type TagTypeMutationResponseType {
+  ok: Boolean!
+  errors: CustomErrorType
+  result: TagType
+}
+
+input UpdateContentUpdateInput {
+  title: String
+}
+
+scalar Upload
+
+type UserMeType {
+  id: ID!
+  firstName: String!
+  lastName: String!
+  displayName: String!
+  email: String!
+>>>>>>> e5ce11f (Add content management queries and mutations)
 }
 
 type UserMeTypeMutationResponseType {
@@ -118,6 +256,7 @@ type UserMeTypeMutationResponseType {
   result: UserMeType
 }
 
+<<<<<<< HEAD
 input UserPasswordResetConfirmInput {
   uuid: String!
   token: String!
@@ -154,4 +293,8 @@ type UserTypeMutationResponseType {
   ok: Boolean!
   errors: CustomErrorType
   result: UserType
+=======
+input archiveUpdateInput {
+  isDeleted: Boolean
+>>>>>>> e5ce11f (Add content management queries and mutations)
 }

@@ -17,7 +17,7 @@ class Tag(models.Model):
 
 class Content(UserResource):
     class DocumentType(models.IntegerChoices):
-        WORD = 1, _("Word")
+        WEB_URl = 1, _("WEB_URl")
         PDF = 2, _("PDF")
         TEXT = 3, _("Text")
 
@@ -31,6 +31,7 @@ class Content(UserResource):
     title = models.CharField(max_length=100)
     document_type = models.IntegerField(choices=DocumentType.choices, default=DocumentType.TEXT)
     document_file = models.FileField(upload_to="documents")
+    document_url = models.URLField(null=True, blank=True)
     extracted_file = models.FileField(upload_to="documents-extracts", null=True, blank=True)
     content_id = models.UUIDField(default=uuid.uuid4, editable=False)
     document_status = models.PositiveSmallIntegerField(choices=DocumentStatus.choices, default=DocumentStatus.PENDING)
