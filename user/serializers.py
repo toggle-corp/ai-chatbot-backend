@@ -1,12 +1,17 @@
 from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
+from django.db import transaction
 from django.utils.http import urlsafe_base64_decode
 from django.utils.translation import gettext
 from rest_framework import serializers
 
 from main.token import TokenManager
 from user.models import User
-from user.utils import resend_account_activation, send_password_reset
+from user.utils import (
+    resend_account_activation,
+    send_account_creation,
+    send_password_reset,
+)
 
 
 class LoginSerializer(serializers.Serializer):
@@ -14,12 +19,10 @@ class LoginSerializer(serializers.Serializer):
     password = serializers.CharField(write_only=True)
 
     def validate(self, attrs):
-        # NOTE: authenticate only works for active users
         authenticate_user = authenticate(
             email=attrs["email"].lower(),
             password=attrs["password"],
         )
-        # User doesn't exists in the system.
         if authenticate_user is None:
             raise serializers.ValidationError("No active account found with the given credentials")
         return {"user": authenticate_user}
@@ -42,36 +45,62 @@ def validate_token(attrs, token_generator) -> User:
     raise serializers.ValidationError(gettext("Invalid or expired token"))
 
 
-class AddUserSerializer(serializers.ModelSerializer):
+class AddUserSerializer(serializers.Serializer):
+    emails = serializers.CharField(required=True)
+
+    def validate(self, validated_data):
+        emails = [email.strip().lower() for email in validated_data["emails"].split(",")]
+        registered_emails = User.objects.filter(email__in=emails).values_list("email", flat=True)
+        new_emails = list(set(emails) - set(registered_emails))
+        validated_data["new_emails"] = new_emails
+        return validated_data
+
+    def create(self, validated_data):
+        new_emails = validated_data.get("new_emails")
+        if not new_emails:
+            return None
+        new_users = []
+        with transaction.atomic():
+            for email in new_emails:
+                user = User.objects.create_user(
+                    email=email,
+                    password=None,
+                    is_active=False,
+                )
+                new_users.append(user)
+                transaction.on_commit(lambda user=user: send_account_creation(user))
+        return new_users
+
+
+class UserRegisterSerializer(serializers.ModelSerializer):
+    uuid = serializers.CharField(required=True)
+    token = serializers.CharField(required=True)
+    confirm_password = serializers.CharField(write_only=True, required=True)
+
     class Meta:
         model = User
-        fields = ("email", "password", "first_name", "last_name", "department")
+        fields = ("uuid", "token", "password", "confirm_password", "first_name", "last_name", "department")
+        extra_kwargs = {"password": {"write_only": True}}
 
-        def validate_email(self, email) -> str:
-            if User.objects.filter(email__iexact=email).exists():
-                raise serializers.ValidationError(gettext("This email is already registered."))
-            return email.lower()
+    def validate_password(self, password):
+        validate_password(password)
+        return password
 
-        def validate_password(self, password):
-            validate_password(password=password)
-            return password
+    def validate(self, attrs):
+        if attrs["password"] != attrs["confirm_password"]:
+            raise serializers.ValidationError(gettext("Passwords do not match."))
+        return {**attrs, "user": validate_token(attrs, TokenManager.account_registration_token_generator)}
 
-        def create(self, validated_data):
-            password = validated_data.pop("password")
-            user = User(**validated_data)
-            user.set_password(password)
-            user.save()
-            return user
-
-
-class EditUserSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(
-        required=True,
-    )
-
-    class Meta:
-        model = User
-        fields = ["id", "first_name", "last_name", "department", "is_active"]
+    def save(self, **_):
+        assert isinstance(self.validated_data, dict)
+        user = self.validated_data["user"]
+        user.first_name = self.validated_data["first_name"]
+        user.last_name = self.validated_data["last_name"]
+        user.department = self.validated_data["department"]
+        user.set_password(self.validated_data["password"])
+        user.is_active = True
+        user.save()
+        return user
 
 
 class UserResendInviteSerializer(serializers.Serializer):
@@ -101,7 +130,7 @@ class UserActivationSerializer(serializers.Serializer):
     token = serializers.CharField(required=True)
 
     def validate(self, attrs):
-        return {**attrs, "user": validate_token(attrs, TokenManager.account_activation_token_generator)}
+        return {**attrs, "user": validate_token(attrs, TokenManager.account_reactivation_token_generator)}
 
     def save(self, **_):
         assert isinstance(self.validated_data, dict)
@@ -210,5 +239,4 @@ class UpdateMeSerializer(serializers.ModelSerializer):
         fields = (
             "first_name",
             "last_name",
-            "email",
         )

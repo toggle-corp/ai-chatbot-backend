@@ -334,7 +334,6 @@ else:
     MEDIA_ROOT = env("DJANGO_MEDIA_ROOT")
 # Email
 SPECIFIED_EMAIL_BACKEND = env("SMTP_EMAIL_BACKEND").upper()
-
 if SPECIFIED_EMAIL_BACKEND == "SMTP":
     # Configure SMTP backend settings
     EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"

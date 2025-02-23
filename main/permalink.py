@@ -4,7 +4,9 @@ from django.conf import settings
 class Permalink:
     BASE_URL = f"{settings.APP_FRONTEND_HOST}"
 
-    # FORGOT_PASSWORD = f"{BASE_URL}/forgot-password"
+    @classmethod
+    def user_registration(cls, uid: str, token: str):
+        return f"{cls.BASE_URL}/user-registration/{uid}/{token}"
 
     @classmethod
     def user_password_reset(cls, uid: str, token: str):

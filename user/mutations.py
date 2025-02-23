@@ -3,17 +3,16 @@ from asgiref.sync import sync_to_async
 from django.contrib.auth import login, logout
 from strawberry.types import Info
 
-from user.models import User
 from user.serializers import (
     AddUserSerializer,
     ChangePasswordSerializer,
-    EditUserSerializer,
     LoginSerializer,
     UpdateMeSerializer,
     UserActivationSerializer,
     UserDeactivationSerializer,
     UserPasswordResetConfirmSerializer,
     UserPasswordResetTriggerSerializer,
+    UserRegisterSerializer,
     UserResendInviteSerializer,
 )
 from user.types import UserMeType, UserType
@@ -28,7 +27,7 @@ from utils.strawberry.transformers import convert_serializer_to_type
 LoginInput = convert_serializer_to_type(LoginSerializer, name="LoginInput")
 
 AddUserInput = convert_serializer_to_type(AddUserSerializer, name="AddUserInput")
-EditUserInput = convert_serializer_to_type(EditUserSerializer, name="EditUserInput")
+RegisterUserInput = convert_serializer_to_type(UserRegisterSerializer, name="RegisterUserInput")
 UserResendInviteInput = convert_serializer_to_type(UserResendInviteSerializer, name="UserResendInviteInput")
 UserActivationInput = convert_serializer_to_type(UserActivationSerializer, name="UserActivationInput")
 UserDeactivationInput = convert_serializer_to_type(UserDeactivationSerializer, name="UserDeactivationInput")
@@ -64,10 +63,24 @@ class PublicMutation:
 
     @strawberry.mutation
     @sync_to_async
-    def add_user(
-        self, info: Info, data: AddUserInput  # type: ignore[reportInvalidTypeForm]
-    ) -> MutationResponseType[UserType]:
+    def add_user(self, info: Info, data: AddUserInput) -> MutationEmptyResponseType:  # type: ignore[reportInvalidTypeForm]
         serializer = AddUserSerializer(data=process_input_data(data), context={"request": info.context.request})
+        if errors := mutation_is_not_valid(serializer):
+            return MutationEmptyResponseType(
+                ok=False,
+                errors=errors,
+            )
+        serializer.save()
+        return MutationEmptyResponseType(
+            ok=True,
+        )  # type: ignore[reportReturnType]
+
+    @strawberry.mutation
+    @sync_to_async
+    def register_user(
+        self, info: Info, data: RegisterUserInput  # type: ignore[reportInvalidTypeForm]
+    ) -> MutationResponseType[UserType]:
+        serializer = UserRegisterSerializer(data=process_input_data(data), context={"request": info.context.request})
         if errors := mutation_is_not_valid(serializer):
             return MutationResponseType(
                 ok=False,
@@ -75,23 +88,6 @@ class PublicMutation:
             )
         user = serializer.save()
         return MutationResponseType(result=user)  # type: ignore[reportReturnType]
-
-    @strawberry.mutation
-    @sync_to_async
-    def edit_user(
-        self, info: Info, data: EditUserInput  # type: ignore[reportInvalidTypeForm]
-    ) -> MutationResponseType[UserType]:
-        user = User.objects.filter(id=data.id).first()
-        if user is None:
-            return MutationResponseType(ok=False, errors=[{f"User with ID {data.id} not found."}])
-        serializer = EditUserSerializer(
-            data=process_input_data(data), context={"request": info.context.request}, partial=True
-        )
-        if errors := mutation_is_not_valid(serializer):
-            return MutationResponseType(ok=False, errors=errors)
-
-        updated_user = serializer.update(user, serializer.validated_data)
-        return MutationResponseType(result=updated_user)  # type: ignore[reportReturnType]
 
     @strawberry.mutation
     @sync_to_async

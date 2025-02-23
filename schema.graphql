@@ -1,9 +1,5 @@
 input AddUserInput {
-  email: String!
-  password: String!
-  firstName: String
-  lastName: String
-  department: DepartmentTypeEnum
+  emails: String!
 }
 
 type AppEnumCollection {
@@ -26,14 +22,6 @@ scalar CustomErrorType
 
 enum DepartmentTypeEnum {
   HR
-}
-
-input EditUserInput {
-  id: Int!
-  firstName: String
-  lastName: String
-  department: DepartmentTypeEnum
-  isActive: Boolean
 }
 
 input LoginInput {
@@ -72,8 +60,8 @@ type PrivateQuery {
 
 type PublicMutation {
   login(data: LoginInput!): UserMeTypeMutationResponseType!
-  addUser(data: AddUserInput!): UserTypeMutationResponseType!
-  editUser(data: EditUserInput!): UserTypeMutationResponseType!
+  addUser(data: AddUserInput!): MutationEmptyResponseType!
+  registerUser(data: RegisterUserInput!): UserTypeMutationResponseType!
   resendInvite(data: UserResendInviteInput!): MutationEmptyResponseType!
   accountActivation(data: UserActivationInput!): MutationEmptyResponseType!
   accountDeactivation(data: UserDeactivationInput!): MutationEmptyResponseType!
@@ -93,6 +81,16 @@ type Query {
   enums: AppEnumCollection!
 }
 
+input RegisterUserInput {
+  uuid: String!
+  token: String!
+  password: String!
+  confirmPassword: String!
+  firstName: String
+  lastName: String
+  department: DepartmentTypeEnum
+}
+
 input UserActivationInput {
   uuid: String!
   token: String!
@@ -103,7 +101,6 @@ input UserDeactivationInput {
 }
 
 input UserMeInput {
-  email: String!
   firstName: String
   lastName: String
 }

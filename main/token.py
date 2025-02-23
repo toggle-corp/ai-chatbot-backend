@@ -26,7 +26,13 @@ def account_activation_token_generator_make_hash_value(_, user, timestamp):
 
 class TokenManager:
     password_reset_token_generator = PasswordResetTokenGenerator()
-    account_activation_token_generator = _generate_generator(
+
+    account_registration_token_generator = _generate_generator(
+        "AccountActivationTokenGenerator",
+        timeout=7 * 86400,
+        _make_hash_value=account_activation_token_generator_make_hash_value,
+    )
+    account_reactivation_token_generator = _generate_generator(
         "AccountActivationTokenGenerator",
         timeout=7 * 86400,
         _make_hash_value=account_activation_token_generator_make_hash_value,

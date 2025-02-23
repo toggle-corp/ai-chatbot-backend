@@ -9,10 +9,21 @@ from main.token import TokenManager
 from .models import User
 
 
+def send_account_creation(user: User):
+
+    uid = urlsafe_base64_encode(force_bytes(user.pk))
+    token = TokenManager.account_registration_token_generator.make_token(user)
+    activation_url = Permalink.user_activation(uid, token)
+    subject = "Account Creation"
+    message = "Hello from chat-bot cms,\n\n"
+    message += f"Click the link below to create your account:\n\n {activation_url}\n\n"
+    send_mail(subject, message, settings.EMAIL_HOST_USER, [user.email])
+
+
 def resend_account_activation(user: User):
 
     uid = urlsafe_base64_encode(force_bytes(user.pk))
-    token = TokenManager.account_activation_token_generator.make_token(user)
+    token = TokenManager.account_reactivation_token_generator.make_token(user)
     activation_url = Permalink.user_activation(uid, token)
     subject = "Account Activation"
     message = f"Hi {user.first_name} {user.last_name},\n\n"
