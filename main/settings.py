@@ -30,7 +30,7 @@ env = environ.Env(
     APP_ENVIRONMENT=str,
     APP_DOMAIN=str,
     APP_FRONTEND_HOST=str,
-    DJANGO_APP_TYPE=str,  # web/worker/hook
+    APP_TYPE=str,  # web/worker/hook
     # Storage
     DJANGO_STATIC_ROOT=(str, os.path.join(BASE_DIR, "assets/static")),  # Where to store
     DJANGO_MEDIA_ROOT=(str, os.path.join(BASE_DIR, "assets/media")),  # Where to store
@@ -54,9 +54,11 @@ env = environ.Env(
     CELERY_REDIS_URL=str,
     DJANGO_CACHE_REDIS_URL=str,
     # -- For running test (Optional)
+    # -- sentry
     SENTRY_DSN=(str, None),
     SENTRY_TRACES_SAMPLE_RATE=(float, 0.2),
     SENTRY_PROFILE_SAMPLE_RATE=(float, 0.2),
+    SENTRY_DEBUG=(bool, False),
     # App Domain
     # Vector Database
     QDRANT_DB_HOST=str,
@@ -292,11 +294,12 @@ SENTRY_ENABLED = False
 if SENTRY_DSN:
     SENTRY_ENABLED = True
     SENTRY_CONFIG = {
-        "app_type": env("DJANGO_APP_TYPE"),
+        "app_type": env("APP_TYPE"),
         "dsn": SENTRY_DSN,
         "send_default_pii": True,
         "traces_sample_rate": env("SENTRY_TRACES_SAMPLE_RATE"),
         "profiles_sample_rate": env("SENTRY_PROFILE_SAMPLE_RATE"),
+        "debug": env("SENTRY_DEBUG"),
         "tags": {
             "site": ",".join(set(ALLOWED_HOSTS)),
         },

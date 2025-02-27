@@ -11,6 +11,7 @@ IGNORED_ERRORS = [
     CeleryRetry,
 ]
 IGNORED_LOGGERS = [
+    "graphql.execution.utils",
     "django.core.exceptions.ObjectDoesNotExist",
 ]
 

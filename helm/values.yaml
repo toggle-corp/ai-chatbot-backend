@@ -149,6 +149,8 @@ env:
   # Sentry
   SENTRY_TRACES_SAMPLE_RATE: 0.2
   SENTRY_PROFILE_SAMPLE_RATE: 0.2
+  SENTRY_DEBUG:
+  
   # App Domain
   # Vector Database
   # QDRANT_DB_HOST: (Required if qdrant.enabled is false)
