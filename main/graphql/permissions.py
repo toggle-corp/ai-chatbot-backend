@@ -12,3 +12,12 @@ class IsAuthenticated(BasePermission):
     def has_permission(self, source: typing.Any, info: Info, **_) -> bool:
         user = info.context.request.user
         return bool(user and user.is_authenticated)
+
+
+class IsAdmin(BasePermission):
+    message = "User is not an admin"
+
+    @sync_to_async
+    def has_permission(self, source: typing.Any, info: Info, **_) -> bool:
+        user = info.context.request.user
+        return bool(user and user.is_authenticated and user.is_superuser)

@@ -5,7 +5,6 @@ from django.utils.crypto import constant_time_compare
 from django.utils.http import base36_to_int
 
 
-# WIP
 class BaseTokenGenerator(abc.ABC, PasswordResetTokenGenerator):
     """
     Using PasswordResetTokenGenerator to create a reusable token generator clases
@@ -49,6 +48,3 @@ class BaseTokenGenerator(abc.ABC, PasswordResetTokenGenerator):
         # --- Custom code
 
         return True
-
-    @abc.abstractmethod
-    def _make_hash_value(self, user, timestamp) -> str: ...

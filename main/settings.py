@@ -79,7 +79,7 @@ env = environ.Env(
     CELERY_RESULT_SERIALIZER=(str, "json"),
     CELERY_TIMEZONE=(str, "UTC"),
     # Email
-    SMTP_EMAIL_BACKEND=str,
+    EMAIL_BACKEND=str,
     # -- SMTP
     EMAIL_HOST=str,
     EMAIL_USE_SSL=(bool, False),
@@ -333,15 +333,12 @@ else:
     STATIC_ROOT = env("DJANGO_STATIC_ROOT")
     MEDIA_ROOT = env("DJANGO_MEDIA_ROOT")
 # Email
-SPECIFIED_EMAIL_BACKEND = env("SMTP_EMAIL_BACKEND").upper()
-if SPECIFIED_EMAIL_BACKEND == "SMTP":
-    # Configure SMTP backend settings
-    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-    EMAIL_HOST = env("EMAIL_HOST")
-    EMAIL_PORT = env("EMAIL_PORT")
-    EMAIL_HOST_USER = env("EMAIL_HOST_USER")
-    EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
-    EMAIL_USE_SSL = env("EMAIL_USE_SSL")
-    DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL")
-else:
-    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+# EMAIL_BACKEND= env("EMAIL_BACKEND").upper()
+# if env("EMAIL_HOST_USER"):
+#     EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+#     EMAIL_HOST = env("EMAIL_HOST")
+#     EMAIL_PORT = env("EMAIL_PORT")
+#     EMAIL_HOST_USER = env("EMAIL_HOST_USER")
+#     EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
+#     EMAIL_USE_SSL = env("EMAIL_USE_SSL")

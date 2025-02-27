@@ -3,6 +3,7 @@ from asgiref.sync import sync_to_async
 from django.contrib.auth import login, logout
 from strawberry.types import Info
 
+from main.graphql.permissions import IsAdmin
 from user.serializers import (
     AddUserSerializer,
     ChangePasswordSerializer,
@@ -61,7 +62,7 @@ class PublicMutation:
             result=user,
         )
 
-    @strawberry.mutation
+    @strawberry.mutation(permission_classes=[IsAdmin])
     @sync_to_async
     def add_user(self, info: Info, data: AddUserInput) -> MutationEmptyResponseType:  # type: ignore[reportInvalidTypeForm]
         serializer = AddUserSerializer(data=process_input_data(data), context={"request": info.context.request})
@@ -89,7 +90,7 @@ class PublicMutation:
         user = serializer.save()
         return MutationResponseType(result=user)  # type: ignore[reportReturnType]
 
-    @strawberry.mutation
+    @strawberry.mutation(permission_classes=[IsAdmin])
     @sync_to_async
     def resend_invite(
         self, data: UserResendInviteInput, info: Info  # type: ignore[reportInvalidTypeForm]
@@ -123,7 +124,7 @@ class PublicMutation:
         serializer.save()
         return MutationEmptyResponseType()
 
-    @strawberry.mutation
+    @strawberry.mutation(permission_classes=[IsAdmin])
     @sync_to_async
     def account_deactivation(
         self,

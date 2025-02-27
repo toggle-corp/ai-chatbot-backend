@@ -1,17 +1,15 @@
 from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
 from django.db import transaction
+from django.shortcuts import get_object_or_404
 from django.utils.http import urlsafe_base64_decode
 from django.utils.translation import gettext
 from rest_framework import serializers
 
 from main.token import TokenManager
 from user.models import User
-from user.utils import (
-    resend_account_activation,
-    send_account_creation,
-    send_password_reset,
-)
+from user.tasks import resend_account_activation_task, send_account_creation_email_task
+from user.utils import send_password_reset_email
 
 
 class LoginSerializer(serializers.Serializer):
@@ -52,13 +50,13 @@ class AddUserSerializer(serializers.Serializer):
         emails = [email.strip().lower() for email in validated_data["emails"].split(",")]
         registered_emails = User.objects.filter(email__in=emails).values_list("email", flat=True)
         new_emails = list(set(emails) - set(registered_emails))
+        if not new_emails:
+            raise serializers.ValidationError("All emails are already registered. provide new emails")
         validated_data["new_emails"] = new_emails
         return validated_data
 
     def create(self, validated_data):
         new_emails = validated_data.get("new_emails")
-        if not new_emails:
-            return None
         new_users = []
         with transaction.atomic():
             for email in new_emails:
@@ -67,8 +65,8 @@ class AddUserSerializer(serializers.Serializer):
                     password=None,
                     is_active=False,
                 )
+                transaction.on_commit(lambda user_id=user.id: send_account_creation_email_task.delay(user_id))
                 new_users.append(user)
-                transaction.on_commit(lambda user=user: send_account_creation(user))
         return new_users
 
 
@@ -108,12 +106,9 @@ class UserResendInviteSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         user_id = attrs["user_id"]
-        user = User.objects.filter(id=user_id).first()
-        if user is None:
-            raise serializers.ValidationError(gettext("User not found."))
-
+        user = get_object_or_404(User, id=user_id)
         if user.is_active:
-            raise serializers.ValidationError(gettext("User is already active. No need to resend an invite."))
+            raise serializers.ValidationError(gettext("User is already active."))
         return {
             **attrs,
             "user": user,
@@ -121,8 +116,8 @@ class UserResendInviteSerializer(serializers.Serializer):
 
     def save(self, **_):
         assert isinstance(self.validated_data, dict)
-        user = self.validated_data["user"]
-        resend_account_activation(user=user)
+        user_id = self.validated_data["user_id"]
+        resend_account_activation_task.delay(user_id)
 
 
 class UserActivationSerializer(serializers.Serializer):
@@ -144,9 +139,7 @@ class UserDeactivationSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         user_id = attrs["user_id"]
-        user = User.objects.filter(id=user_id).first()
-        if user is None:
-            raise serializers.ValidationError("User not found.")
+        user = get_object_or_404(User, id=user_id)
         if not user.is_active:
             raise serializers.ValidationError(gettext("User is already inactive."))
         return {
@@ -177,7 +170,7 @@ class UserPasswordResetTriggerSerializer(serializers.Serializer):
     def save(self, **_):
         assert isinstance(self.validated_data, dict)
         user = self.validated_data["user"]
-        send_password_reset(user=user)
+        send_password_reset_email(user=user)
 
 
 class UserPasswordResetConfirmSerializer(serializers.Serializer):

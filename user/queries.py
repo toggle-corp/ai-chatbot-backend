@@ -3,6 +3,7 @@ import strawberry_django
 from asgiref.sync import sync_to_async
 
 from main.graphql.context import Info
+from main.graphql.permissions import IsAdmin
 from user.types import UserMeType, UserType
 from utils.strawberry.paginations import CountList, pagination_field
 
@@ -25,6 +26,6 @@ class PrivateQuery:
         pagination=True,
     )
 
-    @strawberry_django.field()
+    @strawberry_django.field(permission_classes=[IsAdmin])
     async def all_users(self, info: Info) -> list[UserType]:
         return [users async for users in UserType.get_queryset(None, None, info)]
