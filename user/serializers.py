@@ -8,8 +8,11 @@ from rest_framework import serializers
 
 from main.token import TokenManager
 from user.models import User
-from user.tasks import resend_account_activation_task, send_account_creation_email_task
-from user.utils import send_password_reset_email
+from user.tasks import (
+    resend_account_activation_task,
+    send_account_creation_email_task,
+    send_password_reset_email_task,
+)
 
 
 class LoginSerializer(serializers.Serializer):
@@ -97,7 +100,7 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         user.department = self.validated_data["department"]
         user.set_password(self.validated_data["password"])
         user.is_active = True
-        user.save()
+        user.save(update_fields=("first_name", "last_name", "department", "password", "is_active"))
         return user
 
 
@@ -117,7 +120,7 @@ class UserResendInviteSerializer(serializers.Serializer):
     def save(self, **_):
         assert isinstance(self.validated_data, dict)
         user_id = self.validated_data["user_id"]
-        resend_account_activation_task.delay(user_id)
+        transaction.on_commit(lambda: resend_account_activation_task.delay(user_id))
 
 
 class UserActivationSerializer(serializers.Serializer):
@@ -164,13 +167,13 @@ class UserPasswordResetTriggerSerializer(serializers.Serializer):
             raise serializers.ValidationError(gettext("User with that email doesn't exists!!"))
         return {
             **attrs,
-            "user": user,
+            "user_id": user.id,
         }
 
     def save(self, **_):
         assert isinstance(self.validated_data, dict)
-        user = self.validated_data["user"]
-        send_password_reset_email(user=user)
+        user_id = self.validated_data["user_id"]
+        transaction.on_commit(lambda: send_password_reset_email_task.delay(user_id))
 
 
 class UserPasswordResetConfirmSerializer(serializers.Serializer):

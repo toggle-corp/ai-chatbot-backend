@@ -5,14 +5,10 @@ from django.utils.http import urlsafe_base64_encode
 
 from main.permalink import Permalink
 from main.token import TokenManager
-from user.models import User
 
 
 def send_account_creation_email(user):
-    # user = User.objects.filter(id=user_id).first()  # Fetch the user instance
-    # if not user:
-    #     print(f"User with ID {user_id} not found")
-    #     return
+
     uid = urlsafe_base64_encode(force_bytes(user.pk))
     token = TokenManager.account_registration_token_generator.make_token(user)
     activation_url = Permalink.user_activation(uid, token)
@@ -33,7 +29,7 @@ def resend_account_activation(user):
     send_mail(subject, message, settings.EMAIL_HOST_USER, [user.email])
 
 
-def send_password_reset_email(user: User):
+def send_password_reset_email(user):
 
     uid = urlsafe_base64_encode(force_bytes(user.pk))
     token = TokenManager.password_reset_token_generator.make_token(user)

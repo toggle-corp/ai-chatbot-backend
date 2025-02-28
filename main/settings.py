@@ -79,8 +79,7 @@ env = environ.Env(
     CELERY_RESULT_SERIALIZER=(str, "json"),
     CELERY_TIMEZONE=(str, "UTC"),
     # Email
-    EMAIL_BACKEND=str,
-    # -- SMTP
+    EMAIL_BACKEND=(str, "django.core.mail.backends.smtp.EmailBackend"),
     EMAIL_HOST=str,
     EMAIL_USE_SSL=(bool, False),
     EMAIL_PORT=int,
@@ -333,9 +332,8 @@ else:
     STATIC_ROOT = env("DJANGO_STATIC_ROOT")
     MEDIA_ROOT = env("DJANGO_MEDIA_ROOT")
 # Email
-EMAIL_BACKEND = env("EMAIL_BACKEND").upper()
 if env("EMAIL_HOST_USER"):
-    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+    EMAIL_BACKEND = env("EMAIL_BACKEND")
     EMAIL_HOST = env("EMAIL_HOST")
     EMAIL_PORT = env("EMAIL_PORT")
     EMAIL_HOST_USER = env("EMAIL_HOST_USER")

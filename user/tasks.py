@@ -4,7 +4,11 @@ from celery import shared_task
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 
-from user.utils import resend_account_activation, send_account_creation_email
+from user.utils import (
+    resend_account_activation,
+    send_account_creation_email,
+    send_password_reset_email,
+)
 
 User = get_user_model()
 
@@ -28,3 +32,10 @@ def resend_account_activation_task(user_id):
         f"Invitation resent to {user.email}"
     else:
         logger.error(f"User with this {user.email} is already active")
+
+
+@shared_task
+def send_password_reset_email_task(user_id):
+    user = get_object_or_404(User, id=user_id)
+    send_password_reset_email(user)
+    logger.info(f"Password reset email sent to {user.email}")
