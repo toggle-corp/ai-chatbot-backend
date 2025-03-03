@@ -4,6 +4,18 @@ input AddUserInput {
 
 type AppEnumCollection {
   UserDepartment: [AppEnumCollectionUserDepartment!]!
+  ContentDocumentStatus: [AppEnumCollectionContentDocumentStatus!]!
+  ContentDocumentType: [AppEnumCollectionContentDocumentType!]!
+}
+
+type AppEnumCollectionContentDocumentStatus {
+  key: DocumentStatusTypeEnum!
+  label: String!
+}
+
+type AppEnumCollectionContentDocumentType {
+  key: DocumentTypeEnum!
+  label: String!
 }
 
 type AppEnumCollectionUserDepartment {
@@ -17,11 +29,67 @@ input ChangePasswordInput {
   confirmNewPassword: String!
 }
 
+input ContentCreateInput {
+  title: String!
+  documentFile: Upload
+  tag: [ID!]
+  documentType: DocumentTypeEnum
+  documentUrl: String
+}
+
+type ContentType {
+  id: ID!
+  title: String!
+  extractedFile: DjangoFileType
+  tag: [TagNameType!]!
+  documentStatus: DocumentStatusTypeEnum!
+  documentType: DocumentTypeEnum!
+}
+
+type ContentTypeCountList {
+  limit: Int!
+  offset: Int!
+  count: Int!
+  items: [ContentType!]!
+}
+
+type ContentTypeMutationResponseType {
+  ok: Boolean!
+  errors: CustomErrorType
+  result: ContentType
+}
+
+input CreateTagCreateInput {
+  name: String!
+  description: String
+}
+
 """A generic type to return error messages"""
 scalar CustomErrorType
 
 enum DepartmentTypeEnum {
   HR
+}
+
+type DjangoFileType {
+  name: String!
+  path: String!
+  size: Int!
+  url: String!
+}
+
+enum DocumentStatusTypeEnum {
+  PENDING
+  TEXT_EXTRACTED
+  ADDED_TO_VECTOR
+  DELETED_FROM_VECTOR
+  FAILURE
+}
+
+enum DocumentTypeEnum {
+  WEB_URl
+  PDF
+  TEXT
 }
 
 input LoginInput {
@@ -48,6 +116,11 @@ type PrivateMutation {
   logout: MutationEmptyResponseType!
   changePassword(data: ChangePasswordInput!): MutationEmptyResponseType!
   updateMe(data: UserMeInput!): UserMeTypeMutationResponseType!
+  createContent(data: ContentCreateInput!): ContentTypeMutationResponseType!
+  readFile(file: Upload!): String!
+  updateContentTitle(id: ID!, data: UpdateContentUpdateInput!): ContentTypeMutationResponseType!
+  archiveContent(id: ID!, data: archiveUpdateInput!): MutationEmptyResponseType!
+  createTag(data: CreateTagCreateInput!): TagTypeMutationResponseType!
   id: ID!
 }
 
@@ -55,6 +128,12 @@ type PrivateQuery {
   noop: ID!
   users(pagination: OffsetPaginationInput): UserTypeCountList!
   allUsers: [UserType!]!
+  content(pagination: OffsetPaginationInput): ContentTypeCountList!
+  tag(pagination: OffsetPaginationInput): ContentTypeCountList!
+
+  """Return all content"""
+  allContent: [ContentType!]!
+  allTags: [TagType!]!
   id: ID!
 }
 
@@ -72,6 +151,12 @@ type PublicMutation {
 
 type PublicQuery {
   me: UserMeType
+  content(pagination: OffsetPaginationInput): ContentTypeCountList!
+  tag(pagination: OffsetPaginationInput): ContentTypeCountList!
+
+  """Return all content"""
+  allContent: [ContentType!]!
+  allTags: [TagType!]!
   id: ID!
 }
 
@@ -90,6 +175,28 @@ input RegisterUserInput {
   lastName: String
   department: DepartmentTypeEnum
 }
+
+type TagNameType {
+  name: String!
+}
+
+type TagType {
+  id: ID!
+  name: String!
+  description: String
+}
+
+type TagTypeMutationResponseType {
+  ok: Boolean!
+  errors: CustomErrorType
+  result: TagType
+}
+
+input UpdateContentUpdateInput {
+  title: String
+}
+
+scalar Upload
 
 input UserActivationInput {
   uuid: String!
@@ -154,4 +261,8 @@ type UserTypeMutationResponseType {
   ok: Boolean!
   errors: CustomErrorType
   result: UserType
+}
+
+input archiveUpdateInput {
+  isDeleted: Boolean
 }
