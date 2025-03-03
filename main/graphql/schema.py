@@ -45,11 +45,7 @@ class PublicMutation(
 
 
 @strawberry.type
-<<<<<<< HEAD
-class PrivateMutation(user_mutations.PrivateMutation):
-=======
-class PrivateMutation(content_mutations.PrivateMutation):
->>>>>>> e5ce11f (Add content management queries and mutations)
+class PrivateMutation(user_mutations.PrivateMutation, content_mutations.PrivateMutation):
     id: strawberry.ID = strawberry.ID("private")
 
 
