@@ -27,6 +27,7 @@ env = environ.Env(
     APP_HTTP_PROTOCOL=str,
     APP_ENVIRONMENT=str,
     APP_DOMAIN=str,
+    APP_FRONTEND_HOST=str,
     # Storage
     DJANGO_STATIC_ROOT=(str, os.path.join(BASE_DIR, "assets/static")),  # Where to store
     DJANGO_MEDIA_ROOT=(str, os.path.join(BASE_DIR, "assets/media")),  # Where to store
@@ -77,6 +78,14 @@ env = environ.Env(
     CELERY_TASK_SERIALIZER=(str, "json"),
     CELERY_RESULT_SERIALIZER=(str, "json"),
     CELERY_TIMEZONE=(str, "UTC"),
+    # Email
+    EMAIL_BACKEND=(str, "django.core.mail.backends.smtp.EmailBackend"),
+    EMAIL_HOST=str,
+    EMAIL_USE_SSL=(bool, False),
+    EMAIL_PORT=int,
+    EMAIL_HOST_USER=str,
+    EMAIL_HOST_PASSWORD=str,
+    DEFAULT_FROM_EMAIL=str,
 )
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -88,7 +97,7 @@ SECRET_KEY = env("DJANGO_SECRET_KEY")
 DEBUG = env("DJANGO_DEBUG")
 
 ALLOWED_HOSTS = env("DJANGO_ALLOWED_HOST")
-
+APP_FRONTEND_HOST = env("APP_FRONTEND_HOST")
 APP_HTTP_PROTOCOL = env("APP_HTTP_PROTOCOL")
 APP_ENVIRONMENT = env("APP_ENVIRONMENT")
 APP_DOMAIN = env("APP_DOMAIN")
@@ -322,3 +331,11 @@ if env("USE_S3_BUCKET"):
 else:
     STATIC_ROOT = env("DJANGO_STATIC_ROOT")
     MEDIA_ROOT = env("DJANGO_MEDIA_ROOT")
+# Email
+if env("EMAIL_HOST_USER"):
+    EMAIL_BACKEND = env("EMAIL_BACKEND")
+    EMAIL_HOST = env("EMAIL_HOST")
+    EMAIL_PORT = env("EMAIL_PORT")
+    EMAIL_HOST_USER = env("EMAIL_HOST_USER")
+    EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
+    EMAIL_USE_SSL = env("EMAIL_USE_SSL")
