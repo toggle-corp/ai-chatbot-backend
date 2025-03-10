@@ -4,6 +4,7 @@ from functools import cached_property
 from typing import Any, Callable, Generic, Type, TypeVar
 
 import strawberry
+import strawberry.types
 from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.db import models
@@ -84,6 +85,27 @@ class CountList(Generic[DjangoModelTypeVar]):
         if type(queryset) in [list, tuple]:
             return list(queryset)
         return [d async for d in queryset]  # type: ignore[reportGeneralTypeIssues]
+
+
+@strawberry.type
+class UserList(Generic[DjangoModelTypeVar]):
+    limit: int
+    offset: int
+    queryset: strawberry.Private[
+        models.QuerySet[DjangoModelTypeVar] | list[DjangoModelTypeVar]  # type: ignore[reportGeneralTypeIssues]
+    ]
+    get_count: strawberry.Private[Callable]
+
+    @strawberry.field
+    async def count(self) -> int:
+        return await self.get_count()
+
+    @strawberry.field
+    async def items(self) -> list[DjangoModelTypeVar]:
+        queryset = self.queryset
+        if type(queryset) in [list, tuple]:
+            return list(queryset)
+        return [d async for d in queryset]
 
 
 class StrawberryDjangoCountList(StrawberryDjangoField):

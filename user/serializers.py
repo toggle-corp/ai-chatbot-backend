@@ -158,6 +158,23 @@ class UserDeactivationSerializer(serializers.Serializer):
 
 
 class UserPasswordResetTriggerSerializer(serializers.Serializer):
+    user_id = serializers.CharField(required=True)
+
+    def validate(self, attrs):
+        user_id = attrs["user_id"]
+        user = get_object_or_404(User, id=user_id)
+        return {
+            **attrs,
+            "user": user,
+        }
+
+    def save(self, **_):
+        assert isinstance(self.validated_data, dict)
+        user_id = self.validated_data["user_id"]
+        transaction.on_commit(lambda: send_password_reset_email_task.delay(user_id))
+
+
+class ForgotpasswordSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True)
 
     def validate(self, attrs):

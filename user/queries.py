@@ -5,7 +5,7 @@ from asgiref.sync import sync_to_async
 from main.graphql.context import Info
 from main.graphql.permissions import IsAdmin
 from user.types import UserMeType, UserType
-from utils.strawberry.paginations import CountList, pagination_field
+from utils.strawberry.paginations import UserList, pagination_field
 
 
 @strawberry.type
@@ -22,7 +22,7 @@ class PublicQuery:
 class PrivateQuery:
     noop: strawberry.ID = strawberry.ID("noop")
 
-    users: CountList[UserType] = pagination_field(
+    user: UserList[UserType] = pagination_field(
         pagination=True,
     )
 
