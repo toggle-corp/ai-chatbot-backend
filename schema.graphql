@@ -41,6 +41,7 @@ type ContentType {
   id: ID!
   title: String!
   extractedFile: DjangoFileType
+  createdAt: DateTime!
   tag: [TagNameType!]!
   documentStatus: DocumentStatusTypeEnum!
   documentType: DocumentTypeEnum!
@@ -66,6 +67,9 @@ input CreateTagCreateInput {
 
 """A generic type to return error messages"""
 scalar CustomErrorType
+
+"""Date with time (isoformat)"""
+scalar DateTime
 
 enum DepartmentTypeEnum {
   HR
@@ -126,7 +130,7 @@ type PrivateMutation {
 
 type PrivateQuery {
   noop: ID!
-  users(pagination: OffsetPaginationInput): UserTypeCountList!
+  user(pagination: OffsetPaginationInput): UserTypeUserList!
   allUsers: [UserType!]!
   content(pagination: OffsetPaginationInput): ContentTypeCountList!
   tag(pagination: OffsetPaginationInput): ContentTypeCountList!
@@ -144,8 +148,9 @@ type PublicMutation {
   resendInvite(data: UserResendInviteInput!): MutationEmptyResponseType!
   accountActivation(data: UserActivationInput!): MutationEmptyResponseType!
   accountDeactivation(data: UserDeactivationInput!): MutationEmptyResponseType!
-  passwordResetTrigger(data: UserPasswordResetInput!): MutationEmptyResponseType!
-  passwordResetConfirm(data: UserPasswordResetConfirmInput!): MutationEmptyResponseType!
+  passwordResetTrigger(data: UserPasswordResetTriggerInput!): MutationEmptyResponseType!
+  passwordReset(data: UserPasswordReset!): MutationEmptyResponseType!
+  forgotPassword(data: ResetUserPassword!): MutationEmptyResponseType!
   id: ID!
 }
 
@@ -176,7 +181,12 @@ input RegisterUserInput {
   department: DepartmentTypeEnum
 }
 
+input ResetUserPassword {
+  email: String!
+}
+
 type TagNameType {
+  id: ID!
   name: String!
 }
 
@@ -225,15 +235,15 @@ type UserMeTypeMutationResponseType {
   result: UserMeType
 }
 
-input UserPasswordResetConfirmInput {
+input UserPasswordReset {
   uuid: String!
   token: String!
   newPassword: String!
   confirmNewPassword: String!
 }
 
-input UserPasswordResetInput {
-  email: String!
+input UserPasswordResetTriggerInput {
+  userId: String!
 }
 
 input UserResendInviteInput {
@@ -250,17 +260,17 @@ type UserType {
   displayName: String!
 }
 
-type UserTypeCountList {
-  limit: Int!
-  offset: Int!
-  count: Int!
-  items: [UserType!]!
-}
-
 type UserTypeMutationResponseType {
   ok: Boolean!
   errors: CustomErrorType
   result: UserType
+}
+
+type UserTypeUserList {
+  limit: Int!
+  offset: Int!
+  count: Int!
+  items: [UserType!]!
 }
 
 input archiveUpdateInput {
