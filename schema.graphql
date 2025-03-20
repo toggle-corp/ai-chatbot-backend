@@ -39,7 +39,10 @@ input BoolBaseFilterLookup {
 input ChangePasswordInput {
   oldPassword: String!
   newPassword: String!
-  confirmNewPassword: String!
+}
+
+input ChangeProfileInput {
+  profilePicture: Upload
 }
 
 input ContentCreateInput {
@@ -146,6 +149,7 @@ type PrivateMutation {
   logout: MutationEmptyResponseType!
   changePassword(data: ChangePasswordInput!): MutationEmptyResponseType!
   updateMe(data: UserMeInput!): UserMeTypeMutationResponseType!
+  changeProfile(data: ChangeProfileInput!): MutationEmptyResponseType!
   createContent(data: ContentCreateInput!): ContentTypeMutationResponseType!
   readFile(file: Upload!): String!
   updateContentTitle(id: ID!, data: UpdateContentUpdateInput!): ContentTypeMutationResponseType!
@@ -201,10 +205,10 @@ input RegisterUserInput {
   uuid: String!
   token: String!
   password: String!
-  confirmPassword: String!
   firstName: String
   lastName: String
   department: DepartmentTypeEnum
+  profilePicture: Upload
 }
 
 input ResetUserPassword {
@@ -330,7 +334,6 @@ input UserPasswordReset {
   uuid: String!
   token: String!
   newPassword: String!
-  confirmNewPassword: String!
 }
 
 input UserPasswordResetTriggerInput {
