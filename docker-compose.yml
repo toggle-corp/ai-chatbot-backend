@@ -22,14 +22,12 @@ x-server: &base_server_setup
     APP_HTTP_PROTOCOL: ${APP_HTTP_PROTOCOL:-http}
     SESSION_COOKIE_DOMAIN: ${SESSION_COOKIE_DOMAIN:-localhost}
     #Email
-    EMAIL_BACKEND: ${EMAIL_BACKEND:-django.core.mail.backends.smtp.EmailBackend}
-    DEFAULT_FROM_EMAIL : ${DEFAULT_FROM_EMAIL:-app@tc-local.com}
-    EMAIL_HOST : ${EMAIL_HOST:-192.168.88.240}
-    EMAIL_PORT : ${EMAIL_PORT:-1025}
-    EMAIL_HOST_USER : ${EMAIL_HOST_USER:-test}
-    EMAIL_HOST_PASSWORD : ${EMAIL_HOST_PASSWORD:-test}
-    EMAIL_USE_SSL : ${EMAIL_USE_SSL:-False}
-    EMAIL_USE_TLS: ${EMAIL_USE_TLS:-False}
+    EMAIL_HOST: ${EMAIL_HOST:-mailpit}
+    EMAIL_PORT: ${EMAIL_PORT:-1025}
+    EMAIL_HOST_USER: ${EMAIL_HOST_USER:-mailpit}
+    EMAIL_HOST_PASSWORD: ${EMAIL_HOST_PASSWORD:-mailpit}
+    DEFAULT_FROM_EMAIL: ${DEFAULT_FROM_EMAIL:-ai-chatbot-dev <-app@tc-local.com>}
+
     # Database config
     DATABASE_NAME: ${DATABASE_NAME:-postgres}
     DATABASE_USER: ${DATABASE_USER:-postgres}
@@ -91,6 +89,18 @@ services:
     volumes:
       - redis-data:/data
 
+  mailpit:
+    image: axllent/mailpit
+    ports:
+      - 127.0.0.1:8025:8025 
+    environment:
+      MP_MAX_MESSAGES: 5000
+      MP_DATA_FILE: /data/mailpit.db
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+    volumes:
+      - mailpit-data:/data
+
   qdrant:
     image: qdrant/qdrant:v1.11.3
     ports:
@@ -123,3 +133,4 @@ volumes:
   postgres-data16:
   redis-data:
   qdrant_data:
+  mailpit-data:
