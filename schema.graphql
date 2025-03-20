@@ -23,6 +23,19 @@ type AppEnumCollectionUserDepartment {
   label: String!
 }
 
+input BoolBaseFilterLookup {
+  """Exact match. Filter will be skipped on `null` value"""
+  exact: Boolean
+
+  """Assignment test. Filter will be skipped on `null` value"""
+  isNull: Boolean
+
+  """
+  Exact match of items in a given list. Filter will be skipped on `null` value
+  """
+  inList: [Boolean!]
+}
+
 input ChangePasswordInput {
   oldPassword: String!
   newPassword: String!
@@ -96,6 +109,19 @@ enum DocumentTypeEnum {
   TEXT
 }
 
+input IDBaseFilterLookup {
+  """Exact match. Filter will be skipped on `null` value"""
+  exact: ID
+
+  """Assignment test. Filter will be skipped on `null` value"""
+  isNull: Boolean
+
+  """
+  Exact match of items in a given list. Filter will be skipped on `null` value
+  """
+  inList: [ID!]
+}
+
 input LoginInput {
   email: String!
   password: String!
@@ -130,14 +156,14 @@ type PrivateMutation {
 
 type PrivateQuery {
   noop: ID!
-  user(pagination: OffsetPaginationInput): UserTypeUserList!
-  allUsers: [UserType!]!
-  content(pagination: OffsetPaginationInput): ContentTypeCountList!
-  tag(pagination: OffsetPaginationInput): ContentTypeCountList!
+  users(filters: UserFilter, pagination: OffsetPaginationInput): UserTypeCountList!
+  user(pk: ID!): UserType
+  contents(pagination: OffsetPaginationInput): ContentTypeCountList!
+  tags(pagination: OffsetPaginationInput): TagTypeCountList!
 
   """Return all content"""
-  allContent: [ContentType!]!
-  allTags: [TagType!]!
+  content(pk: ID!): ContentType
+  tag(pk: ID!): TagType
   id: ID!
 }
 
@@ -156,12 +182,12 @@ type PublicMutation {
 
 type PublicQuery {
   me: UserMeType
-  content(pagination: OffsetPaginationInput): ContentTypeCountList!
-  tag(pagination: OffsetPaginationInput): ContentTypeCountList!
+  contents(pagination: OffsetPaginationInput): ContentTypeCountList!
+  tags(pagination: OffsetPaginationInput): TagTypeCountList!
 
   """Return all content"""
-  allContent: [ContentType!]!
-  allTags: [TagType!]!
+  content(pk: ID!): ContentType
+  tag(pk: ID!): TagType
   id: ID!
 }
 
@@ -196,6 +222,13 @@ type TagType {
   description: String
 }
 
+type TagTypeCountList {
+  limit: Int!
+  offset: Int!
+  count: Int!
+  items: [TagType!]!
+}
+
 type TagTypeMutationResponseType {
   ok: Boolean!
   errors: CustomErrorType
@@ -215,6 +248,15 @@ input UserActivationInput {
 
 input UserDeactivationInput {
   userId: String!
+}
+
+input UserFilter {
+  id: IDBaseFilterLookup
+  isActive: BoolBaseFilterLookup
+  AND: UserFilter
+  OR: UserFilter
+  NOT: UserFilter
+  DISTINCT: Boolean
 }
 
 input UserMeInput {
@@ -260,17 +302,17 @@ type UserType {
   displayName: String!
 }
 
-type UserTypeMutationResponseType {
-  ok: Boolean!
-  errors: CustomErrorType
-  result: UserType
-}
-
-type UserTypeUserList {
+type UserTypeCountList {
   limit: Int!
   offset: Int!
   count: Int!
   items: [UserType!]!
+}
+
+type UserTypeMutationResponseType {
+  ok: Boolean!
+  errors: CustomErrorType
+  result: UserType
 }
 
 input archiveUpdateInput {

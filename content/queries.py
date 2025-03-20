@@ -8,18 +8,18 @@ from utils.strawberry.paginations import CountList, pagination_field
 
 @strawberry.type
 class PrivateQuery:
-    content: CountList[ContentType] = pagination_field(
+    contents: CountList[ContentType] = pagination_field(
         pagination=True,
     )
 
     @strawberry_django.field(description="Return all content")
-    async def all_content(self, info: Info) -> list[ContentType]:
-        return [content async for content in ContentType.get_queryset(None, None, info)]
+    async def content(self, info: Info, pk: strawberry.ID) -> ContentType | None:
+        return await ContentType.get_queryset(None, None, info).filter(pk=pk).afirst()
 
-    tag: CountList[ContentType] = pagination_field(
+    tags: CountList[TagType] = pagination_field(
         pagination=True,
     )
 
     @strawberry_django.field()
-    async def all_tags(self, info: Info) -> list[TagType]:
-        return [tag async for tag in TagType.get_queryset(None, None, info)]
+    async def tag(self, info: Info, pk: strawberry.ID) -> TagType | None:
+        return await TagType.get_queryset(None, None, info).filter(pk=pk).afirst()

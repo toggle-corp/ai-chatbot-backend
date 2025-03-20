@@ -87,27 +87,6 @@ class CountList(Generic[DjangoModelTypeVar]):
         return [d async for d in queryset]  # type: ignore[reportGeneralTypeIssues]
 
 
-@strawberry.type
-class UserList(Generic[DjangoModelTypeVar]):
-    limit: int
-    offset: int
-    queryset: strawberry.Private[
-        models.QuerySet[DjangoModelTypeVar] | list[DjangoModelTypeVar]  # type: ignore[reportGeneralTypeIssues]
-    ]
-    get_count: strawberry.Private[Callable]
-
-    @strawberry.field
-    async def count(self) -> int:
-        return await self.get_count()
-
-    @strawberry.field
-    async def items(self) -> list[DjangoModelTypeVar]:
-        queryset = self.queryset
-        if type(queryset) in [list, tuple]:
-            return list(queryset)
-        return [d async for d in queryset]
-
-
 class StrawberryDjangoCountList(StrawberryDjangoField):
     @cached_property
     def is_list(self) -> bool:
