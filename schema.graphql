@@ -211,6 +211,54 @@ input ResetUserPassword {
   email: String!
 }
 
+input StrFilterLookup {
+  """Exact match. Filter will be skipped on `null` value"""
+  exact: String
+
+  """Assignment test. Filter will be skipped on `null` value"""
+  isNull: Boolean
+
+  """
+  Exact match of items in a given list. Filter will be skipped on `null` value
+  """
+  inList: [String!]
+
+  """Case-insensitive exact match. Filter will be skipped on `null` value"""
+  iExact: String
+
+  """
+  Case-sensitive containment test. Filter will be skipped on `null` value
+  """
+  contains: String
+
+  """
+  Case-insensitive containment test. Filter will be skipped on `null` value
+  """
+  iContains: String
+
+  """Case-sensitive starts-with. Filter will be skipped on `null` value"""
+  startsWith: String
+
+  """Case-insensitive starts-with. Filter will be skipped on `null` value"""
+  iStartsWith: String
+
+  """Case-sensitive ends-with. Filter will be skipped on `null` value"""
+  endsWith: String
+
+  """Case-insensitive ends-with. Filter will be skipped on `null` value"""
+  iEndsWith: String
+
+  """
+  Case-sensitive regular expression match. Filter will be skipped on `null` value
+  """
+  regex: String
+
+  """
+  Case-insensitive regular expression match. Filter will be skipped on `null` value
+  """
+  iRegex: String
+}
+
 type TagNameType {
   id: ID!
   name: String!
@@ -253,6 +301,7 @@ input UserDeactivationInput {
 input UserFilter {
   id: IDBaseFilterLookup
   isActive: BoolBaseFilterLookup
+  displayName: StrFilterLookup
   AND: UserFilter
   OR: UserFilter
   NOT: UserFilter

@@ -8,3 +8,4 @@ from user.models import User
 class UserFilter:
     id: strawberry.auto
     is_active: strawberry.auto
+    display_name: strawberry.auto
