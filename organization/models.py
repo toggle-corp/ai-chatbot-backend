@@ -7,7 +7,11 @@ from common.models import UserResource
 
 class Organization(UserResource):
     name = models.CharField(max_length=40)
-    image = models.ImageField(upload_to="organization")
+    image = models.ImageField(
+        upload_to="organization",
+        null=True,
+        blank=True,
+    )
     slider_bar_color = models.CharField(max_length=10, default="#f56f42")
     navbar_color = models.CharField(max_length=10, default="#f81341")
 

@@ -1,3 +1,10 @@
+input AddOrganizationInput {
+  name: String!
+  sliderBarColor: String
+  navbarColor: String
+  image: Upload
+}
+
 input AddUserInput {
   emails: String!
 }
@@ -141,6 +148,26 @@ input OffsetPaginationInput {
   limit: Int! = -1
 }
 
+type OrganizationType {
+  id: ID!
+  name: String!
+  sliderBarColor: String!
+  navbarColor: String!
+}
+
+type OrganizationTypeCountList {
+  limit: Int!
+  offset: Int!
+  count: Int!
+  items: [OrganizationType!]!
+}
+
+type OrganizationTypeMutationResponseType {
+  ok: Boolean!
+  errors: CustomErrorType
+  result: OrganizationType
+}
+
 type PrivateMutation {
   logout: MutationEmptyResponseType!
   changePassword(data: ChangePasswordInput!): MutationEmptyResponseType!
@@ -150,6 +177,9 @@ type PrivateMutation {
   updateContentTitle(id: ID!, data: UpdateContentUpdateInput!): ContentTypeMutationResponseType!
   archiveContent(id: ID!, data: archiveUpdateInput!): MutationEmptyResponseType!
   createTag(data: CreateTagCreateInput!): TagTypeMutationResponseType!
+  addOrganization(data: AddOrganizationInput!): OrganizationTypeMutationResponseType!
+  UpdateOrganization(data: UpdateOrganizationInput!): OrganizationTypeMutationResponseType!
+  deleteOrganization(id: ID!): OrganizationTypeMutationResponseType!
   id: ID!
 }
 
@@ -284,6 +314,14 @@ type TagTypeMutationResponseType {
 
 input UpdateContentUpdateInput {
   title: String
+}
+
+input UpdateOrganizationInput {
+  organizationId: String!
+  name: String!
+  sliderBarColor: String
+  navbarColor: String
+  image: Upload
 }
 
 scalar Upload
