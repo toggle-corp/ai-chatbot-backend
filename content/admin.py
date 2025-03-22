@@ -24,4 +24,5 @@ class ContentAdmin(UserResourceAdmin):
     def trigger_content_processing(self, request, queryset):
         retrigger_content_processing(queryset)
         messages.add_message(request, messages.INFO, mark_safe("Successfully Re-trigger content processing! "))
+
     trigger_content_processing.short_description = "Re-trigger content processing"
