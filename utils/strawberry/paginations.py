@@ -4,7 +4,6 @@ from functools import cached_property
 from typing import Any, Callable, Generic, Type, TypeVar
 
 import strawberry
-import strawberry.types
 from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.db import models
