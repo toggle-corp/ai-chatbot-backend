@@ -21,6 +21,7 @@ class TagType:
 
 @strawberry_django.type(Tag)
 class TagNameType:
+    id: strawberry.ID
     name: strawberry.auto
 
 
@@ -29,6 +30,7 @@ class ContentType:
     id: strawberry.ID
     title: strawberry.auto
     extracted_file: strawberry.auto
+    created_at: strawberry.auto
     tag: list[TagNameType]
     document_status = enum_field(Content.document_status)
     document_type = enum_field(Content.document_type)

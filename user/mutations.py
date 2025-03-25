@@ -7,6 +7,7 @@ from main.graphql.permissions import IsAdmin
 from user.serializers import (
     AddUserSerializer,
     ChangePasswordSerializer,
+    ForgotpasswordSerializer,
     LoginSerializer,
     UpdateMeSerializer,
     UserActivationSerializer,
@@ -32,12 +33,13 @@ RegisterUserInput = convert_serializer_to_type(UserRegisterSerializer, name="Reg
 UserResendInviteInput = convert_serializer_to_type(UserResendInviteSerializer, name="UserResendInviteInput")
 UserActivationInput = convert_serializer_to_type(UserActivationSerializer, name="UserActivationInput")
 UserDeactivationInput = convert_serializer_to_type(UserDeactivationSerializer, name="UserDeactivationInput")
-UserPasswordResetInput = convert_serializer_to_type(UserPasswordResetTriggerSerializer, name="UserPasswordResetInput")
-UserPasswordResetConfirmInput = convert_serializer_to_type(
-    UserPasswordResetConfirmSerializer, name="UserPasswordResetConfirmInput"
+UserPasswordResetTriggerInput = convert_serializer_to_type(
+    UserPasswordResetTriggerSerializer, name="UserPasswordResetTriggerInput"
 )
+UserPasswordReset = convert_serializer_to_type(UserPasswordResetConfirmSerializer, name="UserPasswordReset")
 ChangePasswordInput = convert_serializer_to_type(ChangePasswordSerializer, name="ChangePasswordInput")
 UpdateMeInput = convert_serializer_to_type(UpdateMeSerializer, name="UserMeInput")
+ForgotPasswordInput = convert_serializer_to_type(ForgotpasswordSerializer, name="ResetUserPassword")
 
 
 @strawberry.type
@@ -140,11 +142,11 @@ class PublicMutation:
         serializer.save()
         return MutationEmptyResponseType()
 
-    @strawberry.mutation
+    @strawberry.mutation(permission_classes=[IsAdmin])
     @sync_to_async
     def password_reset_trigger(
         self,
-        data: UserPasswordResetInput,  # type: ignore[reportInvalidTypeForm]
+        data: UserPasswordResetTriggerInput,  # type: ignore[reportInvalidTypeForm]
         info: Info,
     ) -> MutationEmptyResponseType:
         serializer = UserPasswordResetTriggerSerializer(
@@ -161,15 +163,31 @@ class PublicMutation:
 
     @strawberry.mutation
     @sync_to_async
-    def password_reset_confirm(
+    def password_reset(
         self,
-        data: UserPasswordResetConfirmInput,  # type: ignore[reportInvalidTypeForm]
+        data: UserPasswordReset,  # type: ignore[reportInvalidTypeForm]
         info: Info,
     ) -> MutationEmptyResponseType:
         serializer = UserPasswordResetConfirmSerializer(
             data=process_input_data(data),
             context={"request": info.context.request},
         )
+        if errors := mutation_is_not_valid(serializer):
+            return MutationEmptyResponseType(
+                ok=False,
+                errors=errors,
+            )
+        serializer.save()
+        return MutationEmptyResponseType()
+
+    @strawberry.mutation()
+    @sync_to_async
+    def forgot_password(
+        self,
+        data: ForgotPasswordInput,  # type: ignore[reportInvalidTypeForm]
+        info: Info,
+    ) -> MutationEmptyResponseType:
+        serializer = ForgotpasswordSerializer(data=process_input_data(data), context={"request": info.context.request})
         if errors := mutation_is_not_valid(serializer):
             return MutationEmptyResponseType(
                 ok=False,

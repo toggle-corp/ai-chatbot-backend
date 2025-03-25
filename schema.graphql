@@ -23,6 +23,19 @@ type AppEnumCollectionUserDepartment {
   label: String!
 }
 
+input BoolBaseFilterLookup {
+  """Exact match. Filter will be skipped on `null` value"""
+  exact: Boolean
+
+  """Assignment test. Filter will be skipped on `null` value"""
+  isNull: Boolean
+
+  """
+  Exact match of items in a given list. Filter will be skipped on `null` value
+  """
+  inList: [Boolean!]
+}
+
 input ChangePasswordInput {
   oldPassword: String!
   newPassword: String!
@@ -41,6 +54,7 @@ type ContentType {
   id: ID!
   title: String!
   extractedFile: DjangoFileType
+  createdAt: DateTime!
   tag: [TagNameType!]!
   documentStatus: DocumentStatusTypeEnum!
   documentType: DocumentTypeEnum!
@@ -67,6 +81,9 @@ input CreateTagCreateInput {
 """A generic type to return error messages"""
 scalar CustomErrorType
 
+"""Date with time (isoformat)"""
+scalar DateTime
+
 enum DepartmentTypeEnum {
   HR
 }
@@ -90,6 +107,19 @@ enum DocumentTypeEnum {
   WEB_URl
   PDF
   TEXT
+}
+
+input IDBaseFilterLookup {
+  """Exact match. Filter will be skipped on `null` value"""
+  exact: ID
+
+  """Assignment test. Filter will be skipped on `null` value"""
+  isNull: Boolean
+
+  """
+  Exact match of items in a given list. Filter will be skipped on `null` value
+  """
+  inList: [ID!]
 }
 
 input LoginInput {
@@ -126,14 +156,14 @@ type PrivateMutation {
 
 type PrivateQuery {
   noop: ID!
-  users(pagination: OffsetPaginationInput): UserTypeCountList!
-  allUsers: [UserType!]!
-  content(pagination: OffsetPaginationInput): ContentTypeCountList!
-  tag(pagination: OffsetPaginationInput): ContentTypeCountList!
+  users(filters: UserFilter, pagination: OffsetPaginationInput): UserTypeCountList!
+  user(pk: ID!): UserType
+  contents(pagination: OffsetPaginationInput): ContentTypeCountList!
+  tags(pagination: OffsetPaginationInput): TagTypeCountList!
 
   """Return all content"""
-  allContent: [ContentType!]!
-  allTags: [TagType!]!
+  content(pk: ID!): ContentType
+  tag(pk: ID!): TagType
   id: ID!
 }
 
@@ -144,19 +174,20 @@ type PublicMutation {
   resendInvite(data: UserResendInviteInput!): MutationEmptyResponseType!
   accountActivation(data: UserActivationInput!): MutationEmptyResponseType!
   accountDeactivation(data: UserDeactivationInput!): MutationEmptyResponseType!
-  passwordResetTrigger(data: UserPasswordResetInput!): MutationEmptyResponseType!
-  passwordResetConfirm(data: UserPasswordResetConfirmInput!): MutationEmptyResponseType!
+  passwordResetTrigger(data: UserPasswordResetTriggerInput!): MutationEmptyResponseType!
+  passwordReset(data: UserPasswordReset!): MutationEmptyResponseType!
+  forgotPassword(data: ResetUserPassword!): MutationEmptyResponseType!
   id: ID!
 }
 
 type PublicQuery {
   me: UserMeType
-  content(pagination: OffsetPaginationInput): ContentTypeCountList!
-  tag(pagination: OffsetPaginationInput): ContentTypeCountList!
+  contents(pagination: OffsetPaginationInput): ContentTypeCountList!
+  tags(pagination: OffsetPaginationInput): TagTypeCountList!
 
   """Return all content"""
-  allContent: [ContentType!]!
-  allTags: [TagType!]!
+  content(pk: ID!): ContentType
+  tag(pk: ID!): TagType
   id: ID!
 }
 
@@ -176,7 +207,60 @@ input RegisterUserInput {
   department: DepartmentTypeEnum
 }
 
+input ResetUserPassword {
+  email: String!
+}
+
+input StrFilterLookup {
+  """Exact match. Filter will be skipped on `null` value"""
+  exact: String
+
+  """Assignment test. Filter will be skipped on `null` value"""
+  isNull: Boolean
+
+  """
+  Exact match of items in a given list. Filter will be skipped on `null` value
+  """
+  inList: [String!]
+
+  """Case-insensitive exact match. Filter will be skipped on `null` value"""
+  iExact: String
+
+  """
+  Case-sensitive containment test. Filter will be skipped on `null` value
+  """
+  contains: String
+
+  """
+  Case-insensitive containment test. Filter will be skipped on `null` value
+  """
+  iContains: String
+
+  """Case-sensitive starts-with. Filter will be skipped on `null` value"""
+  startsWith: String
+
+  """Case-insensitive starts-with. Filter will be skipped on `null` value"""
+  iStartsWith: String
+
+  """Case-sensitive ends-with. Filter will be skipped on `null` value"""
+  endsWith: String
+
+  """Case-insensitive ends-with. Filter will be skipped on `null` value"""
+  iEndsWith: String
+
+  """
+  Case-sensitive regular expression match. Filter will be skipped on `null` value
+  """
+  regex: String
+
+  """
+  Case-insensitive regular expression match. Filter will be skipped on `null` value
+  """
+  iRegex: String
+}
+
 type TagNameType {
+  id: ID!
   name: String!
 }
 
@@ -184,6 +268,13 @@ type TagType {
   id: ID!
   name: String!
   description: String
+}
+
+type TagTypeCountList {
+  limit: Int!
+  offset: Int!
+  count: Int!
+  items: [TagType!]!
 }
 
 type TagTypeMutationResponseType {
@@ -207,6 +298,16 @@ input UserDeactivationInput {
   userId: String!
 }
 
+input UserFilter {
+  id: IDBaseFilterLookup
+  isActive: BoolBaseFilterLookup
+  displayName: StrFilterLookup
+  AND: UserFilter
+  OR: UserFilter
+  NOT: UserFilter
+  DISTINCT: Boolean
+}
+
 input UserMeInput {
   firstName: String
   lastName: String
@@ -225,15 +326,15 @@ type UserMeTypeMutationResponseType {
   result: UserMeType
 }
 
-input UserPasswordResetConfirmInput {
+input UserPasswordReset {
   uuid: String!
   token: String!
   newPassword: String!
   confirmNewPassword: String!
 }
 
-input UserPasswordResetInput {
-  email: String!
+input UserPasswordResetTriggerInput {
+  userId: String!
 }
 
 input UserResendInviteInput {
