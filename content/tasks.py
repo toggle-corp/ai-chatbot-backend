@@ -49,3 +49,13 @@ def retrigger_content_processing(queryset):
         if qdrant_delete:
             create_embedding_for_content_task(content.id)
     return queryset
+
+
+@shared_task(bind=True)
+def delete_content_from_qdrant(self, queryset):
+    db = QdrantDatabase(
+        host=settings.QDRANT_DB_HOST, port=settings.QDRANT_DB_PORT, collection_name=settings.QDRANT_DB_COLLECTION_NAME
+    )
+    for content in queryset:
+        db.delete_data_by_src_uuid(key="uuid", value=str(content))
+    return queryset
