@@ -17,6 +17,8 @@ repos:
     rev: 24.4.2
     hooks:
       - id: black
+        exclude: ^.*migrations.*
+
         # args: ["--check"]
 
   - repo: https://github.com/PyCQA/isort

@@ -11,6 +11,7 @@ def create_embedding_for_content_task(content_id):
     from content.models import Content
 
     content = Content.objects.get(id=content_id)
+    url = f"{settings.EMBEDDING_MODEL_URL}/get_embeddings"
     headers = {"Content-Type": "application/json"}
     data = content.extracted_file.read()
     loader = LoaderFromText(text=data)
@@ -21,7 +22,7 @@ def create_embedding_for_content_task(content_id):
         "name_model": settings.EMBEDDING_MODEL_NAME,
         "texts": [split_docs[i].page_content for i in range(len(split_docs))],
     }
-    response = requests.post(settings.EMBEDDING_MODEL_URL, headers=headers, json=payload)
+    response = requests.post(url=url, headers=headers, json=payload)
     metadata = [
         {"source": "plain-text", "page_content": split_docs[i].page_content, "uuid": content.content_id}
         for i in range(len(split_docs))

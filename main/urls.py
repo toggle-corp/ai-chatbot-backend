@@ -19,11 +19,21 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path
+from django.views.decorators.csrf import csrf_exempt
 
 from content.views import UserQuery
+from main.graphql.schema import CustomAsyncGraphQLView
+from main.graphql.schema import schema as graphql_schema
 
-urlpatterns = [path("admin/", admin.site.urls), path("chat_message", UserQuery.as_view())]
+urlpatterns = [
+    path("admin/", admin.site.urls),
+    path("chat_message", UserQuery.as_view()),
+    path("graphql/", csrf_exempt(CustomAsyncGraphQLView.as_view(schema=graphql_schema, multipart_uploads_enabled=True))),
+]
 if settings.DEBUG:
+    urlpatterns.append(
+        path("graphiql/", csrf_exempt(CustomAsyncGraphQLView.as_view(schema=graphql_schema, multipart_uploads_enabled=True)))
+    )
 
     # Static and media file URLs
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

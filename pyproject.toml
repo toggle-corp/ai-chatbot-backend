@@ -23,7 +23,9 @@ celery = "^5.4.0"
 redis = "^5.0.8"
 djangorestframework = "^3.15.2"
 gunicorn = "*"
-django-storages = { version = "*", extras = ["s3"] }
+rank-bm25 = "^0.2.2"
+django-cors-headers = "^4.6.0"
+strawberry-graphql-django = {version = "0.47.1", extras = ["strawberry-graphql"]}
 pillow = "^11.0.0"
 
 [build-system]
@@ -33,7 +35,7 @@ build-backend = "poetry.core.masonry.api"
 [tool.black]
 line-length = 125
 # NOTE: Update in .pre-commit-config.yaml as well
-extend-exclude = "(__pycache__|.*snap_test_.*\\.py|.+\\/.+\\/migrations\\/.*)"
+extend-exclude = "(__pycache__|.*snap_test_.*\\.py|.*/migrations/.*)"
 
 [tool.isort]
 profile = "black"

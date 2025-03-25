@@ -27,6 +27,7 @@ env = environ.Env(
     APP_HTTP_PROTOCOL=str,
     APP_ENVIRONMENT=str,
     APP_DOMAIN=str,
+    APP_FRONTEND_HOST=str,
     # Storage
     DJANGO_STATIC_ROOT=(str, os.path.join(BASE_DIR, "assets/static")),  # Where to store
     DJANGO_MEDIA_ROOT=(str, os.path.join(BASE_DIR, "assets/media")),  # Where to store
@@ -77,6 +78,14 @@ env = environ.Env(
     CELERY_TASK_SERIALIZER=(str, "json"),
     CELERY_RESULT_SERIALIZER=(str, "json"),
     CELERY_TIMEZONE=(str, "UTC"),
+    # Email
+    EMAIL_BACKEND=(str, "django.core.mail.backends.smtp.EmailBackend"),
+    EMAIL_HOST=str,
+    EMAIL_USE_TLS=(bool, False),
+    EMAIL_PORT=int,
+    EMAIL_HOST_USER=str,
+    EMAIL_HOST_PASSWORD=str,
+    DEFAULT_FROM_EMAIL=str,
 )
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -88,7 +97,7 @@ SECRET_KEY = env("DJANGO_SECRET_KEY")
 DEBUG = env("DJANGO_DEBUG")
 
 ALLOWED_HOSTS = env("DJANGO_ALLOWED_HOST")
-
+APP_FRONTEND_HOST = env("APP_FRONTEND_HOST")
 APP_HTTP_PROTOCOL = env("APP_HTTP_PROTOCOL")
 APP_ENVIRONMENT = env("APP_ENVIRONMENT")
 APP_DOMAIN = env("APP_DOMAIN")
@@ -151,17 +160,58 @@ INSTALLED_APPS = [
     "content",
     "organization",
     "rest_framework",
+    "corsheaders",
+    "chat",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
+# CORS
+if not env("DJANGO_CORS_ORIGIN_REGEX_WHITELIST"):
+    CORS_ORIGIN_ALLOW_ALL = True
+else:
+    # Example ^https://[\w-]+\.mapswipe\.org$
+    CORS_ORIGIN_REGEX_WHITELIST = env("DJANGO_CORS_ORIGIN_REGEX_WHITELIST")
+
+CORS_ALLOW_CREDENTIALS = True
+CORS_URLS_REGEX = r"(^/media/.*$)|(^/graphql/$)"
+CORS_ALLOW_METHODS = (
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",
+    "POST",
+    "PUT",
+)
+
+CORS_ALLOW_HEADERS = (
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+    "sentry-trace",
+)
+
+
+# Strawberry
+# -- Pagination
+STRAWBERRY_ENUM_TO_STRAWBERRY_ENUM_MAP = "main.graphql.enums.ENUM_TO_STRAWBERRY_ENUM_MAP"
+STRAWBERRY_DEFAULT_PAGINATION_LIMIT = 50
+STRAWBERRY_MAX_PAGINATION_LIMIT = 100
 
 ROOT_URLCONF = "main.urls"
 
@@ -281,3 +331,12 @@ if env("USE_S3_BUCKET"):
 else:
     STATIC_ROOT = env("DJANGO_STATIC_ROOT")
     MEDIA_ROOT = env("DJANGO_MEDIA_ROOT")
+# Email
+if env("EMAIL_HOST_USER"):
+    EMAIL_BACKEND = env("EMAIL_BACKEND")
+    EMAIL_HOST = env("EMAIL_HOST")
+    EMAIL_USE_TLS = env("EMAIL_USE_TLS")
+    EMAIL_PORT = env("EMAIL_PORT")
+    EMAIL_HOST_USER = env("EMAIL_HOST_USER")
+    EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
+    DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL")

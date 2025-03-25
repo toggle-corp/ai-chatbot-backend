@@ -1,10 +1,11 @@
 import logging
 import uuid
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, List
 
 import qdrant_client.http.models as q_models
 from django.conf import settings
+from langchain.schema import Document
 from qdrant_client import QdrantClient
 from qdrant_client.http.exceptions import UnexpectedResponse
 from qdrant_client.http.models import (
@@ -58,6 +59,29 @@ class QdrantDatabase:
         response = self.db_client.upsert(collection_name=self.collection_name, points=point_vectors)
         return response
 
+    def retrieve_vectors(self, points: List[str]) -> List[List[float]]:
+        """Retrieve vectors"""
+        retrieved_data = self.db_client.retrieve(
+            collection_name=self.collection_name, ids=points, with_vectors=True, with_payload=False
+        )
+        return [v.vector for v in retrieved_data]
+
+    def search_vectors_by_id(self, uuid_to_search: str):
+        """
+        Search data vectors by id
+        """
+        filter_condition = Filter(must=[FieldCondition(key="_id", match=MatchValue(value=uuid_to_search))])
+        results = self.db_client.search(
+            collection_name=self.collection_name,
+            query_vector=[0.0] * settings.EMBEDDING_MODEL_VECTOR_SIZE,
+            query_filter=filter_condition,
+            limit=1,
+        )
+        if results:
+            vector = results[0].vector
+            return vector
+        return None
+
     def data_search(
         self, collection_names: list, query_vector: list, top_n_retrieval: int = 5, score_threshold: float = 0.7
     ):
@@ -83,3 +107,41 @@ class QdrantDatabase:
         result = self.db_client.delete(collection_name=self.collection_name, points_selector=points_selector)
 
         return result.status == q_models.UpdateStatus.COMPLETED
+
+    def convert_record_to_document(self, records):
+        """
+        Converts Record type to Document type
+        """
+        documents = []
+        for record in records:
+            page_content = record.payload.get("page_content", "")  # Adjust this to match your payload structure
+            if page_content:
+                page_content = page_content.replace("\n", "").strip()
+            metadata = {k: v for k, v in record.payload.items() if k != "text"}  # All other metadata
+            metadata["_id"] = record.id
+            # Create a LangChain Document
+            doc = Document(
+                page_content=page_content,
+                metadata=metadata,
+            )
+            documents.append(doc)
+        return documents
+
+    def load_all_documents(self):
+        """Load all the documents"""
+        all_docs = []
+        offset = 0
+        limit = 10_000
+
+        while True:
+            response = self.db_client.scroll(
+                collection_name=self.collection_name, offset=offset, limit=limit, with_payload=True, with_vectors=False
+            )
+            documents = self.convert_record_to_document(response[0])
+            offset = response[-1]
+
+            all_docs.extend(documents)
+
+            if len(documents) < limit:
+                break
+        return all_docs
