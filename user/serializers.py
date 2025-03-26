@@ -252,19 +252,14 @@ class ChangePasswordSerializer(serializers.Serializer):
 
 
 class UpdateMeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = (
-            "first_name",
-            "last_name",
-        )
-
-
-class ChangeProfileSerializer(serializers.ModelSerializer):
     def validate_profile_picture(self, profile_picture):
         validate_image_size(profile_picture)
         return profile_picture
 
     class Meta:
         model = User
-        fields = ("profile_picture",)
+        fields = (
+            "first_name",
+            "last_name",
+            "profile_picture",
+        )
