@@ -1,4 +1,4 @@
-input AddOrganizationInput {
+input AddOrganizationInputType {
   name: String!
   sliderBarColor: String
   navbarColor: String
@@ -177,8 +177,8 @@ type PrivateMutation {
   updateContentTitle(id: ID!, data: UpdateContentUpdateInput!): ContentTypeMutationResponseType!
   archiveContent(id: ID!, data: archiveUpdateInput!): MutationEmptyResponseType!
   createTag(data: CreateTagCreateInput!): TagTypeMutationResponseType!
-  addOrganization(data: AddOrganizationInput!): OrganizationTypeMutationResponseType!
-  UpdateOrganization(data: UpdateOrganizationInput!): OrganizationTypeMutationResponseType!
+  addOrganization(data: AddOrganizationInputType!): OrganizationTypeMutationResponseType!
+  UpdateOrganization(data: UpdateOrganizationInputType!): OrganizationTypeMutationResponseType!
   deleteOrganization(id: ID!): OrganizationTypeMutationResponseType!
   id: ID!
 }
@@ -316,9 +316,9 @@ input UpdateContentUpdateInput {
   title: String
 }
 
-input UpdateOrganizationInput {
-  organizationId: String!
+input UpdateOrganizationInputType {
   name: String!
+  organization: ID!
   sliderBarColor: String
   navbarColor: String
   image: Upload

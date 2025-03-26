@@ -15,8 +15,8 @@ from utils.strawberry.mutations import (
     process_input_data,
 )
 
-AddOrganizationInput = convert_serializer_to_type(AddOrganizationSerializer, name="AddOrganizationInput")
-UpdateOrganizationInput = convert_serializer_to_type(UpdateOrganizationSerializer, name="UpdateOrganizationInput")
+AddOrganizationInputType = convert_serializer_to_type(AddOrganizationSerializer, name="AddOrganizationInputType")
+UpdateOrganizationInputType = convert_serializer_to_type(UpdateOrganizationSerializer, name="UpdateOrganizationInputType")
 
 
 @strawberry.type
@@ -24,7 +24,7 @@ class PrivateMutation:
     @strawberry.mutation
     @sync_to_async
     def add_organization(
-        self, data: AddOrganizationInput, info: Info  # type: ignore[reportInvalidTypeForm]
+        self, data: AddOrganizationInputType, info: Info  # type: ignore[reportInvalidTypeForm]
     ) -> MutationResponseType[OrganizationType]:
         serializer = AddOrganizationSerializer(data=process_input_data(data), context={"request": info.context.request})
         if errors := mutation_is_not_valid(serializer):
@@ -37,8 +37,8 @@ class PrivateMutation:
 
     @strawberry.mutation
     @sync_to_async
-    def UpdateOrganization(
-        self, data: UpdateOrganizationInput, info: Info  # type: ignore[reportInvalidTypeForm]
+    def update_organization(
+        self, data: UpdateOrganizationInputType, info: Info  # type: ignore[reportInvalidTypeForm]
     ) -> MutationResponseType[OrganizationType]:
         serializer = UpdateOrganizationSerializer(data=process_input_data(data), context={"request": info.context.request})
         if errors := mutation_is_not_valid(serializer):

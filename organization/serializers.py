@@ -1,4 +1,3 @@
-from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 
 from organization.models import Organization
@@ -24,29 +23,23 @@ class AddOrganizationSerializer(serializers.ModelSerializer):
 
 class UpdateOrganizationSerializer(serializers.ModelSerializer):
     image = serializers.ImageField(allow_null=True, required=False)
-    organization_id = serializers.CharField(required=True)
-
-    def validate(self, attrs):
-        organization_id = attrs["organization_id"]
-        organization = get_object_or_404(Organization, id=organization_id)
-        return {
-            **attrs,
-            "organization": organization,
-        }
+    organization = serializers.PrimaryKeyRelatedField(
+        queryset=Organization.objects.all(),
+    )
 
     class Meta:
         model = Organization
         fields = (
-            "organization_id",
             "name",
             "slider_bar_color",
             "navbar_color",
             "image",
+            "organization",
         )
-        read_only_fields = ("organization_id",)
 
     def save(self, **_):
         assert isinstance(self.validated_data, dict)
+        # organization is an object/instance representing the related organization
         organization = self.validated_data["organization"]
         organization.modified_by = self.context["request"].user
         organization.name = self.validated_data["name"]
