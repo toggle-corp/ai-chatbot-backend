@@ -7,8 +7,8 @@ from main.graphql.permissions import IsAdmin
 from user.serializers import (
     AddUserSerializer,
     ChangePasswordSerializer,
-    ForgotpasswordSerializer,
     ChangeProfileSerializer,
+    ForgotpasswordSerializer,
     LoginSerializer,
     UpdateMeSerializer,
     UserActivationSerializer,
