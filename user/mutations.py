@@ -6,9 +6,9 @@ from strawberry.types import Info
 from main.graphql.permissions import IsAdmin
 from user.serializers import (
     AddUserSerializer,
-    ChanagePofileSerializer,
     ChangePasswordSerializer,
     ForgotpasswordSerializer,
+    ChangeProfileSerializer,
     LoginSerializer,
     UpdateMeSerializer,
     UserActivationSerializer,
@@ -41,7 +41,7 @@ UserPasswordReset = convert_serializer_to_type(UserPasswordResetConfirmSerialize
 ChangePasswordInput = convert_serializer_to_type(ChangePasswordSerializer, name="ChangePasswordInput")
 UpdateMeInput = convert_serializer_to_type(UpdateMeSerializer, name="UserMeInput")
 ForgotPasswordInput = convert_serializer_to_type(ForgotpasswordSerializer, name="ResetUserPassword")
-ChangeProfileInput = convert_serializer_to_type(ChanagePofileSerializer, name="ChangeProfileInput")
+ChangeProfileInput = convert_serializer_to_type(ChangeProfileSerializer, name="ChangeProfileInput")
 
 
 @strawberry.type
@@ -258,11 +258,10 @@ class PrivateMutation:
         data: ChangeProfileInput,  # type: ignore[reportInvalidTypeForm]
         info: Info,
     ) -> MutationEmptyResponseType:
-        serializer = ChanagePofileSerializer(
+        serializer = ChangeProfileSerializer(
             instance=info.context.request.user,
             data=process_input_data(data),
             context={"request": info.context.request},
-            partial=True,
         )
         if errors := mutation_is_not_valid(serializer):
             return MutationEmptyResponseType(

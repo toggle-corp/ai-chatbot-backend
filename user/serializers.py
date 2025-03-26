@@ -96,8 +96,6 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         return password
 
     def validate_profile_picture(self, profile_picture):
-        if not profile_picture:
-            return profile_picture
         validate_image_size(profile_picture)
         return profile_picture
 
@@ -262,10 +260,8 @@ class UpdateMeSerializer(serializers.ModelSerializer):
         )
 
 
-class ChanagePofileSerializer(serializers.ModelSerializer):
+class ChangeProfileSerializer(serializers.ModelSerializer):
     def validate_profile_picture(self, profile_picture):
-        if not profile_picture:
-            return profile_picture
         validate_image_size(profile_picture)
         return profile_picture
 
