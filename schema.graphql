@@ -178,7 +178,7 @@ type PrivateMutation {
   archiveContent(id: ID!, data: archiveUpdateInput!): MutationEmptyResponseType!
   createTag(data: CreateTagCreateInput!): TagTypeMutationResponseType!
   addOrganization(data: AddOrganizationInputType!): OrganizationTypeMutationResponseType!
-  UpdateOrganization(data: UpdateOrganizationInputType!): OrganizationTypeMutationResponseType!
+  updateOrganization(data: UpdateOrganizationInputType!): OrganizationTypeMutationResponseType!
   deleteOrganization(id: ID!): OrganizationTypeMutationResponseType!
   id: ID!
 }
@@ -217,6 +217,8 @@ type PublicQuery {
   """Return all content"""
   content(pk: ID!): ContentType
   tag(pk: ID!): TagType
+  Organizations(pagination: OffsetPaginationInput): OrganizationTypeCountList!
+  Organization(pk: ID!): OrganizationType
   id: ID!
 }
 

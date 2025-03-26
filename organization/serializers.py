@@ -25,6 +25,7 @@ class UpdateOrganizationSerializer(serializers.ModelSerializer):
     image = serializers.ImageField(allow_null=True, required=False)
     organization = serializers.PrimaryKeyRelatedField(
         queryset=Organization.objects.all(),
+        required=True,
     )
 
     class Meta:
@@ -45,6 +46,6 @@ class UpdateOrganizationSerializer(serializers.ModelSerializer):
         organization.name = self.validated_data["name"]
         organization.slider_bar_color = self.validated_data["slider_bar_color"]
         organization.navbar_color = self.validated_data["navbar_color"]
-        organization.image = self.validated_data.get("image", None)
+        organization.image = self.validated_data.get("image", organization.image)
         organization.save(update_fields=["name", "slider_bar_color", "navbar_color", "image", "modified_by"])
         return organization
