@@ -16,3 +16,10 @@ def validate_file_type(file):
     if extension.lower() not in allowed_extensions:
         raise ValidationError("Only .pdf and .txt files are allowed.")
     return file
+
+
+def validate_image_size(image):
+    max_file_size = 2 * 1024 * 1024
+    if image.size > max_file_size:
+        raise ValidationError("Image size must be less than 2MB.")
+    return image

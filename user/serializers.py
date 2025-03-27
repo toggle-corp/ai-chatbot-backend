@@ -13,6 +13,7 @@ from user.tasks import (
     send_account_creation_email_task,
     send_password_reset_email_task,
 )
+from utils.file_check import validate_image_size
 
 
 class LoginSerializer(serializers.Serializer):
@@ -76,20 +77,29 @@ class AddUserSerializer(serializers.Serializer):
 class UserRegisterSerializer(serializers.ModelSerializer):
     uuid = serializers.CharField(required=True)
     token = serializers.CharField(required=True)
-    confirm_password = serializers.CharField(write_only=True, required=True)
 
     class Meta:
         model = User
-        fields = ("uuid", "token", "password", "confirm_password", "first_name", "last_name", "department")
+        fields = (
+            "uuid",
+            "token",
+            "password",
+            "first_name",
+            "last_name",
+            "department",
+            "profile_picture",
+        )
         extra_kwargs = {"password": {"write_only": True}}
 
     def validate_password(self, password):
         validate_password(password)
         return password
 
+    def validate_profile_picture(self, profile_picture):
+        validate_image_size(profile_picture)
+        return profile_picture
+
     def validate(self, attrs):
-        if attrs["password"] != attrs["confirm_password"]:
-            raise serializers.ValidationError(gettext("Passwords do not match."))
         return {**attrs, "user": validate_token(attrs, TokenManager.account_registration_token_generator)}
 
     def save(self, **_):
@@ -98,9 +108,10 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         user.first_name = self.validated_data["first_name"]
         user.last_name = self.validated_data["last_name"]
         user.department = self.validated_data["department"]
+        user.profile_picture = self.validated_data.get("profile_picture", None)
         user.set_password(self.validated_data["password"])
         user.is_active = True
-        user.save(update_fields=("first_name", "last_name", "department", "password", "is_active"))
+        user.save(update_fields=("first_name", "last_name", "department", "profile_picture", "password", "is_active"))
         return user
 
 
@@ -197,15 +208,12 @@ class UserPasswordResetConfirmSerializer(serializers.Serializer):
     uuid = serializers.CharField(required=True)
     token = serializers.CharField(required=True)
     new_password = serializers.CharField(required=True)
-    confirm_new_password = serializers.CharField(required=True)
 
     def validate_new_password(self, password):
         validate_password(password)
         return password
 
     def validate(self, attrs):
-        if attrs["new_password"] != attrs["confirm_new_password"]:
-            raise serializers.ValidationError(gettext("Passwords do not match."))
         return {**attrs, "user": validate_token(attrs, TokenManager.password_reset_token_generator)}
 
     def save(self, **_):
@@ -219,7 +227,6 @@ class UserPasswordResetConfirmSerializer(serializers.Serializer):
 class ChangePasswordSerializer(serializers.Serializer):
     old_password = serializers.CharField(required=True)
     new_password = serializers.CharField(required=True)
-    confirm_new_password = serializers.CharField(required=True)
 
     def validate_old_password(self, password):
         user = self.context["request"].user
@@ -230,8 +237,6 @@ class ChangePasswordSerializer(serializers.Serializer):
     def validate(self, attrs):
         if attrs["old_password"] == attrs["new_password"]:
             raise serializers.ValidationError(gettext("New and old provided passwords are same"))
-        if attrs["new_password"] != attrs["confirm_new_password"]:
-            raise serializers.ValidationError(gettext("Passwords do not match."))
         return attrs
 
     def validate_new_password(self, password):
@@ -247,9 +252,14 @@ class ChangePasswordSerializer(serializers.Serializer):
 
 
 class UpdateMeSerializer(serializers.ModelSerializer):
+    def validate_profile_picture(self, profile_picture):
+        validate_image_size(profile_picture)
+        return profile_picture
+
     class Meta:
         model = User
         fields = (
             "first_name",
             "last_name",
+            "profile_picture",
         )

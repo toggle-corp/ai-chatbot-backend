@@ -331,6 +331,7 @@ if env("USE_S3_BUCKET"):
 else:
     STATIC_ROOT = env("DJANGO_STATIC_ROOT")
     MEDIA_ROOT = env("DJANGO_MEDIA_ROOT")
+
 # Email
 if env("EMAIL_HOST_USER"):
     EMAIL_BACKEND = env("EMAIL_BACKEND")

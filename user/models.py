@@ -20,6 +20,7 @@ class User(AbstractUser):
         blank=True,
         max_length=255,
     )
+    profile_picture = models.ImageField(upload_to="profile_pictures/", blank=True, null=True)
     department = models.PositiveSmallIntegerField(choices=Department.choices, null=True)
 
     objects: CustomUserManager = CustomUserManager()
