@@ -4,10 +4,10 @@ import strawberry
 from asgiref.sync import sync_to_async
 from strawberry.file_uploads import Upload
 
-from content.models import Content
 from content.serializers import (
     ArchiveContentSerializer,
     ContentSerializer,
+    RetriggerContentSerializer,
     TagSerializer,
     UpdateContentSerializer,
 )
@@ -15,8 +15,8 @@ from content.types import ContentType, TagType
 from main.graphql.context import Info
 from utils.strawberry.mutations import (
     ModelMutation,
-    MutationEmptyResponseType,
     MutationResponseType,
+    convert_serializer_to_type,
     mutation_is_not_valid,
     process_input_data,
 )
@@ -28,9 +28,10 @@ class FolderInput:
 
 
 CreateContentMutation = ModelMutation("Content", ContentSerializer)
-UpdateMutation = ModelMutation("UpdateContent", UpdateContentSerializer)
-DeleteContent = ModelMutation("archive", ArchiveContentSerializer)
 CreateTagMutation = ModelMutation("CreateTag", TagSerializer)
+UpdateContentTitleInput = convert_serializer_to_type(UpdateContentSerializer, name="UpdateContentTitleInput")
+ArchiveContentInput = convert_serializer_to_type(ArchiveContentSerializer, name="ArchiveContentInput")
+RetriggerContentInput = convert_serializer_to_type(RetriggerContentSerializer, name="RetriggerContentInput")
 
 
 @strawberry.type
@@ -48,48 +49,76 @@ class PrivateMutation:
         return file.read().decode("utf-8")
 
     @strawberry.mutation
-    async def update_content_title(
-        self,
-        id: strawberry.ID,
-        data: UpdateMutation.PartialInputType,  # type: ignore[reportInvalidTypeForm]
-        info: Info,
-    ) -> MutationResponseType[ContentType]:
-        try:
-            instance = await Content.objects.aget(id=id)
-        except Content.DoesNotExist:
-            return MutationResponseType(ok=False, errors=["Content not found"])
-        serializer = UpdateContentSerializer(
-            instance, data=process_input_data(data), context={"request": info.context.request}, partial=True
-        )
-        if errors := mutation_is_not_valid(serializer):
-            return MutationResponseType(ok=False, errors=errors)
-        await sync_to_async(serializer.save)()
-        return MutationResponseType()
-
-    @strawberry.mutation
-    async def archive_content(
-        self, id: strawberry.ID, info: Info, data: DeleteContent.PartialInputType  # type: ignore[reportInvalidTypeForm]
-    ) -> MutationEmptyResponseType:
-        try:
-            instance = await Content.objects.aget(id=id)
-        except Content.DoesNotExist:
-            return MutationEmptyResponseType(ok=False, errors=["Content not found"])
-
-        serializer = ArchiveContentSerializer(
-            instance, data=process_input_data(data), context={"request": info.context.request}, partial=True
-        )
-
-        if errors := mutation_is_not_valid(serializer):
-            return MutationEmptyResponseType(ok=False, errors=errors)
-
-        await sync_to_async(serializer.save)()
-
-        return MutationEmptyResponseType(ok=True)
-
-    @strawberry.mutation
     async def create_tag(
         self,
         data: CreateTagMutation.InputType,  # type: ignore[reportInvalidTypeForm]
         info: Info,
     ) -> MutationResponseType[TagType]:
         return await CreateTagMutation.handle_create_mutation(data, info, None)
+
+    @strawberry.mutation
+    @sync_to_async
+    def update_content_title(
+        self,
+        data: UpdateContentTitleInput,  # type: ignore[reportInvalidTypeForm]
+        info: Info,
+    ) -> MutationResponseType[ContentType]:
+        serializer = UpdateContentSerializer(
+            instance=info.context.request.user,
+            data=process_input_data(data),
+            context={"request": info.context.request},
+            partial=True,
+        )
+        if errors := mutation_is_not_valid(serializer):
+            return MutationResponseType(
+                ok=False,
+                errors=errors,
+            )
+        content = serializer.save()  # type: ignore[reportReturnType]
+        return MutationResponseType(
+            result=content,  # type: ignore[reportReturnType]
+        )
+
+    @strawberry.mutation
+    @sync_to_async
+    def retrigger_content(
+        self,
+        data: RetriggerContentInput,  # type: ignore[reportInvalidTypeForm]
+        info: Info,
+    ) -> MutationResponseType[ContentType]:
+        serializer = RetriggerContentSerializer(
+            instance=info.context.request.user,
+            data=process_input_data(data),
+            context={"request": info.context.request},
+            partial=True,
+        )
+        if errors := mutation_is_not_valid(serializer):
+            return MutationResponseType(
+                ok=False,
+                errors=errors,
+            )
+        content = serializer.save()  # type: ignore[reportReturnType]
+        return MutationResponseType(
+            result=content,  # type: ignore[reportReturnType]
+        )
+
+    @strawberry.mutation
+    @sync_to_async
+    def archive_content(
+        self, data: ArchiveContentInput, info: Info  # type: ignore[reportInvalidTypeForm]
+    ) -> MutationResponseType[ContentType]:
+        serializer = ArchiveContentSerializer(
+            instance=info.context.request.user,
+            data=process_input_data(data),
+            context={"request": info.context.request},
+            partial=True,
+        )
+        if errors := mutation_is_not_valid(serializer):
+            return MutationResponseType(
+                ok=False,
+                errors=errors,
+            )
+        content = serializer.save()  # type: ignore[reportReturnType]
+        return MutationResponseType(
+            result=content,  # type: ignore[reportReturnType]
+        )

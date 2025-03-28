@@ -7,7 +7,7 @@ from chatbotcore.doc_loaders import LoaderFromText
 
 
 @shared_task(bind=True)
-def create_embedding_for_content_task(content_id):
+def create_embedding_for_content_task(self, content_id):
     from content.models import Content
 
     content = Content.objects.get(id=content_id)
@@ -41,22 +41,21 @@ def create_embedding_for_content_task(content_id):
 
 
 @shared_task(bind=True)
-def retrigger_content_processing(queryset):
+def retrigger_content_processing_task(self, queryset):
     db = QdrantDatabase(
         host=settings.QDRANT_DB_HOST, port=settings.QDRANT_DB_PORT, collection_name=settings.QDRANT_DB_COLLECTION_NAME
     )
     for content in queryset:
         qdrant_delete = db.delete_data_by_src_uuid(key="uuid", value=str(content.content_id))
         if qdrant_delete:
-            create_embedding_for_content_task(content.id)
+            create_embedding_for_content_task(content.content_id)
     return queryset
 
 
 @shared_task(bind=True)
-def delete_content_from_qdrant(self, queryset):
+def delete_content_from_qdrant_task(self, content_id):
     db = QdrantDatabase(
         host=settings.QDRANT_DB_HOST, port=settings.QDRANT_DB_PORT, collection_name=settings.QDRANT_DB_COLLECTION_NAME
     )
-    for content in queryset:
-        db.delete_data_by_src_uuid(key="uuid", value=str(content))
-    return queryset
+    db.delete_data_by_src_uuid(key="uuid", value=str(content_id))
+    return f"Deleted content {content_id}"

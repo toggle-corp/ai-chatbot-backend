@@ -1,7 +1,14 @@
+from django.db import transaction
+from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from rest_framework import serializers
 
 from chat.models import UserChatSession
 from content.models import Content, Tag
+from content.tasks import (
+    create_embedding_for_content_task,
+    delete_content_from_qdrant_task,
+)
 from utils.file_check import validate_document_size, validate_file_type
 
 
@@ -41,33 +48,64 @@ class ContentSerializer(serializers.ModelSerializer):
 
 
 class UpdateContentSerializer(serializers.ModelSerializer):
+    content = serializers.PrimaryKeyRelatedField(queryset=Content.objects.all(), required=True)
+
     class Meta:
         model = Content
-        fields = ["title"]
-        read_only_fields = ["modified_by"]
+        fields = ["title", "content"]
 
-    def update(self, instance, validated_data):
-        validated_data["modified_by"] = self.context["request"].user
-
-        return super().update(instance, validated_data)
+    def save(self, **_):
+        assert isinstance(self.validated_data, dict)
+        content = self.validated_data["content"]
+        content.title = self.validated_data["title"]
+        content.modified_by = self.context["request"].user
+        content.save(update_fields=["title", "modified_by"])
+        return content
 
 
 class ArchiveContentSerializer(serializers.ModelSerializer):
+    id = serializers.CharField(required=True)
+
+    def validate(self, attrs):
+        content_id = attrs["id"]
+        content = get_object_or_404(Content, id=content_id)
+        if content.document_status == Content.DocumentStatus.DELETED_FROM_VECTOR:
+            raise serializers.ValidationError("Content is already deleted from vector.")
+        return {**attrs, "content": content}
+
     class Meta:
         model = Content
-        fields = [
-            "is_deleted",
-        ]
-        read_only_fields = ["deleted_at", "deleted_by"]
+        fields = ["id"]
 
-    def validate(self, data):
-        instance = self.instance
-        if instance.is_deleted:
-            raise serializers.ValidationError("Content is already deleted.")
-        return data
+    def save(self, **_):
+        assert isinstance(self.validated_data, dict)
+        content = self.validated_data["content"]
+        content.document_status = Content.DocumentStatus.DELETED_FROM_VECTOR
+        content.deleted_by = self.context["request"].user
+        content.deleted_at = timezone.now()
+        content.is_deleted = True
+        content.save(update_fields=["document_status", "deleted_by", "deleted_at", "is_deleted"])
+        transaction.on_commit(lambda: delete_content_from_qdrant_task.delay(content.content_id))
+        return content
 
-    def update(self, instance, validated_data):
-        instance.is_deleted = True
-        instance.deleted_by = self.context["request"].user
-        instance.save(update_fields=("is_deleted", "deleted_by"))
-        return instance
+
+class RetriggerContentSerializer(serializers.ModelSerializer):
+    id = serializers.CharField(required=True)
+
+    def validate(self, attrs):
+        content_id = attrs["id"]
+        content = get_object_or_404(Content, id=content_id)
+        if content.document_status == Content.DocumentStatus.ADDED_TO_VECTOR:
+            raise serializers.ValidationError("Content has already been added to vector. No need to trigger it again.")
+        return {**attrs, "content": content}
+
+    class Meta:
+        model = Content
+        fields = ["id"]
+
+    def save(self, **_):
+        with transaction.atomic():
+            assert isinstance(self.validated_data, dict)
+            content = self.validated_data["content"]
+            transaction.on_commit(lambda: create_embedding_for_content_task.delay(content.id))
+        return content

@@ -23,6 +23,10 @@ type AppEnumCollectionUserDepartment {
   label: String!
 }
 
+input ArchiveContentInput {
+  id: String!
+}
+
 input BoolBaseFilterLookup {
   """Exact match. Filter will be skipped on `null` value"""
   exact: Boolean
@@ -148,9 +152,10 @@ type PrivateMutation {
   updateMe(data: UserMeInput!): UserMeTypeMutationResponseType!
   createContent(data: ContentCreateInput!): ContentTypeMutationResponseType!
   readFile(file: Upload!): String!
-  updateContentTitle(id: ID!, data: UpdateContentUpdateInput!): ContentTypeMutationResponseType!
-  archiveContent(id: ID!, data: archiveUpdateInput!): MutationEmptyResponseType!
   createTag(data: CreateTagCreateInput!): TagTypeMutationResponseType!
+  updateContentTitle(data: UpdateContentTitleInput!): ContentTypeMutationResponseType!
+  retriggerContent(data: RetriggerContentInput!): ContentTypeMutationResponseType!
+  archiveContent(data: ArchiveContentInput!): ContentTypeMutationResponseType!
   id: ID!
 }
 
@@ -209,6 +214,10 @@ input RegisterUserInput {
 
 input ResetUserPassword {
   email: String!
+}
+
+input RetriggerContentInput {
+  id: String!
 }
 
 input StrFilterLookup {
@@ -283,8 +292,9 @@ type TagTypeMutationResponseType {
   result: TagType
 }
 
-input UpdateContentUpdateInput {
-  title: String
+input UpdateContentTitleInput {
+  title: String!
+  content: ID!
 }
 
 scalar Upload
@@ -362,8 +372,4 @@ type UserTypeMutationResponseType {
   ok: Boolean!
   errors: CustomErrorType
   result: UserType
-}
-
-input archiveUpdateInput {
-  isDeleted: Boolean
 }
