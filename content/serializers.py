@@ -1,5 +1,4 @@
 from django.db import transaction
-from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import serializers
 
@@ -26,7 +25,7 @@ class TagSerializer(serializers.ModelSerializer):
 
 class ContentSerializer(serializers.ModelSerializer):
     tag = serializers.PrimaryKeyRelatedField(queryset=Tag.objects.all(), many=True, required=False)
-    document_file = serializers.FileField(required=False)
+    document_file = serializers.FileField(required=True)
 
     class Meta:
         model = Content
@@ -64,18 +63,17 @@ class UpdateContentSerializer(serializers.ModelSerializer):
 
 
 class ArchiveContentSerializer(serializers.ModelSerializer):
-    id = serializers.CharField(required=True)
+    content = serializers.PrimaryKeyRelatedField(queryset=Content.objects.all(), required=True)
 
     def validate(self, attrs):
-        content_id = attrs["id"]
-        content = get_object_or_404(Content, id=content_id)
+        content = attrs["content"]
         if content.document_status == Content.DocumentStatus.DELETED_FROM_VECTOR:
             raise serializers.ValidationError("Content is already deleted from vector.")
-        return {**attrs, "content": content}
+        return attrs
 
     class Meta:
         model = Content
-        fields = ["id"]
+        fields = ["content"]
 
     def save(self, **_):
         assert isinstance(self.validated_data, dict)
@@ -90,22 +88,20 @@ class ArchiveContentSerializer(serializers.ModelSerializer):
 
 
 class RetriggerContentSerializer(serializers.ModelSerializer):
-    id = serializers.CharField(required=True)
+    content = serializers.PrimaryKeyRelatedField(queryset=Content.objects.all(), required=True)
 
     def validate(self, attrs):
-        content_id = attrs["id"]
-        content = get_object_or_404(Content, id=content_id)
+        content = attrs["content"]
         if content.document_status == Content.DocumentStatus.ADDED_TO_VECTOR:
             raise serializers.ValidationError("Content has already been added to vector. No need to trigger it again.")
-        return {**attrs, "content": content}
+        return attrs
 
     class Meta:
         model = Content
-        fields = ["id"]
+        fields = ["content"]
 
     def save(self, **_):
-        with transaction.atomic():
-            assert isinstance(self.validated_data, dict)
-            content = self.validated_data["content"]
-            transaction.on_commit(lambda: create_embedding_for_content_task.delay(content.id))
+        assert isinstance(self.validated_data, dict)
+        content = self.validated_data["content"]
+        transaction.on_commit(lambda: create_embedding_for_content_task.delay(content.id))
         return content

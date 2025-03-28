@@ -1,9 +1,15 @@
+import logging
+
 import requests
 from celery import shared_task
 from django.conf import settings
+from qdrant_client.http.exceptions import UnexpectedResponse
+from requests.exceptions import ConnectionError as RequestsConnectionError
 
 from chatbotcore.database import QdrantDatabase
 from chatbotcore.doc_loaders import LoaderFromText
+
+logger = logging.getLogger(__name__)
 
 
 @shared_task(bind=True)
@@ -34,6 +40,17 @@ def create_embedding_for_content_task(self, content_id):
         db.set_collection()
         db.store_data(zip(response.json(), metadata))
         content.document_status = Content.DocumentStatus.ADDED_TO_VECTOR
+
+    except RequestsConnectionError as e:
+        # Qdrant connection failure
+        logger.error(f"Qdrant connection error: {str(e)}")
+        content.document_status = Content.DocumentStatus.FAILURE
+
+    except UnexpectedResponse as e:
+        # Qdrant server error
+        logger.error(f"Qdrant storage error [{e.status_code}]: {e.content}")
+        content.document_status = Content.DocumentStatus.FAILURE
+
     # NOTE: All exceptions have been handled with except
     except Exception:
         content.document_status = Content.DocumentStatus.FAILURE
@@ -46,4 +63,4 @@ def delete_content_from_qdrant_task(self, content_id):
         host=settings.QDRANT_DB_HOST, port=settings.QDRANT_DB_PORT, collection_name=settings.QDRANT_DB_COLLECTION_NAME
     )
     db.delete_data_by_src_uuid(key="uuid", value=str(content_id))
-    return f"Deleted content {content_id}"
+    return logger.info(f"Deleted content {content_id}")
