@@ -40,8 +40,8 @@ def create_embedding_for_content_task(self, content_id):
         content.document_status = Content.DocumentStatus.ADDED_TO_VECTOR
 
     # NOTE: All exceptions have been handled with except
-    except Exception as e:
-        logger.error(f"Error:{str(e)}")
+    except Exception:
+        logger.error("An error occurred while creating embeddings", exc_info=True)
         content.document_status = Content.DocumentStatus.FAILURE
     content.save()
 
