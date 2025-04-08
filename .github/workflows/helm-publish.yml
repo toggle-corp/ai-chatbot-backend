@@ -1,10 +1,8 @@
 name: Builds and pushes Docker Images and Helm charts to Github Registry
 
 on:
-  push:
-    branches:
-      - develop
-      - project/*
+  workflow_dispatch:
+
       # XXX: To add tags: Update the -alpha logic
 
 permissions:
