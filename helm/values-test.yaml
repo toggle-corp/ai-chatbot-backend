@@ -27,6 +27,7 @@ env:
   S3_STATIC_BUCKET_NAME: bucket-x-static
   S3_MEDIA_BUCKET_NAME: bucket-x-media
 
+  SENTRY_DEBUG: false
 secrets:
   DJANGO_SECRET_KEY: test
   # Database
