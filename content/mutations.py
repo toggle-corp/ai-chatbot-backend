@@ -59,7 +59,6 @@ class PrivateMutation:
             instance=info.context.request.user,
             data=process_input_data(data),
             context={"request": info.context.request},
-            partial=True,
         )
         if errors := mutation_is_not_valid(serializer):
             return MutationResponseType(
