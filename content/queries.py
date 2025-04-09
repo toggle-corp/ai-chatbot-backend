@@ -1,6 +1,7 @@
 import strawberry
 import strawberry_django
 
+from content.filters import TagFilter
 from content.types import ContentType, TagType
 from main.graphql.context import Info
 from utils.strawberry.paginations import CountList, pagination_field
@@ -18,6 +19,7 @@ class PrivateQuery:
 
     tags: CountList[TagType] = pagination_field(
         pagination=True,
+        filters=TagFilter,
     )
 
     @strawberry_django.field()
