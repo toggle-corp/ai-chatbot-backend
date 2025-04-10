@@ -3,7 +3,7 @@ from asgiref.sync import sync_to_async
 from django.contrib.auth import login, logout
 from strawberry.types import Info
 
-from main.graphql.permissions import IsAdmin
+from main.graphql.permissions import IsOrganizationAdmin
 from user.serializers import (
     AddUserSerializer,
     ChangePasswordSerializer,
@@ -64,7 +64,7 @@ class PublicMutation:
             result=user,
         )
 
-    @strawberry.mutation(permission_classes=[IsAdmin])
+    @strawberry.mutation(permission_classes=[IsOrganizationAdmin])
     @sync_to_async
     def add_user(self, info: Info, data: AddUserInput) -> MutationEmptyResponseType:  # type: ignore[reportInvalidTypeForm]
         serializer = AddUserSerializer(data=process_input_data(data), context={"request": info.context.request})
@@ -75,8 +75,8 @@ class PublicMutation:
             )
         serializer.save()
         return MutationEmptyResponseType(
-            ok=True,
-        )  # type: ignore[reportReturnType]
+            ok=True,  # type: ignore[reportReturnType]
+        )
 
     @strawberry.mutation
     @sync_to_async
@@ -92,7 +92,7 @@ class PublicMutation:
         user = serializer.save()
         return MutationResponseType(result=user)  # type: ignore[reportReturnType]
 
-    @strawberry.mutation(permission_classes=[IsAdmin])
+    @strawberry.mutation(permission_classes=[IsOrganizationAdmin])
     @sync_to_async
     def resend_invite(
         self, data: UserResendInviteInput, info: Info  # type: ignore[reportInvalidTypeForm]
@@ -126,7 +126,7 @@ class PublicMutation:
         serializer.save()
         return MutationEmptyResponseType()
 
-    @strawberry.mutation(permission_classes=[IsAdmin])
+    @strawberry.mutation(permission_classes=[IsOrganizationAdmin])
     @sync_to_async
     def account_deactivation(
         self,
@@ -142,7 +142,7 @@ class PublicMutation:
         serializer.save()
         return MutationEmptyResponseType()
 
-    @strawberry.mutation(permission_classes=[IsAdmin])
+    @strawberry.mutation(permission_classes=[IsOrganizationAdmin])
     @sync_to_async
     def password_reset_trigger(
         self,

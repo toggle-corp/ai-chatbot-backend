@@ -1,9 +1,11 @@
 from rest_framework import serializers
 
 from organization.models import Organization
+from utils.file_check import validate_image_size
 
 
 class AddOrganizationSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Organization
         fields = (
@@ -12,6 +14,10 @@ class AddOrganizationSerializer(serializers.ModelSerializer):
             "navbar_color",
             "image",
         )
+
+    def validate_image(self, image):
+        validate_image_size(image)
+        return image
 
     def create(self, validated_data):
         validated_data["created_by"] = self.context["request"].user

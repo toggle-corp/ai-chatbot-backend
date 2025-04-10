@@ -26,8 +26,7 @@ class CustomAsyncGraphQLView(AsyncGraphQLView):
 @strawberry.type
 class PublicQuery(
     user_queries.PublicQuery,
-    content_queries.PrivateQuery,
-    org_queries.PrivateQuery,
+    org_queries.PublicQuery,
 ):
     id: strawberry.ID = strawberry.ID("public")
 
@@ -43,6 +42,7 @@ class PrivateQuery(
 @strawberry.type
 class PublicMutation(
     user_mutations.PublicMutation,
+    org_mutations.PublicMutation,
 ):
     id: strawberry.ID = strawberry.ID("public")
 
@@ -51,7 +51,6 @@ class PublicMutation(
 class PrivateMutation(
     user_mutations.PrivateMutation,
     content_mutations.PrivateMutation,
-    org_mutations.PrivateMutation,
 ):
     id: strawberry.ID = strawberry.ID("private")
 

@@ -2,6 +2,7 @@ import strawberry
 from asgiref.sync import sync_to_async
 from strawberry.types import Info
 
+from main.graphql.permissions import IsOrganizationAdmin, IsSuperAdmin
 from organization.serializers import (
     AddOrganizationSerializer,
     UpdateOrganizationSerializer,
@@ -20,8 +21,8 @@ UpdateOrganizationInputType = convert_serializer_to_type(UpdateOrganizationSeria
 
 
 @strawberry.type
-class PrivateMutation:
-    @strawberry.mutation
+class PublicMutation:
+    @strawberry.mutation(permission_classes=[IsSuperAdmin])
     @sync_to_async
     def add_organization(
         self, data: AddOrganizationInputType, info: Info  # type: ignore[reportInvalidTypeForm]
@@ -35,21 +36,7 @@ class PrivateMutation:
         organization = serializer.save()
         return MutationResponseType(result=organization)  # type: ignore[reportInvalidTypeForm]
 
-    @strawberry.mutation
-    @sync_to_async
-    def update_organization(
-        self, data: UpdateOrganizationInputType, info: Info  # type: ignore[reportInvalidTypeForm]
-    ) -> MutationResponseType[OrganizationType]:
-        serializer = UpdateOrganizationSerializer(data=process_input_data(data), context={"request": info.context.request})
-        if errors := mutation_is_not_valid(serializer):
-            return MutationResponseType(
-                ok=False,
-                errors=errors,
-            )
-        organization = serializer.save()
-        return MutationResponseType(result=organization)  # type: ignore[reportInvalidTypeForm]
-
-    @strawberry.mutation
+    @strawberry.mutation(permission_classes=[IsSuperAdmin])
     @sync_to_async
     def delete_organization(
         self,
@@ -68,3 +55,17 @@ class PrivateMutation:
         return MutationResponseType(
             result=instance,  # type: ignore[reportReturnType]
         )
+
+    @strawberry.mutation(permission_classes=[IsOrganizationAdmin])
+    @sync_to_async
+    def update_organization(
+        self, data: UpdateOrganizationInputType, info: Info  # type: ignore[reportInvalidTypeForm]
+    ) -> MutationResponseType[OrganizationType]:
+        serializer = UpdateOrganizationSerializer(data=process_input_data(data), context={"request": info.context.request})
+        if errors := mutation_is_not_valid(serializer):
+            return MutationResponseType(
+                ok=False,
+                errors=errors,
+            )
+        organization = serializer.save()
+        return MutationResponseType(result=organization)  # type: ignore[reportInvalidTypeForm]

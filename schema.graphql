@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 input AddOrganizationInputType {
   name: String!
   sliderBarColor: String
