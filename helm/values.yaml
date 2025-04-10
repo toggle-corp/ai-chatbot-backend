@@ -13,6 +13,10 @@ ingress:
   streamlit:
     enabled: false
     host:
+  embeddingModel: # NOTE: For production don't use this
+    enabled: false
+    host:
+
 
 postgresql:
   enabled: true
