@@ -188,7 +188,7 @@ type PrivateQuery {
   users(filters: UserFilter, pagination: OffsetPaginationInput): UserTypeCountList!
   user(pk: ID!): UserType
   contents(pagination: OffsetPaginationInput): ContentTypeCountList!
-  tags(pagination: OffsetPaginationInput): TagTypeCountList!
+  tags(filters: TagFilter, pagination: OffsetPaginationInput): TagTypeCountList!
 
   """Return all content"""
   content(pk: ID!): ContentType
@@ -212,7 +212,7 @@ type PublicMutation {
 type PublicQuery {
   me: UserMeType
   contents(pagination: OffsetPaginationInput): ContentTypeCountList!
-  tags(pagination: OffsetPaginationInput): TagTypeCountList!
+  tags(filters: TagFilter, pagination: OffsetPaginationInput): TagTypeCountList!
 
   """Return all content"""
   content(pk: ID!): ContentType
@@ -288,6 +288,14 @@ input StrFilterLookup {
   Case-insensitive regular expression match. Filter will be skipped on `null` value
   """
   iRegex: String
+}
+
+input TagFilter {
+  name: StrFilterLookup
+  AND: TagFilter
+  OR: TagFilter
+  NOT: TagFilter
+  DISTINCT: Boolean
 }
 
 type TagNameType {
