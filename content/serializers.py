@@ -47,6 +47,7 @@ class ContentSerializer(serializers.ModelSerializer):
 
 
 class UpdateContentSerializer(serializers.ModelSerializer):
+    # NOTE: Update only the content title for now
     content = serializers.PrimaryKeyRelatedField(queryset=Content.objects.all(), required=True)
 
     class Meta:
@@ -63,6 +64,8 @@ class UpdateContentSerializer(serializers.ModelSerializer):
 
 
 class ArchiveContentSerializer(serializers.ModelSerializer):
+    """NOTE: Update the document status to DELETED_FROM_VECTOR in content model and delete the content from qdrant  db"""
+
     content = serializers.PrimaryKeyRelatedField(queryset=Content.objects.all(), required=True)
 
     def validate(self, attrs):
