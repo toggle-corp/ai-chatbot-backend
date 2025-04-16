@@ -142,6 +142,7 @@ env:
   DJANGO_TIME_ZONE: UTC
   DJANGO_ALLOWED_HOST: "*"
   APP_HTTP_PROTOCOL: https
+  APP_FRONTEND_HOST:
   APP_DOMAIN:
   # Redis (Required if redis.enabled is false)
   CELERY_REDIS_URL:
