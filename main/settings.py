@@ -117,6 +117,7 @@ if APP_HTTP_PROTOCOL == "https":
     SECURE_HSTS_PRELOAD = True
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     CSRF_TRUSTED_ORIGINS = [
+        APP_FRONTEND_HOST,
         f"{APP_HTTP_PROTOCOL}://{APP_DOMAIN}",
     ]
 # Note: The embedding model and vector size both should be compatible
