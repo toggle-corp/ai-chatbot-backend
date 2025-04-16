@@ -31,7 +31,10 @@ class QdrantDatabase:
 
     def __post_init__(self):
         """Initialize database client"""
-        self.db_client = QdrantClient(host=self.host, port=self.port)
+        try:
+            self.db_client = QdrantClient(host=self.host, port=self.port)
+        except Exception:
+            logging.error("Database connection failed", exc_info=True)
 
     def _collection_exists(self, collection_name: str) -> bool:
         """Check if the collection in db already exists"""
