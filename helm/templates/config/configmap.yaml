@@ -7,8 +7,9 @@ metadata:
     environment: {{ .Values.environment }}
     release: {{ .Release.Name }}
 data:
-  APP_ENVIRONMENT: {{ .Values.environment | upper | quote }}
-  APP_DOMAIN: {{ required "env.APP_DOMAIN" .Values.environment | upper | quote }}
+  APP_ENVIRONMENT: {{ .Values.environment | upper | quote }} 
+  APP_DOMAIN: {{ required "env.APP_DOMAIN" .Values.environment | upper | quote }} 
+  APP_FRONTEND_HOST: {{ required "env.APP_FRONTEND_HOST" .Values.environment | quote }} 
   DJANGO_TIME_ZONE: {{ .Values.env.DJANGO_TIME_ZONE }}
   DJANGO_DEBUG: {{ .Values.env.DJANGO_DEBUG | quote }}
   DJANGO_ALLOWED_HOST: {{ .Values.env.DJANGO_ALLOWED_HOST | quote }}
