@@ -144,6 +144,7 @@ env:
   APP_HTTP_PROTOCOL: https
   APP_FRONTEND_HOST:
   APP_DOMAIN:
+  APP_TYPE: 
   # Redis (Required if redis.enabled is false)
   CELERY_REDIS_URL:
   DJANGO_CACHE_REDIS_URL:
