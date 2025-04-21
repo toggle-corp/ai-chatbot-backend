@@ -26,7 +26,10 @@ env:
   AWS_S3_REGION: us-east-x
   S3_STATIC_BUCKET_NAME: bucket-x-static
   S3_MEDIA_BUCKET_NAME: bucket-x-media
-
+  # email 
+  DEFAULT_FROM_EMAIL: test@test.com
+  EMAIL_USE_TLS: true
+ 
   SENTRY_DEBUG: false
 secrets:
   DJANGO_SECRET_KEY: test
@@ -43,3 +46,8 @@ secrets:
   # S3
   AWS_S3_ACCESS_KEY_ID: access-key
   AWS_S3_SECRET_ACCESS_KEY: access-secret
+  # email
+  EMAIL_HOST: test.com 
+  EMAIL_PORT: 443
+  EMAIL_HOST_USER: test
+  EMAIL_HOST_PASSWORD: test

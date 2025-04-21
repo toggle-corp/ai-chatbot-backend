@@ -15,6 +15,10 @@ data:
   DJANGO_ALLOWED_HOST: {{ .Values.env.DJANGO_ALLOWED_HOST | quote }}
   APP_HTTP_PROTOCOL: {{ .Values.env.APP_HTTP_PROTOCOL | quote }}
 
+  # Email
+  DEFAULT_FROM_EMAIL: {{ required "env.DEFAULT_FROM_EMAIL" .Values.env.DEFAULT_FROM_EMAIL | quote }}
+  EMAIL_USE_TLS: {{ required "env.EMAIL_USE_TLS" .Values.env.EMAIL_USE_TLS | quote }}
+
   {{- if .Values.redis.enabled }}
   # Celery
   CELERY_REDIS_URL: "redis://{{ printf "%s-master" (include "common.names.fullname" .Subcharts.redis) }}:6379/0"
@@ -34,7 +38,7 @@ data:
   # Sentry
   SENTRY_TRACES_SAMPLE_RATE: {{ .Values.env.SENTRY_TRACES_SAMPLE_RATE | quote }}
   SENTRY_PROFILE_SAMPLE_RATE: {{ .Values.env.SENTRY_PROFILE_SAMPLE_RATE | quote }}
-
+  
   # Vector Database
   {{- if .Values.redis.enabled }}
   QDRANT_DB_HOST: {{ include "qdrant.fullname" .Subcharts.qdrant | quote }}
