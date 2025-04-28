@@ -31,20 +31,7 @@ type AppEnumCollectionUserDepartment {
 }
 
 input ArchiveContentInput {
-  id: String!
-}
-
-input BoolBaseFilterLookup {
-  """Exact match. Filter will be skipped on `null` value"""
-  exact: Boolean
-
-  """Assignment test. Filter will be skipped on `null` value"""
-  isNull: Boolean
-
-  """
-  Exact match of items in a given list. Filter will be skipped on `null` value
-  """
-  inList: [Boolean!]
+  content: ID!
 }
 
 input ChangePasswordInput {
@@ -54,7 +41,7 @@ input ChangePasswordInput {
 
 input ContentCreateInput {
   title: String!
-  documentFile: Upload
+  documentFile: Upload!
   tag: [ID!]
   documentType: DocumentTypeEnum
   documentUrl: String
@@ -103,6 +90,15 @@ type DjangoFileType {
   path: String!
   size: Int!
   url: String!
+}
+
+type DjangoImageType {
+  name: String!
+  path: String!
+  size: Int!
+  url: String!
+  width: Int!
+  height: Int!
 }
 
 enum DocumentStatusTypeEnum {
@@ -157,6 +153,7 @@ type OrganizationType {
   name: String!
   sliderBarColor: String!
   navbarColor: String!
+  image: DjangoImageType
 }
 
 type OrganizationTypeCountList {
@@ -248,7 +245,7 @@ input ResetUserPassword {
 }
 
 input RetriggerContentInput {
-  id: String!
+  content: ID!
 }
 
 input StrFilterLookup {
@@ -357,7 +354,7 @@ input UserDeactivationInput {
 
 input UserFilter {
   id: IDBaseFilterLookup
-  isActive: BoolBaseFilterLookup
+  isActive: Boolean!
   displayName: StrFilterLookup
   AND: UserFilter
   OR: UserFilter
@@ -376,6 +373,7 @@ type UserMeType {
   email: String!
   firstName: String!
   lastName: String!
+  profilePicture: DjangoImageType
 }
 
 type UserMeTypeMutationResponseType {
@@ -404,6 +402,7 @@ type UserType {
   firstName: String!
   lastName: String!
   isActive: Boolean!
+  profilePicture: DjangoImageType
   department: DepartmentTypeEnum
   displayName: String!
 }
