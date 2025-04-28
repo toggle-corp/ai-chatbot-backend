@@ -16,6 +16,7 @@ class UserType:
     last_name: strawberry.auto
     is_active: strawberry.auto
     department = enum_field(User.department)
+    profile_picture: strawberry.auto
 
     @staticmethod
     def get_queryset(_, queryset: models.QuerySet | None, info: Info):
@@ -32,3 +33,4 @@ class UserMeType:
     email: strawberry.auto
     first_name: strawberry.auto
     last_name: strawberry.auto
+    profile_picture: strawberry.auto

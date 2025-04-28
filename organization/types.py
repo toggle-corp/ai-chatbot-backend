@@ -13,6 +13,7 @@ class OrganizationType:
     name: strawberry.auto
     slider_bar_color: strawberry.auto
     navbar_color: strawberry.auto
+    image: strawberry.auto
 
     @staticmethod
     def get_queryset(_, queryset: models.QuerySet | None, info: Info):
