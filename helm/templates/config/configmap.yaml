@@ -7,13 +7,15 @@ metadata:
     environment: {{ .Values.environment }}
     release: {{ .Release.Name }}
 data:
-  APP_ENVIRONMENT: {{ .Values.environment | upper | quote }} 
-  APP_DOMAIN: {{ required "env.APP_DOMAIN" .Values.environment | upper | quote }} 
-  APP_FRONTEND_HOST: {{ required "env.APP_FRONTEND_HOST" .Values.environment | quote }} 
+  APP_ENVIRONMENT: {{ .Values.environment | upper | quote }}
+  # App Domain 
+  APP_DOMAIN: {{ required "env.APP_DOMAIN" .Values.env.APP_DOMAIN  | quote }} 
+  APP_FRONTEND_HOST: {{ required "env.APP_FRONTEND_HOST" .Values.env.APP_FRONTEND_HOST | quote }} 
+  APP_HTTP_PROTOCOL: {{ required "env.APP_HTTP_PROTOCOL" .Values.env.APP_HTTP_PROTOCOL | quote }}
+  APP_TYPE: {{  .Values.env.APP_TYPE  | quote }}
   DJANGO_TIME_ZONE: {{ .Values.env.DJANGO_TIME_ZONE }}
   DJANGO_DEBUG: {{ .Values.env.DJANGO_DEBUG | quote }}
   DJANGO_ALLOWED_HOST: {{ .Values.env.DJANGO_ALLOWED_HOST | quote }}
-  APP_HTTP_PROTOCOL: {{ .Values.env.APP_HTTP_PROTOCOL | quote }}
 
   # Email
   DEFAULT_FROM_EMAIL: {{ required "env.DEFAULT_FROM_EMAIL" .Values.env.DEFAULT_FROM_EMAIL | quote }}
