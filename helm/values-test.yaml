@@ -10,6 +10,8 @@ ingress:
 env:
   # App Domain
   APP_TYPE: test
+  APP_DOMAIN: test.com 
+  APP_FRONTEND_HOST: test-host.com
   # Vector Database
   QDRANT_DB_HOST: test.com
   QDRANT_DB_PORT: 1234
