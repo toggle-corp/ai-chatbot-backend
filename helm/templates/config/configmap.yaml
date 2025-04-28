@@ -8,8 +8,8 @@ metadata:
     release: {{ .Release.Name }}
 data:
   APP_ENVIRONMENT: {{ .Values.environment | upper | quote }} 
-  APP_DOMAIN: {{ required "env.APP_DOMAIN" .Values.APP_DOMAIN | upper | quote }} 
-  APP_FRONTEND_HOST: {{ required "env.APP_FRONTEND_HOST" .Values.APP_FRONTEND_HOST | quote }} 
+  APP_DOMAIN: {{ required "env.APP_DOMAIN" .Values.env.APP_DOMAIN | upper | quote }} 
+  APP_FRONTEND_HOST: {{ required "env.APP_FRONTEND_HOST" .Values.env.APP_FRONTEND_HOST | quote }} 
   APP_TYPE: {{ required "env.APP_TYPE" .Values.APP_TYPE | upper | quote }}
   DJANGO_TIME_ZONE: {{ .Values.env.DJANGO_TIME_ZONE }}
   DJANGO_DEBUG: {{ .Values.env.DJANGO_DEBUG | quote }}
