@@ -12,3 +12,9 @@ dependencies:
     alias: app 
     version: 0.1.1-2beta
     repository: oci://ghcr.io/toggle-corp/charts
+
+  - name: qdrant
+    alias: qdrant
+    version: "1.12.2"
+    repository: "https://qdrant.github.io/qdrant-helm"
+    condition: qdrant.enabled
