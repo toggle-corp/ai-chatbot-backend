@@ -1,0 +1,26 @@
+{{- if .Values.ingress.embeddingModel.enabled }}
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ template "tc-chatbot-backend.fullname" . }}-embedding-model-ingress
+  labels:
+    app: {{ template "tc-chatbot-backend.name" . }}
+    component: embedding-model-service
+    environment: {{ .Values.environment }}
+    release: {{ .Release.Name }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  rules:
+    - host: {{ required "ingress.embeddingModel.host" .Values.ingress.embeddingModel.host | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ template "tc-chatbot-backend.fullname" . }}-embedding-model-svc
+                port:
+                  number: 8000
+
+{{- end }}
