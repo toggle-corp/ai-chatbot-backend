@@ -214,7 +214,7 @@ env:
   DEFAULT_FROM_EMAIL: "{{ required \".app.env.DEFAULT_FROM_EMAIL\" nil}}"
  
 secrets:
-  DJANGO_SECRET_KEY:
+  DJANGO_SECRET_KEY: "{{ required \".app.secrets.DJANGO_SECRET_KEY\" nil }}"
   # Database (required if postgresql.enabled if false)
   DATABASE_NAME: "{{ $.Values.postgresql.auth.database}}"
   DATABASE_USER: "{{ $.Values.postgresql.auth.username}}"

@@ -12,4 +12,3 @@ dependencies:
     alias: app 
     version: 0.1.1-2beta
     repository: oci://ghcr.io/toggle-corp/charts
- 
