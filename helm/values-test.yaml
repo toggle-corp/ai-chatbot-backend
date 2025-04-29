@@ -1,55 +1,56 @@
-environment: test
+app:
+  environment: test
 
-image:
-  name: ghcr.io/toggle-corp/ai-chatbot-backend
-  tag: test
+  image:
+    name: ghcr.io/toggle-corp/ai-chatbot-backend
+    tag: test
 
-ingress:
-  host: api.test.com
+  ingress:
+    host: api.test.com
 
-env:
-  # App Domain
-  APP_DOMAIN: test.com
-  APP_FRONTEND_HOST : test-host.com
-  # Vector Database
-  QDRANT_DB_HOST: test.com
-  QDRANT_DB_PORT: 1234
-  QDRANT_DB_COLLECTION_NAME: test
-  # Embedding Model
-  EMBEDDING_MODEL_URL: test.com
-  EMBEDDING_MODEL_NAME: test
-  EMBEDDING_MODEL_VECTOR_SIZE: 1234
-  EMBEDDING_MODEL_TYPE: test
-  OLLAMA_EMBEDDING_MODEL_BASE_URL: test.com
-  # LLM Type
-  LLM_TYPE: test
-  LLM_MODEL_NAME: test
-  LLM_OLLAMA_BASE_URL: test.com
-  AWS_S3_REGION: us-east-x
-  S3_STATIC_BUCKET_NAME: bucket-x-static
-  S3_MEDIA_BUCKET_NAME: bucket-x-media
-  # email 
-  DEFAULT_FROM_EMAIL: test@test.com
-  EMAIL_USE_TLS: true
- 
-  SENTRY_DEBUG: false
-secrets:
-  DJANGO_SECRET_KEY: test
-  # Database
-  DATABASE_NAME: test
-  DATABASE_USER: test
-  DATABASE_PASSWORD: test
-  DATABASE_HOST: test
-  DATABASE_PORT: 5432
-  # Sentry
-  SENTRY_DSN: test.com/1234
-  # OpenAI API key
-  OPENAI_API_KEY: test
-  # S3
-  AWS_S3_ACCESS_KEY_ID: access-key
-  AWS_S3_SECRET_ACCESS_KEY: access-secret
-  # email
-  EMAIL_HOST: test.com 
-  EMAIL_PORT: 443
-  EMAIL_HOST_USER: test
-  EMAIL_HOST_PASSWORD: test
+  env:
+    # App Domain
+    APP_DOMAIN: test.com
+    APP_FRONTEND_HOST : test-host.com
+    # Vector Database
+    QDRANT_DB_HOST: test.com
+    QDRANT_DB_PORT: 1234
+    QDRANT_DB_COLLECTION_NAME: test
+    # Embedding Model
+    EMBEDDING_MODEL_URL: test.com
+    EMBEDDING_MODEL_NAME: test
+    EMBEDDING_MODEL_VECTOR_SIZE: 1234
+    EMBEDDING_MODEL_TYPE: test
+    OLLAMA_EMBEDDING_MODEL_BASE_URL: test.com
+    # LLM Type
+    LLM_TYPE: test
+    LLM_MODEL_NAME: test
+    LLM_OLLAMA_BASE_URL: test.com
+    AWS_S3_REGION: us-east-x
+    S3_STATIC_BUCKET_NAME: bucket-x-static
+    S3_MEDIA_BUCKET_NAME: bucket-x-media
+    # email 
+    DEFAULT_FROM_EMAIL: test@test.com
+    EMAIL_USE_TLS: true
+  
+    SENTRY_DEBUG: false
+  secrets:
+    DJANGO_SECRET_KEY: test
+    # Database
+    DATABASE_NAME: test
+    DATABASE_USER: test
+    DATABASE_PASSWORD: test
+    DATABASE_HOST: test
+    DATABASE_PORT: 5432
+    # Sentry
+    SENTRY_DSN: test.com/1234
+    # OpenAI API key
+    OPENAI_API_KEY: test
+    # S3
+    AWS_S3_ACCESS_KEY_ID: access-key
+    AWS_S3_SECRET_ACCESS_KEY: access-secret
+    # email
+    EMAIL_HOST: test.com 
+    EMAIL_PORT: 443
+    EMAIL_HOST_USER: test
+    EMAIL_HOST_PASSWORD: test
