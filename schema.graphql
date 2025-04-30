@@ -11,6 +11,7 @@ input AddUserInput {
 
 type AppEnumCollection {
   UserDepartment: [AppEnumCollectionUserDepartment!]!
+  MemberRole: [AppEnumCollectionMemberRole!]!
   ContentDocumentStatus: [AppEnumCollectionContentDocumentStatus!]!
   ContentDocumentType: [AppEnumCollectionContentDocumentType!]!
 }
@@ -25,13 +26,18 @@ type AppEnumCollectionContentDocumentType {
   label: String!
 }
 
+type AppEnumCollectionMemberRole {
+  key: UserRoleEnum!
+  label: String!
+}
+
 type AppEnumCollectionUserDepartment {
   key: DepartmentTypeEnum!
   label: String!
 }
 
 input ArchiveContentInput {
-  id: String!
+  content: ID!
 }
 
 input BoolBaseFilterLookup {
@@ -54,7 +60,7 @@ input ChangePasswordInput {
 
 input ContentCreateInput {
   title: String!
-  documentFile: Upload
+  documentFile: Upload!
   tag: [ID!]
   documentType: DocumentTypeEnum
   documentUrl: String
@@ -103,6 +109,10 @@ type DjangoFileType {
   path: String!
   size: Int!
   url: String!
+}
+
+type DjangoModelType {
+  pk: ID!
 }
 
 enum DocumentStatusTypeEnum {
@@ -189,7 +199,6 @@ type PrivateMutation {
 }
 
 type PrivateQuery {
-  noop: ID!
   users(filters: UserFilter, pagination: OffsetPaginationInput): UserTypeCountList!
   user(pk: ID!): UserType
   contents(pagination: OffsetPaginationInput): ContentTypeCountList!
@@ -211,6 +220,7 @@ type PublicMutation {
   passwordResetTrigger(data: UserPasswordResetTriggerInput!): MutationEmptyResponseType!
   passwordReset(data: UserPasswordReset!): MutationEmptyResponseType!
   forgotPassword(data: ResetUserPassword!): MutationEmptyResponseType!
+  assignRole(data: UserRoleInput!): UserRoleTypeMutationResponseType!
   id: ID!
 }
 
@@ -248,7 +258,7 @@ input ResetUserPassword {
 }
 
 input RetriggerContentInput {
-  id: String!
+  content: ID!
 }
 
 input StrFilterLookup {
@@ -396,6 +406,28 @@ input UserPasswordResetTriggerInput {
 
 input UserResendInviteInput {
   userId: String!
+}
+
+enum UserRoleEnum {
+  ADMIN
+  USER
+}
+
+input UserRoleInput {
+  user: ID!
+  role: UserRoleEnum
+}
+
+type UserRoleType {
+  id: ID!
+  user: DjangoModelType!
+  role: UserRoleEnum!
+}
+
+type UserRoleTypeMutationResponseType {
+  ok: Boolean!
+  errors: CustomErrorType
+  result: UserRoleType
 }
 
 type UserType {
