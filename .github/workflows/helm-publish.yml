@@ -36,8 +36,9 @@ jobs:
 
     - name: 🐳 Helm dependency
       run: |
-        yq --indent 0 '.dependencies | map(["helm", "repo", "add", .name, .repository] | join(" ")) | .[]' ./helm/Chart.lock  | sh --
-        helm dependency build ./helm
+        yq --indent 0 '.dependencies | map(select(.repository | test("^oci:") | not)) | map(["helm", "repo", "add", .name, .repository] | join(" ")) | .[]' ./helm/Chart.lock | sh --
+        helm dependency build ./helm/
+
 
     - name: Tag docker image in Helm Chart values.yaml
       env:
@@ -50,6 +51,8 @@ jobs:
 
     - name: Package Helm Chart
       id: set-variables
+      env:
+        IMAGE_TAG: ${{ needs.ci.outputs.docker_image_tag }}
       run: |
         # XXX: Check if there is a slash in the BRANCH_NAME eg: project/add-docker
         if [[ "$GITHUB_REF_NAME" == *"/"* ]]; then
@@ -64,15 +67,22 @@ jobs:
     - name: Push Helm Chart
       env:
         IMAGE: ${{ needs.ci.outputs.docker_image }}
-        OCI_REPO: oci://ghcr.io/${{ github.repository }}
+        OCI_REPO: oci://ghcr.io/${{ github.repository_owner }}
       run: |
-        PACKAGE_FILE=$(ls .helm-charts/*.tgz | head -n 1)
+        OCI_REPO=$(echo $OCI_REPO | tr '[:upper:]' '[:lower:]')
+        PACKAGE_FILE=$(ls ./helm/.helm-charts/*.tgz | head -n 1)
         echo "# Helm Chart" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "Tagged Image: **$IMAGE**" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "Helm push output" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo '```bash' >> $GITHUB_STEP_SUMMARY
-        helm push "$PACKAGE_FILE" $OCI_REPO >> $GITHUB_STEP_SUMMARY
+        echo '```yaml' >> $GITHUB_STEP_SUMMARY
+        helm push "$PACKAGE_FILE" $OCI_REPO 2>> $GITHUB_STEP_SUMMARY
         echo '```' >> $GITHUB_STEP_SUMMARY
+        echo "> [!Important]" >> $GITHUB_STEP_SUMMARY
+        echo "> Helm Repo URL: **$OCI_REPO**" >> $GITHUB_STEP_SUMMARY
+        echo "> Helm Chart: **$(helm show chart "$PACKAGE_FILE" | grep '^name:' | awk '{print $2}')**" >> $GITHUB_STEP_SUMMARY
+        echo "> Helm Target Revision: **$(helm show chart "$PACKAGE_FILE" | grep '^version:' | awk '{print $2}')**" >> $GITHUB_STEP_SUMMARY
+        echo "> Docker image: **$IMAGE**" >> $GITHUB_STEP_SUMMARY
+
+        # Add annotations as well
+        echo "::notice::Helm Repo URL: **$OCI_REPO**"
+        echo "::notice::Helm Chart: **$(helm show chart "$PACKAGE_FILE" | grep '^name:' | awk '{print $2}')**"
+        echo "::notice::Helm Target Revision: **$(helm show chart "$PACKAGE_FILE" | grep '^version:' | awk '{print $2}')**"
