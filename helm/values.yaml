@@ -201,19 +201,19 @@ app:
     CELERY_RESULT_BACKEND:
     CELERY_ACCEPT_CONTENT: json, application/text
     # Sentry
-    SENTRY_TRACES_SAMPLE_RATE: 0.2
-    SENTRY_PROFILE_SAMPLE_RATE: 0.2
+    SENTRY_TRACES_SAMPLE_RATE: "0.2"
+    SENTRY_PROFILE_SAMPLE_RATE: "0.2"
     SENTRY_DEBUG:
     
     # Vector Database
     # QDRANT_DB_HOST: (Required if qdrant.enabled is false)
-    QDRANT_DB_PORT: 6333
+    QDRANT_DB_PORT: "6333"
     QDRANT_DB_COLLECTION_NAME: "{{ required \".app.env.QDRANT_DB_COLLECTION_NAME\" nil}}"
     # Embedding Model
     EMBEDDING_MODEL_URL: "{{ required \".app.env.EMBEDDING_MODEL_URL\" nil}}"
     EMBEDDING_MODEL_NAME: "{{ required \".app.env.EMBEDDING_MODEL_NAME\" nil}}"
-    EMBEDDING_MODEL_VECTOR_SIZE: 768
-    EMBEDDING_MODEL_TYPE: 1
+    EMBEDDING_MODEL_VECTOR_SIZE: "768"
+    EMBEDDING_MODEL_TYPE: "1"
     OLLAMA_EMBEDDING_MODEL_BASE_URL: "{{ required \".app.env.OLLAMA_EMBEDDING_MODEL_BASE_URL\" nil}}"
     # LLM Type
     LLM_TYPE: 1

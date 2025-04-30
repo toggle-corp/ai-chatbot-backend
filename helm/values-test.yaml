@@ -14,12 +14,12 @@ app:
     APP_FRONTEND_HOST : test-host.com
     # Vector Database
     QDRANT_DB_HOST: test.com
-    QDRANT_DB_PORT: 1234
+    QDRANT_DB_PORT: "1234"
     QDRANT_DB_COLLECTION_NAME: test
     # Embedding Model
     EMBEDDING_MODEL_URL: test.com
     EMBEDDING_MODEL_NAME: test
-    EMBEDDING_MODEL_VECTOR_SIZE: 1234
+    EMBEDDING_MODEL_VECTOR_SIZE: "1234"
     EMBEDDING_MODEL_TYPE: test
     OLLAMA_EMBEDDING_MODEL_BASE_URL: test.com
     # LLM Type
@@ -41,7 +41,7 @@ app:
     DATABASE_USER: test
     DATABASE_PASSWORD: test
     DATABASE_HOST: test
-    DATABASE_PORT: 5432
+    DATABASE_PORT: "5432"
     # Sentry
     SENTRY_DSN: test.com/1234
     # OpenAI API key
@@ -51,6 +51,6 @@ app:
     AWS_S3_SECRET_ACCESS_KEY: access-secret
     # email
     EMAIL_HOST: test.com 
-    EMAIL_PORT: 443
+    EMAIL_PORT: "443"
     EMAIL_HOST_USER: test
     EMAIL_HOST_PASSWORD: test
