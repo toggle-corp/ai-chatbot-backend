@@ -16,8 +16,9 @@ from user.serializers import (
     UserPasswordResetTriggerSerializer,
     UserRegisterSerializer,
     UserResendInviteSerializer,
+    UserRoleSerializer,
 )
-from user.types import UserMeType, UserType
+from user.types import UserMeType, UserRoleType, UserType
 from utils.strawberry.mutations import (
     MutationEmptyResponseType,
     MutationResponseType,
@@ -40,6 +41,7 @@ UserPasswordReset = convert_serializer_to_type(UserPasswordResetConfirmSerialize
 ChangePasswordInput = convert_serializer_to_type(ChangePasswordSerializer, name="ChangePasswordInput")
 UpdateMeInput = convert_serializer_to_type(UpdateMeSerializer, name="UserMeInput")
 ForgotPasswordInput = convert_serializer_to_type(ForgotpasswordSerializer, name="ResetUserPassword")
+UserRoleInput = convert_serializer_to_type(UserRoleSerializer, name="UserRoleInput")
 
 
 @strawberry.type
@@ -195,6 +197,24 @@ class PublicMutation:
             )
         serializer.save()
         return MutationEmptyResponseType()
+
+    @strawberry.mutation()
+    @sync_to_async
+    def assign_role(
+        self,
+        data: UserRoleInput,  # type: ignore[reportInvalidTypeForm]
+        info: Info,
+    ) -> MutationResponseType[UserRoleType]:
+        serializer = UserRoleSerializer(data=process_input_data(data), context={"request": info.context.request})
+        if errors := mutation_is_not_valid(serializer):
+            return MutationResponseType(
+                ok=False,
+                errors=errors,
+            )
+        role = serializer.save()
+        return MutationResponseType(
+            result=role,  # type: ignore[reportReturnType]
+        )
 
 
 @strawberry.type

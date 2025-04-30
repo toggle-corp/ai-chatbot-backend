@@ -20,7 +20,6 @@ class PublicQuery:
 
 @strawberry.type
 class PrivateQuery:
-    noop: strawberry.ID = strawberry.ID("noop")
 
     users: CountList[UserType] = pagination_field(
         pagination=True,

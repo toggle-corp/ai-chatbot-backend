@@ -3,7 +3,7 @@ import strawberry_django
 from django.db import models
 
 from main.graphql.context import Info
-from user.models import User
+from user.models import Member, User
 from utils.common import get_queryset_for_model
 from utils.strawberry.enums import enum_field
 
@@ -32,3 +32,14 @@ class UserMeType:
     email: strawberry.auto
     first_name: strawberry.auto
     last_name: strawberry.auto
+
+
+@strawberry_django.type(Member)
+class UserRoleType:
+    id: strawberry.ID
+    user: strawberry.auto
+    role = enum_field(Member.role)
+
+    @staticmethod
+    def get_queryset(_, queryset: models.QuerySet | None, info: Info):
+        return get_queryset_for_model(User, queryset)
