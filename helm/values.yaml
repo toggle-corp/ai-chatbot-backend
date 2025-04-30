@@ -191,19 +191,19 @@ app:
     APP_HTTP_PROTOCOL: "https"
     # App Domain
     APP_DOMAIN: 
-    APP_FRONTEND_HOST: 
+    APP_FRONTEND_HOST:  
     # Redis (Required if redis.enabled is false)
-    CELERY_REDIS_URL:
+    CELERY_REDIS_URL: 
     DJANGO_CACHE_REDIS_URL: 
       # Minio (S3)
     # -- Celery
-    CELERY_BROKER_URL:
-    CELERY_RESULT_BACKEND:
+    CELERY_BROKER_URL: 
+    CELERY_RESULT_BACKEND: 
     CELERY_ACCEPT_CONTENT: json, application/text
     # Sentry
     SENTRY_TRACES_SAMPLE_RATE: "0.2"
     SENTRY_PROFILE_SAMPLE_RATE: "0.2"
-    SENTRY_DEBUG:
+    
     
     # Vector Database
     # QDRANT_DB_HOST: (Required if qdrant.enabled is false)
@@ -217,7 +217,7 @@ app:
     OLLAMA_EMBEDDING_MODEL_BASE_URL: 
     # LLM Type
     LLM_TYPE: "1"
-    LLM_MODEL_NAME:
+    LLM_MODEL_NAME: 
     LLM_OLLAMA_BASE_URL: 
     # S3
     USE_S3_BUCKET: "false"
@@ -239,12 +239,12 @@ app:
     DATABASE_HOST: "{{ include \"postgresql.v1.primary.fullname\" $.Subcharts.postgresql }}"
     DATABASE_PORT: "{{ include \"postgresql.v1.service.port\" $.Subcharts.postgresql }}"
     # Sentry
-    SENTRY_DSN: 
+    SENTRY_DSN:
     # OpenAI API key
     OPENAI_API_KEY: 
     # S3 
-    AWS_S3_ACCESS_KEY_ID: "{{ required \".app.minio.auth.rootUser\" $.Values.minio.auth.rootUser}}"
-    AWS_S3_SECRET_ACCESS_KEY: "{{ required \".app.minio.auth.rootPassword\" $.Values.minio.auth.rootPassword}}"
+    AWS_S3_ACCESS_KEY_ID: 
+    AWS_S3_SECRET_ACCESS_KEY: 
     # email 
     EMAIL_HOST: 
     EMAIL_PORT: 
