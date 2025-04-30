@@ -1,4 +1,4 @@
-{{- if .Values.ingress.embeddingModel.enabled }}
+{{- if .Values.app.ingress.embeddingModel.enabled }}
 
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -7,12 +7,12 @@ metadata:
   labels:
     app: {{ template "tc-chatbot-backend.name" . }}
     component: embedding-model-service
-    environment: {{ .Values.environment }}
+    environment: {{ .Values.app.environment }}
     release: {{ .Release.Name }}
 spec:
-  ingressClassName: {{ .Values.ingress.className }}
+  ingressClassName: {{ .Values.app.ingress.className }}
   rules:
-    - host: {{ required "ingress.embeddingModel.host" .Values.ingress.embeddingModel.host | quote }}
+    - host: {{ required "ingress.embeddingModel.host" .Values.app.ingress.embeddingModel.host | quote }}
       http:
         paths:
           - path: /

@@ -170,7 +170,7 @@ app:
     auth:
       forceNewKeys: True
       rootUser: chatbot
-      rootPassword:
+      rootPassword: test
     persistence:
       enabled: true
       size: 1Gi
@@ -185,16 +185,16 @@ app:
         
   env:
     # APP_ENVIRONMENT:
-    DJANGO_DEBUG: false
-    DJANGO_TIME_ZONE: UTC
+    DJANGO_DEBUG: "false"
+    DJANGO_TIME_ZONE: "UTC"
     DJANGO_ALLOWED_HOST: "*"
-    APP_HTTP_PROTOCOL: https
+    APP_HTTP_PROTOCOL: "https"
     # App Domain
-    APP_DOMAIN: "{{ required \".app.env.APP_DOMAIN\" nil}}"
-    APP_FRONTEND_HOST:  "{{ required \".app.env.APP_FRONTEND_HOST\" nil}}"
+    APP_DOMAIN: 
+    APP_FRONTEND_HOST: 
     # Redis (Required if redis.enabled is false)
-    CELERY_REDIS_URL: "redis://{{ printf \"%s-master\" (include \"common.names.fullname\" $.Subcharts.redis) }}:6379/0"
-    DJANGO_CACHE_REDIS_URL: "redis://{{ printf \"%s-master\" (include \"common.names.fullname\" $.Subcharts.redis) }}:6379/1"
+    CELERY_REDIS_URL:
+    DJANGO_CACHE_REDIS_URL: 
       # Minio (S3)
     # -- Celery
     CELERY_BROKER_URL:
@@ -208,17 +208,17 @@ app:
     # Vector Database
     # QDRANT_DB_HOST: (Required if qdrant.enabled is false)
     QDRANT_DB_PORT: "6333"
-    QDRANT_DB_COLLECTION_NAME: "{{ required \".app.env.QDRANT_DB_COLLECTION_NAME\" nil}}"
+    QDRANT_DB_COLLECTION_NAME: 
     # Embedding Model
-    EMBEDDING_MODEL_URL: "{{ required \".app.env.EMBEDDING_MODEL_URL\" nil}}"
-    EMBEDDING_MODEL_NAME: "{{ required \".app.env.EMBEDDING_MODEL_NAME\" nil}}"
+    EMBEDDING_MODEL_URL: 
+    EMBEDDING_MODEL_NAME: 
     EMBEDDING_MODEL_VECTOR_SIZE: "768"
     EMBEDDING_MODEL_TYPE: "1"
-    OLLAMA_EMBEDDING_MODEL_BASE_URL: "{{ required \".app.env.OLLAMA_EMBEDDING_MODEL_BASE_URL\" nil}}"
+    OLLAMA_EMBEDDING_MODEL_BASE_URL: 
     # LLM Type
-    LLM_TYPE: 1
-    LLM_MODEL_NAME: "{{ required \".app.env.LLM_MODEL_NAME\" nil}}"
-    LLM_OLLAMA_BASE_URL: "{{ required \".app.env.LLM_OLLAMA_BASE_URL\" nil}}"
+    LLM_TYPE: "1"
+    LLM_MODEL_NAME:
+    LLM_OLLAMA_BASE_URL: 
     # S3
     USE_S3_BUCKET: "false"
     AWS_S3_AWS_ENDPOINT_URL: "https://{{ $.Values.minio.apiIngress.hostname}}"
@@ -228,10 +228,10 @@ app:
 
     # email
     EMAIL_USE_TLS: "false"
-    DEFAULT_FROM_EMAIL: "{{ required \".app.env.DEFAULT_FROM_EMAIL\" nil}}"
+    DEFAULT_FROM_EMAIL: 
   
   secrets:
-    DJANGO_SECRET_KEY: "{{ required \".app.secrets.DJANGO_SECRET_KEY\" nil }}"
+    DJANGO_SECRET_KEY: 
     # Database (required if postgresql.enabled if false)
     DATABASE_NAME: "{{ $.Values.postgresql.auth.database}}"
     DATABASE_USER: "{{ $.Values.postgresql.auth.username}}"
@@ -239,14 +239,14 @@ app:
     DATABASE_HOST: "{{ include \"postgresql.v1.primary.fullname\" $.Subcharts.postgresql }}"
     DATABASE_PORT: "{{ include \"postgresql.v1.service.port\" $.Subcharts.postgresql }}"
     # Sentry
-    SENTRY_DSN: "{{ required \".app.secrets.SENTRY_DSN\" nil}}"
+    SENTRY_DSN: 
     # OpenAI API key
-    OPENAI_API_KEY: "{{ required \".app.secrets.OPENAI_API_KEY\" nil}}"
+    OPENAI_API_KEY: 
     # S3 
     AWS_S3_ACCESS_KEY_ID: "{{ required \".app.minio.auth.rootUser\" $.Values.minio.auth.rootUser}}"
     AWS_S3_SECRET_ACCESS_KEY: "{{ required \".app.minio.auth.rootPassword\" $.Values.minio.auth.rootPassword}}"
     # email 
-    EMAIL_HOST: "{{ required \".app.secrets.EMAIL_HOST\" nil}}"
-    EMAIL_PORT: "{{ required \".app.secrets.EMAIL_PORT\" nil}}"
-    EMAIL_HOST_USER: "{{ required \".app.secrets.EMAIL_HOST_USER\" nil}}"
-    EMAIL_HOST_PASSWORD: "{{ required \".app.secrets.EMAIL_HOST_PASSWORD\" nil}}"
+    EMAIL_HOST: 
+    EMAIL_PORT: 
+    EMAIL_HOST_USER: 
+    EMAIL_HOST_PASSWORD: 

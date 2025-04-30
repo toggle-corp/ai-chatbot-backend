@@ -1,4 +1,4 @@
-{{- if .Values.embeddingModel.enabled }}
+{{- if .Values.app.embeddingModel.enabled }}
 
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -6,14 +6,14 @@ metadata:
   name: {{ template "tc-chatbot-backend.fullname" . }}-embedding-model-pvc
   labels:
     component: embedding-model-deployment
-    environment: {{ .Values.environment }}
+    environment: {{ .Values.app.environment }}
     release: {{ .Release.Name }}
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: {{ .Values.embeddingModel.persistence.storageClassName }}
+  storageClassName: {{ .Values.app.embeddingModel.persistence.storageClassName }}
   resources:
     requests:
-      storage: {{ .Values.embeddingModel.persistence.size }}
+      storage: {{ .Values.app.embeddingModel.persistence.size }}
 
 {{- end }}
