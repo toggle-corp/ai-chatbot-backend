@@ -1,4 +1,4 @@
-{{- if .Values.embeddingModel.enabled }}
+{{- if .Values.app.embeddingModel.enabled }}
 
 # TODO: Add NODE SELECTOR
 apiVersion: apps/v1
@@ -7,7 +7,7 @@ metadata:
   name: {{ template "tc-chatbot-backend.fullname" . }}-embedding-model
   labels:
     component: embedding-model-deployment
-    environment: {{ .Values.environment }}
+    environment: {{ .Values.app.environment }}
     release: {{ .Release.Name }}
     # XXX: Add global lables?
 spec:
@@ -26,40 +26,40 @@ spec:
     spec:
       containers:
         - name: {{ .Chart.Name }}-embedding-model
-          image: "{{ .Values.embeddingModel.image.name }}:{{ .Values.embeddingModel.image.tag }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
-          command: ["uvicorn", "app:app", "--host=0.0.0.0", "--port={{ .Values.embeddingModel.containerPort }}"]
+          image: "{{ .Values.app.embeddingModel.image.name }}:{{ .Values.app.embeddingModel.image.tag }}"
+          imagePullPolicy: {{ .Values.app.image.pullPolicy }}
+          command: ["uvicorn", "app:app", "--host=0.0.0.0", "--port={{ .Values.app.embeddingModel.containerPort }}"]
           ports:
             - name: http
-              containerPort: {{ .Values.embeddingModel.containerPort }}
+              containerPort: {{ .Values.app.embeddingModel.containerPort }}
               protocol: TCP
           # nodeSelector: TODO:
           #   nvidia: ssd
           livenessProbe: # FIXME: Fix Liveness Probe
             httpGet:
               path: /  # TODO
-              port: {{ .Values.embeddingModel.containerPort }}
+              port: {{ .Values.app.embeddingModel.containerPort }}
             initialDelaySeconds: 10180  # TODO:?
             periodSeconds: 5  # TODO:?
           resources:
             requests:
-              cpu: {{ .Values.embeddingModel.resources.requests.cpu }}
-              memory: {{ .Values.embeddingModel.resources.requests.memory }}
+              cpu: {{ .Values.app.embeddingModel.resources.requests.cpu }}
+              memory: {{ .Values.app.embeddingModel.resources.requests.memory }}
             limits:
-              cpu: {{ .Values.embeddingModel.resources.limits.cpu }}
-              memory: {{ .Values.embeddingModel.resources.limits.memory }}
+              cpu: {{ .Values.app.embeddingModel.resources.limits.cpu }}
+              memory: {{ .Values.app.embeddingModel.resources.limits.memory }}
           volumeMounts:
           - mountPath: "/opt/models"
             name: downloaded-models
           env:
             - name: EMBEDDING_MODEL_NAME
-              value: {{ .Values.embeddingModel.env.EMBEDDING_MODEL_NAME }}
+              value: {{ .Values.app.embeddingModel.env.EMBEDDING_MODEL_NAME }}
             - name: EMBEDDING_MODEL_TYPE
-              value: {{ .Values.embeddingModel.env.EMBEDDING_MODEL_TYPE | quote }}
+              value: {{ .Values.app.embeddingModel.env.EMBEDDING_MODEL_TYPE | quote }}
             - name: EMBEDDING_MODEL_VECTOR_SIZE
-              value: {{ .Values.embeddingModel.env.EMBEDDING_MODEL_VECTOR_SIZE | quote }}
+              value: {{ .Values.app.embeddingModel.env.EMBEDDING_MODEL_VECTOR_SIZE | quote }}
             - name: OPENAI_API_KEY
-              value: {{ .Values.embeddingModel.env.OPENAI_API_KEY | quote }}
+              value: {{ .Values.app.embeddingModel.env.OPENAI_API_KEY | quote }}
       volumes:
         - name: downloaded-models
           persistentVolumeClaim:

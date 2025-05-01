@@ -1,4 +1,4 @@
-{{- if .Values.streamlit.enabled }}
+{{- if .Values.app.streamlit.enabled }}
 
 apiVersion: apps/v1
 kind: Deployment
@@ -6,11 +6,11 @@ metadata:
   name: {{ template "tc-chatbot-backend.fullname" . }}-streamlit
   labels:
     component: streamlit-deployment
-    environment: {{ .Values.environment }}
+    environment: {{ .Values.app.environment }}
     release: {{ .Release.Name }}
     # XXX: Add global lables?
 spec:
-  replicas: {{ .Values.streamlit.replicaCount }}
+  replicas: {{ .Values.app.streamlit.replicaCount }}
   selector:
     matchLabels:
       app: {{ template "tc-chatbot-backend.name" . }}
@@ -18,9 +18,6 @@ spec:
       run: {{ .Release.Name }}-streamlit
   template:
     metadata:
-      annotations:
-        checksum/secret: {{ include (print .Template.BasePath "/config/secret.yaml") . | sha256sum }}
-        checksum/configmap: {{ include (print .Template.BasePath "/config/configmap.yaml") . | sha256sum }}
       labels:
         app: {{ template "tc-chatbot-backend.name" . }}
         release: {{ .Release.Name }}
@@ -28,30 +25,30 @@ spec:
     spec:
       containers:
         - name: {{ .Chart.Name }}-streamlit
-          image: "{{ .Values.streamlit.image.name }}:{{ .Values.streamlit.image.tag }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          image: "{{ .Values.app.streamlit.image.name }}:{{ .Values.app.streamlit.image.tag }}"
+          imagePullPolicy: {{ .Values.app.image.pullPolicy }}
           command: ["streamlit", "run", "app.py", "--server.address", "0.0.0.0"]
           ports:
             - name: http
-              containerPort: {{ .Values.streamlit.containerPort }}
+              containerPort: {{ .Values.app.streamlit.containerPort }}
               protocol: TCP
           livenessProbe: # FIXME: Fix Liveness Probe
             httpGet:
               path: /  # TODO
-              port: {{ .Values.streamlit.containerPort }}
+              port: {{ .Values.app.streamlit.containerPort }}
             initialDelaySeconds: 10180  # TODO:?
             periodSeconds: 5  # TODO:?
           resources:
             requests:
-              cpu: {{ .Values.streamlit.resources.requests.cpu }}
-              memory: {{ .Values.streamlit.resources.requests.memory }}
+              cpu: {{ .Values.app.streamlit.resources.requests.cpu }}
+              memory: {{ .Values.app.streamlit.resources.requests.memory }}
             limits:
-              cpu: {{ .Values.streamlit.resources.limits.cpu }}
-              memory: {{ .Values.streamlit.resources.limits.memory }}
+              cpu: {{ .Values.app.streamlit.resources.limits.cpu }}
+              memory: {{ .Values.app.streamlit.resources.limits.memory }}
           env:
             - name: SERVER_IP
               value: {{ template "tc-chatbot-backend.fullname" . }}-api-svc
             - name: SERVER_PORT
-              value: {{ .Values.api.containerPort | quote }}
+              value: {{ .Values.app.api.containerPort | quote }}
 
 {{- end }}

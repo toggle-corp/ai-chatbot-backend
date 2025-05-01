@@ -1,204 +1,248 @@
-environment: prod
+app:
+  environment: prod
+ 
+  image:
+    name: SET-BY-CICD-IMAGE
+    tag: SET-BY-CICD-TAG
+    imagePullPolicy: IfNotPresent
 
-image:
-  name: SET-BY-CICD-IMAGE
-  tag: SET-BY-CICD-TAG
-  imagePullPolicy: IfNotPresent
+  ingress:
+    className: nginx
+    api:
+      enabled: false
+      host:
+    streamlit:
+      enabled: false
+      host:
+    embeddingModel: # NOTE: For production don't use this
+      enabled: false
+      host:
 
-ingress:
-  className: nginx
+
+  postgresql:
+    enabled: true
+    architecture: standalone
+    fullnameOverride: chatbot-postgresql
+    auth:
+      database: chatbot
+      # NOTE: For production. Use existingSecret.
+      # TODO: Pass existingSecret to api/worker instances
+      username: chatbot
+      password: chatbot
+    primary:
+      resourcesPreset: "nano"
+      persistence:
+        enabled: true
+        size: 1Gi
+        storageClass: "longhorn"
+
+  redis:
+    enabled: true
+    architecture: standalone
+    fullnameOverride: chatbot-redis
+    auth:
+      enabled: false
+    master:
+      resourcesPreset: "nano"
+      persistence:
+        enabled: true
+        size: .5Gi
+        storageClass: "longhorn"
+
+  qdrant:
+    enabled: true
+    persistence:
+      storageClassName: "longhorn"
+      accessModes:
+        - "ReadWriteOnce"
+      size: 2Gi
+    resources:
+      requests:
+        cpu: "100m"
+        memory: 100Mi
+      limits:
+        cpu: "100m"
+        memory: 200Mi
+
+  argoHooks:
+    # NOTE: Make sure key are lowercase
+    enabled: true
+    resources:
+      requests:
+        cpu: "0.1"
+        memory: 1Gi
+      limits:
+        cpu: "4"
+        memory: 2Gi
+    hooks:
+      database-migration:
+        enabled: true
+        hook: PostSync
+        preserveHistory: true
+        command: ["/bin/bash", "-c"]
+        args: 
+          - "./manage.py wait_for_resources --db && ./manage.py migrate"
+      collect-static:
+        enabled: true
+        hook: PostSync
+        command: ["/bin/bash", "-c"]
+        args: 
+          - "./manage.py wait_for_resources --minio && ./manage.py collectstatic --noinput"
+
   api:
-    enabled: false
-    host:
+    enabled: true
+    replicaCount: 1
+    containerPort: 80
+    command: ["bash", "/code/scripts/run_prod.sh"]
+    resources:
+      requests:
+        cpu: "2"
+        memory: 1Gi
+      limits:
+        cpu: "2"
+        memory: 2Gi
+
+  worker:
+    enabled: true
+    replicaCount: 1
+    command: ["bash", "/code/scripts/run_worker.sh"]
+    resources:
+      requests:
+        cpu: "200m"
+        memory: 3Gi
+      limits:
+        cpu: "2"
+        memory: 4Gi
+
   streamlit:
-    enabled: false
-    host:
-  embeddingModel: # NOTE: For production don't use this
-    enabled: false
-    host:
+    enabled: true
+    image:
+      name: ghcr.io/toggle-corp/expt-streamlit-chatapp
+      tag: latest
+      pullPolicy: IfNotPresent
+    replicaCount: 1
+    containerPort: 8501
+    resources:
+      requests:
+        cpu: "200m"
+        memory: 0.5Gi
+      limits:
+        cpu: "2"
+        memory: 1Gi
 
-
-postgresql:
-  enabled: true
-  architecture: standalone
-  auth:
-    database: chatbot
-    # NOTE: For production. Use existingSecret.
-    # TODO: Pass existingSecret to api/worker instances
-    username: chatbot
-    password: chatbot
-  primary:
-    resourcesPreset: "nano"
+  embeddingModel:
+    enabled: true
+    image:
+      name: ghcr.io/toggle-corp/embedding-models
+      tag: latest
+      pullPolicy: IfNotPresent
+    persistence:  # Used to preserve downloaded models
+      storageClassName: ""
+      size: "30G"
+    replicaCount: 1
+    containerPort: 8000
+    resources:
+      requests:
+        cpu: "200m"
+        memory: 5Gi
+      limits:
+        cpu: "2"
+        memory: 6Gi
+    env:
+      EMBEDDING_MODEL_NAME: "sentence-transformers/gtr-t5-large"
+      EMBEDDING_MODEL_TYPE: 1
+      EMBEDDING_MODEL_VECTOR_SIZE: 768
+      OPENAI_API_KEY: test
+    
+  minio:
+    enabled: false
+    disableWebUI: true
+    mode: standalone
+    fullnameOverride: chatbot-minio
+    global:
+      defaultStorageClass:
+    apiIngress:
+      enabled: true
+      ingressClassName:
+      hostname:
+      annotations:
+        nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    auth:
+      forceNewKeys: True
+      rootUser: chatbot
+      rootPassword: test
     persistence:
       enabled: true
       size: 1Gi
-      storageClass: "longhorn"
-
-redis:
-  enabled: true
-  architecture: standalone
-  auth:
-    enabled: false
-  master:
-    resourcesPreset: "nano"
-    persistence:
+    defaultBuckets: chatbot-static,chatbot-media  
+    provisioning:
       enabled: true
-      size: .5Gi
-      storageClass: "longhorn"
-
-qdrant:
-  enabled: true
-  persistence:
-    storageClassName: "longhorn"
-    accessModes:
-      - "ReadWriteOnce"
-    size: 2Gi
-  resources:
-    requests:
-      cpu: "100m"
-      memory: 100Mi
-    limits:
-      cpu: "100m"
-      memory: 200Mi
-
-argoHooks:
-  # NOTE: Make sure key are lowercase
-  database-migration:
-    enabled: true
-    hook: PostSync
-    command: ["./manage.py", "migrate"]
-  collect-static:
-    enabled: true
-    hook: PostSync
-    command: ["./manage.py", "collectstatic", "--noinput"]
-
-# TODO: persistence for uploaded files
-api:
-  enabled: true
-  replicaCount: 1
-  containerPort: 80
-  resources:
-    requests:
-      cpu: "200m"
-      memory: 1Gi
-    limits:
-      cpu: "2000m"
-      memory: 2Gi
-
-worker:
-  enabled: true
-  replicaCount: 1
-  resources:
-    requests:
-      cpu: "200m"
-      memory: 3Gi
-    limits:
-      cpu: "2"
-      memory: 4Gi
-
-streamlit:
-  enabled: true
-  image:
-    name: ghcr.io/toggle-corp/expt-streamlit-chatapp
-    tag: latest
-    pullPolicy: IfNotPresent
-  replicaCount: 1
-  containerPort: 8501
-  resources:
-    requests:
-      cpu: "200m"
-      memory: 0.5Gi
-    limits:
-      cpu: "2"
-      memory: 1Gi
-
-embeddingModel:
-  enabled: true
-  image:
-    name: ghcr.io/toggle-corp/embedding-models
-    tag: latest
-    pullPolicy: IfNotPresent
-  persistence:  # Used to preserve downloaded models
-    storageClassName: ""
-    size: "30G"
-  replicaCount: 1
-  containerPort: 8000
-  resources:
-    requests:
-      cpu: "200m"
-      memory: 5Gi
-    limits:
-      cpu: "2"
-      memory: 6Gi
+      resourcesPreset: "nano"
+      cleanupAfterFinished:
+        enabled: true
+      extraCommands:
+        - "mc anonymous set download provisioning/chatbot-static"
+        
   env:
-    EMBEDDING_MODEL_NAME: "sentence-transformers/gtr-t5-large"
-    EMBEDDING_MODEL_TYPE: 1
-    EMBEDDING_MODEL_VECTOR_SIZE: 768
-    OPENAI_API_KEY: test
-
-env:
-  # APP_ENVIRONMENT:
-  DJANGO_DEBUG: false
-  DJANGO_TIME_ZONE: UTC
-  DJANGO_ALLOWED_HOST: "*"
-  APP_HTTP_PROTOCOL: https
-  APP_FRONTEND_HOST:
-  APP_DOMAIN:
-  # Redis (Required if redis.enabled is false)
-  CELERY_REDIS_URL:
-  DJANGO_CACHE_REDIS_URL:
-  # -- Celery
-  CELERY_BROKER_URL:
-  CELERY_RESULT_BACKEND:
-  CELERY_ACCEPT_CONTENT: json, application/text
-  # Sentry
-  SENTRY_TRACES_SAMPLE_RATE: 0.2
-  SENTRY_PROFILE_SAMPLE_RATE: 0.2
-  SENTRY_DEBUG:
+    # APP_ENVIRONMENT:
+    DJANGO_DEBUG: "false"
+    DJANGO_TIME_ZONE: "UTC"
+    DJANGO_ALLOWED_HOST: "*"
+    APP_HTTP_PROTOCOL: "https"
+    APP_TYPE: "web"
+    # App Domain
+    APP_DOMAIN: "{{ required \".app.env.APP_DOMAIN\" nil }}"
+    APP_FRONTEND_HOST:  "{{ required \".app.env.APP_FRONTEND_HOST\" nil }}"
+    # Redis (Required if redis.enabled is false)
+    CELERY_REDIS_URL: "redis://{{ printf \"%s-master\" (include \"common.names.fullname\" $.Subcharts.redis) }}:6379/0"
+    DJANGO_CACHE_REDIS_URL: "redis://{{ printf \"%s-master\" (include \"common.names.fullname\" $.Subcharts.redis) }}:6379/1"
+      # Minio (S3)
+    # -- Celery
+    CELERY_ACCEPT_CONTENT: "json, application/text"
+    # Sentry
+    SENTRY_TRACES_SAMPLE_RATE: "0.2"
+    SENTRY_PROFILE_SAMPLE_RATE: "0.2"
+    # Vector Database
+    # QDRANT_DB_HOST: (Required if qdrant.enabled is false)
+    QDRANT_DB_PORT: "6333"
+    QDRANT_DB_COLLECTION_NAME: "{{ required \".app.env.QDRANT_DB_COLLECTION_NAME\" nil }}"
+    # Embedding Model
+    EMBEDDING_MODEL_URL: "{{ required \".app.env.EMBEDDING_MODEL_URL\" nil }}"
+    EMBEDDING_MODEL_NAME: "{{ required \".app.env.EMBEDDING_MODEL_NAME\" nil }}"
+    EMBEDDING_MODEL_VECTOR_SIZE: "768"
+    EMBEDDING_MODEL_TYPE: "1"
+    OLLAMA_EMBEDDING_MODEL_BASE_URL: "{{ required \".app.env.OLLAMA_EMBEDDING_MODEL_BASE_URL\" nil }}"
+    # LLM Type
+    LLM_TYPE: "1"
+    LLM_MODEL_NAME: "{{ required \".app.env.LLM_MODEL_NAME\" nil }}"
+    LLM_OLLAMA_BASE_URL: "{{ required \".app.env.LLM_OLLAMA_BASE_URL\" nil }}"
+    # S3
+    USE_S3_BUCKET: "false"
+    AWS_S3_AWS_ENDPOINT_URL: "https://{{ $.Values.minio.apiIngress.hostname}}"
+    AWS_S3_REGION: "us-east-1"
+    S3_STATIC_BUCKET_NAME: "chatbot-static"
+    S3_MEDIA_BUCKET_NAME: "chatbot-media"
+    # email
+    EMAIL_USE_TLS: "false"
+    DEFAULT_FROM_EMAIL: "{{ required \".app.env.DEFAULT_FROM_EMAIL\" nil }}"
   
-  # App Domain
-  # Vector Database
-  # QDRANT_DB_HOST: (Required if qdrant.enabled is false)
-  QDRANT_DB_PORT: 6333
-  QDRANT_DB_COLLECTION_NAME:
-  # Embedding Model
-  EMBEDDING_MODEL_URL:
-  EMBEDDING_MODEL_NAME:
-  EMBEDDING_MODEL_VECTOR_SIZE: 768
-  EMBEDDING_MODEL_TYPE: 1
-  OLLAMA_EMBEDDING_MODEL_BASE_URL:
-  # LLM Type
-  LLM_TYPE: 1
-  LLM_MODEL_NAME:
-  LLM_OLLAMA_BASE_URL:
-  # S3
-  USE_S3_BUCKET: true
-  AWS_S3_AWS_ENDPOINT_URL:
-  AWS_S3_REGION:
-  S3_STATIC_BUCKET_NAME:
-  S3_MEDIA_BUCKET_NAME:
-
-  # email
-  EMAIL_USE_TLS: true
-  DEFAULT_FROM_EMAIL:
- 
-secrets:
-  DJANGO_SECRET_KEY:
-  # Database (required if postgresql.enabled if false)
-  DATABASE_NAME:
-  DATABASE_USER:
-  DATABASE_PASSWORD:
-  DATABASE_HOST:
-  DATABASE_PORT: 5432
-  # Sentry
-  SENTRY_DSN:
-  # OpenAI API key
-  OPENAI_API_KEY:
-  # S3
-  AWS_S3_ACCESS_KEY_ID:
-  AWS_S3_SECRET_ACCESS_KEY:
-  # email 
-  EMAIL_HOST:
-  EMAIL_PORT:
-  EMAIL_HOST_USER:
-  EMAIL_HOST_PASSWORD:
+  secrets:
+    DJANGO_SECRET_KEY: "{{ required \".app.secrets.DJANGO_SECRET_KEY\" nil }}"
+    # Database (required if postgresql.enabled if false)
+    DATABASE_NAME: "{{ $.Values.postgresql.auth.database}}"
+    DATABASE_USER: "{{ $.Values.postgresql.auth.username}}"
+    DATABASE_PASSWORD: "{{ $.Values.postgresql.auth.password}}"
+    DATABASE_HOST: "{{ include \"postgresql.v1.primary.fullname\" $.Subcharts.postgresql }}"
+    DATABASE_PORT: "{{ include \"postgresql.v1.service.port\" $.Subcharts.postgresql }}"
+    # Sentry
+    SENTRY_DSN: "{{ required \".app.secrets.SENTRY_DSN\" nil }}"
+    # OpenAI API key
+    OPENAI_API_KEY: "{{ required \".app.secrets.OPENAI_API_KEY\" nil }}"
+    # S3 
+    AWS_S3_ACCESS_KEY_ID:  "{{ required \".app.minio.auth.rootUser\" $.Values.minio.auth.rootUser }}"
+    AWS_S3_SECRET_ACCESS_KEY: "{{ required \".app.minio.auth.rootPassword\" $.Values.minio.auth.rootPassword }}"
+    # email 
+    EMAIL_HOST: "{{ required \".app.secrets.EMAIL_HOST\" nil }}"
+    EMAIL_PORT: "{{ required \".app.secrets.EMAIL_PORT\" nil }}"
+    EMAIL_HOST_USER: "{{ required \".app.secrets.EMAIL_HOST_USER\" nil }}"
+    EMAIL_HOST_PASSWORD: "{{ required \".app.secrets.EMAIL_HOST_PASSWORD\" nil }}"

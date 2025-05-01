@@ -6,22 +6,15 @@ version: 0.0.1-SET-BY-CICD
 sources:
   - https://github.com/toggle-corp/ai-chatbot-backend
 
-
 dependencies:
-  - name: redis
-    alias: redis
-    version: "20.2.1"
-    repository: "https://charts.bitnami.com/bitnami"
-    condition: redis.enabled
-
-  - name: postgresql
-    alias: postgresql
-    version: "16.1.2"
-    repository: "https://charts.bitnami.com/bitnami"
-    condition: postgresql.enabled
 
   - name: qdrant
     alias: qdrant
     version: "1.12.2"
     repository: "https://qdrant.github.io/qdrant-helm"
     condition: qdrant.enabled
+  
+  - name: django-app
+    alias: app 
+    version: 0.1.1-2beta
+    repository: oci://ghcr.io/toggle-corp/charts
