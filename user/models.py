@@ -21,7 +21,7 @@ class User(AbstractUser):
         max_length=255,
     )
     profile_picture = models.ImageField(upload_to="profile_pictures/", blank=True, null=True)
-    department = models.PositiveSmallIntegerField(choices=Department.choices, null=True)
+    department = models.PositiveSmallIntegerField(choices=Department.choices, default=Department.HR, null=True)
 
     objects: CustomUserManager = CustomUserManager()
 

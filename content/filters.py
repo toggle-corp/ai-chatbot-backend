@@ -1,7 +1,15 @@
 import strawberry
 import strawberry_django
 
-from .models import Tag
+from content.enums import DocumentStatusTypeEnum
+
+from .models import Content, Tag
+
+
+@strawberry_django.filters.filter(Content, lookups=True)
+class ContentFilter:
+    id: strawberry.auto
+    status: DocumentStatusTypeEnum
 
 
 @strawberry_django.filters.filter(Tag, lookups=True)

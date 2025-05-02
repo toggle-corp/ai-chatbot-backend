@@ -45,7 +45,7 @@ UserRoleInput = convert_serializer_to_type(UserRoleSerializer, name="UserRoleInp
 
 
 @strawberry.type
-class PublicMutation:
+class Mutation:
 
     @strawberry.mutation
     @sync_to_async
@@ -216,9 +216,6 @@ class PublicMutation:
             result=role,  # type: ignore[reportReturnType]
         )
 
-
-@strawberry.type
-class PrivateMutation:
     @strawberry.mutation
     @sync_to_async
     def logout(self, info: Info) -> MutationEmptyResponseType:

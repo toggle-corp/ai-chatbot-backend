@@ -1,9 +1,14 @@
-input AddOrganizationInputType {
-  name: String!
-  sliderBarColor: String
-  navbarColor: String
-  image: Upload
-}
+"""
+Can only be resolved by authenticated users.
+
+When the condition fails, the following can be returned (following this priority):
+1) `OperationInfo`/`OperationMessage` if those types are allowed at the return type
+2) `null` in case the field is not mandatory (e.g. `String` or `[String]`)
+3) An empty list in case the field is a list (e.g. `[String]!`)
+4) An empty `Connection` in case the return type is a relay connection
+2) Otherwise, an error will be raised
+"""
+directive @isAuthenticated repeatable on FIELD_DEFINITION
 
 input AddUserInput {
   emails: String!
@@ -66,6 +71,19 @@ input ContentCreateInput {
   documentUrl: String
 }
 
+input ContentFilter {
+  id: IDBaseFilterLookup
+  status: DocumentStatusTypeEnum!
+  AND: ContentFilter
+  OR: ContentFilter
+  NOT: ContentFilter
+  DISTINCT: Boolean
+}
+
+input ContentOrder {
+  id: Ordering
+}
+
 type ContentType {
   id: ID!
   title: String!
@@ -74,19 +92,27 @@ type ContentType {
   tag: [TagNameType!]!
   documentStatus: DocumentStatusTypeEnum!
   documentType: DocumentTypeEnum!
-}
-
-type ContentTypeCountList {
-  limit: Int!
-  offset: Int!
-  count: Int!
-  items: [ContentType!]!
+  isDeleted: Boolean!
+  contentId: UUID!
+  deletedAt: DateTime
+  deletedBy: DjangoModelType
+  documentFile: DjangoFileType!
 }
 
 type ContentTypeMutationResponseType {
   ok: Boolean!
   errors: CustomErrorType
   result: ContentType
+}
+
+type ContentTypeOffsetPaginated {
+  pageInfo: OffsetPaginationInfo!
+
+  """Total count of existing results."""
+  totalCount: Int!
+
+  """List of paginated results."""
+  results: [ContentType!]!
 }
 
 input CreateTagCreateInput {
@@ -109,6 +135,15 @@ type DjangoFileType {
   path: String!
   size: Int!
   url: String!
+}
+
+type DjangoImageType {
+  name: String!
+  path: String!
+  size: Int!
+  url: String!
+  width: Int!
+  height: Int!
 }
 
 type DjangoModelType {
@@ -148,69 +183,6 @@ input LoginInput {
 }
 
 type Mutation {
-  public: PublicMutation!
-  private: PrivateMutation!
-}
-
-type MutationEmptyResponseType {
-  ok: Boolean!
-  errors: CustomErrorType
-}
-
-input OffsetPaginationInput {
-  offset: Int! = 0
-  limit: Int! = -1
-}
-
-type OrganizationType {
-  id: ID!
-  name: String!
-  sliderBarColor: String!
-  navbarColor: String!
-}
-
-type OrganizationTypeCountList {
-  limit: Int!
-  offset: Int!
-  count: Int!
-  items: [OrganizationType!]!
-}
-
-type OrganizationTypeMutationResponseType {
-  ok: Boolean!
-  errors: CustomErrorType
-  result: OrganizationType
-}
-
-type PrivateMutation {
-  logout: MutationEmptyResponseType!
-  changePassword(data: ChangePasswordInput!): MutationEmptyResponseType!
-  updateMe(data: UserMeInput!): UserMeTypeMutationResponseType!
-  createContent(data: ContentCreateInput!): ContentTypeMutationResponseType!
-  readFile(file: Upload!): String!
-  updateContentTitle(data: UpdateContentTitleInput!): ContentTypeMutationResponseType!
-  retriggerContent(data: RetriggerContentInput!): ContentTypeMutationResponseType!
-  archiveContent(data: ArchiveContentInput!): ContentTypeMutationResponseType!
-  createTag(data: CreateTagCreateInput!): TagTypeMutationResponseType!
-  addOrganization(data: AddOrganizationInputType!): OrganizationTypeMutationResponseType!
-  updateOrganization(data: UpdateOrganizationInputType!): OrganizationTypeMutationResponseType!
-  deleteOrganization(id: ID!): OrganizationTypeMutationResponseType!
-  id: ID!
-}
-
-type PrivateQuery {
-  users(filters: UserFilter, pagination: OffsetPaginationInput): UserTypeCountList!
-  user(pk: ID!): UserType
-  contents(pagination: OffsetPaginationInput): ContentTypeCountList!
-  tags(filters: TagFilter, pagination: OffsetPaginationInput): TagTypeCountList!
-
-  """Return all content"""
-  content(pk: ID!): ContentType
-  tag(pk: ID!): TagType
-  id: ID!
-}
-
-type PublicMutation {
   login(data: LoginInput!): UserMeTypeMutationResponseType!
   addUser(data: AddUserInput!): MutationEmptyResponseType!
   registerUser(data: RegisterUserInput!): UserTypeMutationResponseType!
@@ -221,25 +193,48 @@ type PublicMutation {
   passwordReset(data: UserPasswordReset!): MutationEmptyResponseType!
   forgotPassword(data: ResetUserPassword!): MutationEmptyResponseType!
   assignRole(data: UserRoleInput!): UserRoleTypeMutationResponseType!
-  id: ID!
+  logout: MutationEmptyResponseType!
+  changePassword(data: ChangePasswordInput!): MutationEmptyResponseType!
+  updateMe(data: UserMeInput!): UserMeTypeMutationResponseType!
+  createContent(data: ContentCreateInput!): ContentTypeMutationResponseType! @isAuthenticated
+  readFile(file: Upload!): String! @isAuthenticated
+  updateContentTitle(data: UpdateContentTitleInput!): ContentTypeMutationResponseType! @isAuthenticated
+  retriggerContent(data: RetriggerContentInput!): ContentTypeMutationResponseType! @isAuthenticated
+  archiveContent(data: ArchiveContentInput!): ContentTypeMutationResponseType! @isAuthenticated
+  createTag(data: CreateTagCreateInput!): TagTypeMutationResponseType! @isAuthenticated
 }
 
-type PublicQuery {
-  me: UserMeType
-  contents(pagination: OffsetPaginationInput): ContentTypeCountList!
-  tags(filters: TagFilter, pagination: OffsetPaginationInput): TagTypeCountList!
+type MutationEmptyResponseType {
+  ok: Boolean!
+  errors: CustomErrorType
+}
 
-  """Return all content"""
-  content(pk: ID!): ContentType
-  tag(pk: ID!): TagType
-  Organizations(pagination: OffsetPaginationInput): OrganizationTypeCountList!
-  Organization(pk: ID!): OrganizationType
-  id: ID!
+type OffsetPaginationInfo {
+  offset: Int!
+  limit: Int
+}
+
+input OffsetPaginationInput {
+  offset: Int! = 0
+  limit: Int
+}
+
+enum Ordering {
+  ASC
+  ASC_NULLS_FIRST
+  ASC_NULLS_LAST
+  DESC
+  DESC_NULLS_FIRST
+  DESC_NULLS_LAST
 }
 
 type Query {
-  public: PublicQuery!
-  private: PrivateQuery!
+  users(pagination: OffsetPaginationInput, filters: UserFilter, order: UserOrder): UserTypeOffsetPaginated! @isAuthenticated
+  me: UserMeType
+  contents(pagination: OffsetPaginationInput, filters: ContentFilter, order: ContentOrder): ContentTypeOffsetPaginated! @isAuthenticated
+  content(pk: ID!): ContentType! @isAuthenticated
+  tags(pagination: OffsetPaginationInput, filters: TagFilter): TagTypeOffsetPaginated! @isAuthenticated
+  tag(pk: ID!): TagType! @isAuthenticated
   enums: AppEnumCollection!
 }
 
@@ -328,30 +323,27 @@ type TagType {
   description: String
 }
 
-type TagTypeCountList {
-  limit: Int!
-  offset: Int!
-  count: Int!
-  items: [TagType!]!
-}
-
 type TagTypeMutationResponseType {
   ok: Boolean!
   errors: CustomErrorType
   result: TagType
 }
 
+type TagTypeOffsetPaginated {
+  pageInfo: OffsetPaginationInfo!
+
+  """Total count of existing results."""
+  totalCount: Int!
+
+  """List of paginated results."""
+  results: [TagType!]!
+}
+
+scalar UUID
+
 input UpdateContentTitleInput {
   title: String!
   content: ID!
-}
-
-input UpdateOrganizationInputType {
-  name: String!
-  organization: ID!
-  sliderBarColor: String
-  navbarColor: String
-  image: Upload
 }
 
 scalar Upload
@@ -386,12 +378,19 @@ type UserMeType {
   email: String!
   firstName: String!
   lastName: String!
+  displayName: String!
+  profilePicture: DjangoImageType
 }
 
 type UserMeTypeMutationResponseType {
   ok: Boolean!
   errors: CustomErrorType
   result: UserMeType
+}
+
+input UserOrder {
+  id: Ordering
+  displayName: Ordering
 }
 
 input UserPasswordReset {
@@ -436,19 +435,23 @@ type UserType {
   firstName: String!
   lastName: String!
   isActive: Boolean!
-  department: DepartmentTypeEnum
+  profilePicture: DjangoImageType
   displayName: String!
-}
-
-type UserTypeCountList {
-  limit: Int!
-  offset: Int!
-  count: Int!
-  items: [UserType!]!
+  department: DepartmentTypeEnum!
 }
 
 type UserTypeMutationResponseType {
   ok: Boolean!
   errors: CustomErrorType
   result: UserType
+}
+
+type UserTypeOffsetPaginated {
+  pageInfo: OffsetPaginationInfo!
+
+  """Total count of existing results."""
+  totalCount: Int!
+
+  """List of paginated results."""
+  results: [UserType!]!
 }
