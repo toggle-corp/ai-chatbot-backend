@@ -1,8 +1,10 @@
 import typing
 
 import strawberry
+import strawberry_django
 from asgiref.sync import sync_to_async
 from strawberry.file_uploads import Upload
+from strawberry_django.permissions import IsAuthenticated
 
 from content.serializers import (
     ArchiveContentSerializer,
@@ -35,8 +37,8 @@ ArchiveContentInput = convert_serializer_to_type(ArchiveContentSerializer, name=
 
 
 @strawberry.type
-class PrivateMutation:
-    @strawberry.mutation
+class Mutation:
+    @strawberry_django.mutation(extensions=[IsAuthenticated()])
     async def create_content(
         self,
         data: CreateContentMutation.InputType,  # type: ignore[reportInvalidTypeForm]
@@ -44,11 +46,11 @@ class PrivateMutation:
     ) -> MutationResponseType[ContentType]:
         return await CreateContentMutation.handle_create_mutation(data, info, None)
 
-    @strawberry.mutation
+    @strawberry_django.mutation(extensions=[IsAuthenticated()])
     def read_file(self, file: Upload) -> str:
         return file.read().decode("utf-8")
 
-    @strawberry.mutation
+    @strawberry_django.mutation(extensions=[IsAuthenticated()])
     @sync_to_async
     def update_content_title(
         self,
@@ -70,7 +72,7 @@ class PrivateMutation:
             result=content,  # type: ignore[reportReturnType]
         )
 
-    @strawberry.mutation
+    @strawberry_django.mutation(extensions=[IsAuthenticated()])
     @sync_to_async
     def retrigger_content(
         self,
@@ -92,7 +94,7 @@ class PrivateMutation:
             result=content,  # type: ignore[reportReturnType]
         )
 
-    @strawberry.mutation
+    @strawberry_django.mutation(extensions=[IsAuthenticated()])
     @sync_to_async
     def archive_content(
         self, data: ArchiveContentInput, info: Info  # type: ignore[reportInvalidTypeForm]
@@ -112,7 +114,7 @@ class PrivateMutation:
             result=content,  # type: ignore[reportReturnType]
         )
 
-    @strawberry.mutation
+    @strawberry_django.mutation(extensions=[IsAuthenticated()])
     async def create_tag(
         self,
         data: CreateTagMutation.InputType,  # type: ignore[reportInvalidTypeForm]

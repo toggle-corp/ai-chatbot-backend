@@ -7,7 +7,7 @@ from django.utils.translation import gettext
 from rest_framework import serializers
 
 from main.token import TokenManager
-from user.models import User
+from user.models import User, UserRole
 from user.tasks import (
     resend_account_activation_task,
     send_account_creation_email_task,
@@ -262,4 +262,13 @@ class UpdateMeSerializer(serializers.ModelSerializer):
             "first_name",
             "last_name",
             "profile_picture",
+        )
+
+
+class UserRoleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserRole
+        fields = (
+            "user",
+            "role",
         )

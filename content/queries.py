@@ -1,27 +1,24 @@
-import strawberry
 import strawberry_django
+from strawberry_django.pagination import OffsetPaginated
+from strawberry_django.permissions import IsAuthenticated
 
 from content.filters import TagFilter
 from content.types import ContentType, TagType
-from main.graphql.context import Info
-from utils.strawberry.paginations import CountList, pagination_field
 
 
-@strawberry.type
-class PrivateQuery:
-    contents: CountList[ContentType] = pagination_field(
-        pagination=True,
+class Query:
+    contents: OffsetPaginated[ContentType] = strawberry_django.offset_paginated(
+        extensions=[IsAuthenticated()],
     )
 
-    @strawberry_django.field(description="Return all content")
-    async def content(self, info: Info, pk: strawberry.ID) -> ContentType | None:
-        return await ContentType.get_queryset(None, None, info).filter(pk=pk).afirst()
-
-    tags: CountList[TagType] = pagination_field(
-        pagination=True,
+    content: ContentType = strawberry_django.field(
+        extensions=[IsAuthenticated()],
+    )
+    tags: OffsetPaginated[TagType] = strawberry_django.offset_paginated(
         filters=TagFilter,
+        extensions=[IsAuthenticated()],
     )
 
-    @strawberry_django.field()
-    async def tag(self, info: Info, pk: strawberry.ID) -> TagType | None:
-        return await TagType.get_queryset(None, None, info).filter(pk=pk).afirst()
+    tag: TagType = strawberry_django.field(
+        extensions=[IsAuthenticated()],
+    )

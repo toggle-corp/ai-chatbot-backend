@@ -1,21 +1,21 @@
 import strawberry
+from django.core.files.uploadedfile import UploadedFile
 from strawberry.django.views import AsyncGraphQLView
+from strawberry.file_uploads import Upload
+from strawberry_django.optimizer import DjangoOptimizerExtension
 
 from content import mutations as content_mutations
 from content import queries as content_queries
-from organization import mutations as org_mutations
-from organization import queries as org_queries
 from user import mutations as user_mutations
 from user import queries as user_queries
 
 from .context import GraphQLContext
 from .dataloaders import GlobalDataLoader
 from .enums import AppEnumCollection, AppEnumCollectionData
-from .permissions import IsAuthenticated
 
 
 class CustomAsyncGraphQLView(AsyncGraphQLView):
-    async def get_context(self, *args, **kwargs) -> GraphQLContext:
+    async def get_context(self, *args, **kwargs) -> GraphQLContext:  # type: ignore[reportIncompatibleMethodOverride]
         return GraphQLContext(
             *args,
             **kwargs,
@@ -24,57 +24,30 @@ class CustomAsyncGraphQLView(AsyncGraphQLView):
 
 
 @strawberry.type
-class PublicQuery(
-    user_queries.PublicQuery,
-    content_queries.PrivateQuery,
-    org_queries.PrivateQuery,
+class Query(
+    user_queries.Query,
+    content_queries.Query,
 ):
-    id: strawberry.ID = strawberry.ID("public")
-
-
-@strawberry.type
-class PrivateQuery(
-    user_queries.PrivateQuery,
-    content_queries.PrivateQuery,
-):
-    id: strawberry.ID = strawberry.ID("private")
-
-
-@strawberry.type
-class PublicMutation(
-    user_mutations.PublicMutation,
-):
-    id: strawberry.ID = strawberry.ID("public")
-
-
-@strawberry.type
-class PrivateMutation(
-    user_mutations.PrivateMutation,
-    content_mutations.PrivateMutation,
-    org_mutations.PrivateMutation,
-):
-    id: strawberry.ID = strawberry.ID("private")
-
-
-@strawberry.type
-class Query:
-    public: PublicQuery = strawberry.field(resolver=lambda: PublicQuery())
-    private: PrivateQuery = strawberry.field(permission_classes=[IsAuthenticated], resolver=lambda: PrivateQuery())
     enums: AppEnumCollection = strawberry.field(  # type: ignore[reportGeneralTypeIssues]
-        resolver=lambda: AppEnumCollectionData()
+        resolver=lambda: AppEnumCollectionData(),
     )
 
 
 @strawberry.type
-class Mutation:
-    public: PublicMutation = strawberry.field(resolver=lambda: PublicMutation())
-    private: PrivateMutation = strawberry.field(
-        resolver=lambda: PrivateMutation(),
-        permission_classes=[IsAuthenticated],
-    )
+class Mutation(
+    user_mutations.Mutation,
+    content_mutations.Mutation,
+): ...  # noqa E701
 
 
 schema = strawberry.Schema(
     query=Query,
     mutation=Mutation,
+    extensions=[
+        DjangoOptimizerExtension,
+    ],
+    scalar_overrides={
+        UploadedFile: Upload,
+    },
+    # config=StrawberryConfig(auto_camel_case=True)
 )
