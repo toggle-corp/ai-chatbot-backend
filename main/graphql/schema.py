@@ -13,6 +13,8 @@ from .context import GraphQLContext
 from .dataloaders import GlobalDataLoader
 from .enums import AppEnumCollection, AppEnumCollectionData
 
+# from strawberry.schema.config import StrawberryConfig
+
 
 class CustomAsyncGraphQLView(AsyncGraphQLView):
     async def get_context(self, *args, **kwargs) -> GraphQLContext:  # type: ignore[reportIncompatibleMethodOverride]

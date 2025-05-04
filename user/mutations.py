@@ -43,6 +43,7 @@ UserPasswordReset = convert_serializer_to_type(UserPasswordResetConfirmSerialize
 ChangePasswordInput = convert_serializer_to_type(ChangePasswordSerializer, name="ChangePasswordInput")
 UpdateMeInput = convert_serializer_to_type(UpdateMeSerializer, name="UserMeInput")
 ForgotPasswordInput = convert_serializer_to_type(ForgotpasswordSerializer, name="ForgotPasswordInput")
+UserRoleInput = convert_serializer_to_type(UserRoleSerializer, name="UserRoleInput")
 
 
 @strawberry.type
@@ -253,7 +254,7 @@ class Mutation:
     @sync_to_async
     def assign_role(
         self,
-        data: UserRoleSerializer,  # type: ignore[reportInvalidTypeForm]
+        data: UserRoleInput,  # type: ignore[reportInvalidTypeForm]
         info: Info,
     ) -> MutationResponseType[UserRoleType]:
         serializer = UserRoleSerializer(

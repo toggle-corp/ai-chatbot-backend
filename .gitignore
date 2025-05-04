@@ -5,7 +5,8 @@ __pycache__/
 assets/
 # C extensions
 *.so
-
+# pytest
+.pytest_cache
 # Distribution / packaging
 .Python
 build/

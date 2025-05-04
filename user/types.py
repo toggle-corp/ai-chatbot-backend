@@ -24,10 +24,11 @@ class UserMeType:
     first_name: strawberry.auto
     last_name: strawberry.auto
     profile_picture: strawberry.auto
+    display_name: strawberry.auto
 
 
 @strawberry_django.type(UserRole)
 class UserRoleType:
     id: strawberry.ID
     role: UserRoleEnum
-    user: UserType
+    user: strawberry.auto

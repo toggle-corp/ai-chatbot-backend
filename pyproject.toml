@@ -28,6 +28,8 @@ django-cors-headers = "^4.6.0"
 pillow = "^11.0.0"
 sentry-sdk = "^2.22.0"
 strawberry-graphql-django = "^0.59.0"
+pytest-django = "^4.11.1"
+factory-boy = "^3.3.3"
 
 [build-system]
 requires = ["poetry-core"]

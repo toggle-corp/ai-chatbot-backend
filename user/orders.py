@@ -3,7 +3,7 @@ import strawberry_django
 
 from user.models import User
 
+
 @strawberry_django.order_type(User)
 class UserOrder:
-    id : strawberry.auto
-    display_name: strawberry.auto    
+    display_name: strawberry.auto

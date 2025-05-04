@@ -10,6 +10,7 @@ from user.orders import UserOrder
 from user.types import UserMeType, UserType
 
 
+@strawberry.type
 class Query:
     @strawberry.field
     @sync_to_async
