@@ -29,6 +29,4 @@ class ContentType:
     document_type: DocumentTypeEnum
     is_deleted: strawberry.auto
     content_id: strawberry.auto
-    deleted_at: strawberry.auto
-    deleted_by: strawberry.auto
     document_file: strawberry.auto

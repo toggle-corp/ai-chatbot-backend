@@ -1,16 +1,15 @@
+import typing
 from datetime import datetime
 from enum import Enum
-import typing
+
 from django.db import models
 from django.test import TestCase as BaseTestCase
 from django.test import override_settings
 
 
-
 @override_settings(
     DEBUG=True,
     EMAIL_BACKEND="django.core.mail.backends.console.EmailBackend",
-    MEDIA_ROOT="rest-media-temp",
     CELERY_TASK_ALWAYS_EAGER=True,
 )
 class TestCase(BaseTestCase):
@@ -107,8 +106,7 @@ class TestCase(BaseTestCase):
         if pk:
             return str(pk)
         return None
-    
-    
+
     def g_pagination(self, *, offset: int, limit: int, total_count: int, results: list[typing.Any]):
         return {
             "totalCount": total_count,
@@ -122,10 +120,6 @@ class TestCase(BaseTestCase):
             "ok": ok,
             "result": result,
         }
-
-
-    def get_media_url(self, path):
-        return f"http://testserver/media/{path}"
 
     def _dict_with_keys(
         self,
@@ -155,4 +149,3 @@ class TestCase(BaseTestCase):
         assert _left == _right, messages
 
     def no_op(*args, **_): ...
-

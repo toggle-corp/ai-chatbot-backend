@@ -266,12 +266,6 @@ class UpdateMeSerializer(serializers.ModelSerializer):
 
 
 class UserRoleSerializer(serializers.ModelSerializer):
-    def validate_user(self, attrs):
-        user = self.context["request"].user
-        if not user.is_superuser:
-            raise serializers.ValidationError(gettext("Only superuser can assign roles"))
-        return attrs
-
     class Meta:
         model = Member
         fields = (

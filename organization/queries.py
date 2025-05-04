@@ -7,7 +7,7 @@ from utils.strawberry.paginations import CountList, pagination_field
 
 
 @strawberry.type
-class PrivateQuery:
+class Query:
 
     Organizations: CountList[OrganizationType] = pagination_field(
         pagination=True,

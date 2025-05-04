@@ -20,7 +20,7 @@ UpdateOrganizationInputType = convert_serializer_to_type(UpdateOrganizationSeria
 
 
 @strawberry.type
-class PrivateMutation:
+class Mutation:
     @strawberry.mutation
     @sync_to_async
     def add_organization(

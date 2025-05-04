@@ -1,3 +1,5 @@
+from typing import Optional
+
 import strawberry
 import strawberry_django
 
@@ -6,12 +8,13 @@ from content.enums import DocumentStatusTypeEnum
 from .models import Content, Tag
 
 
-@strawberry_django.filters.filter(Content, lookups=True)
+@strawberry_django.filter_type(Content, lookups=True)
 class ContentFilter:
     id: strawberry.auto
-    status: DocumentStatusTypeEnum
+    document_status: Optional[DocumentStatusTypeEnum]  # type: ignore[reportInvalidTypeForm]
+    created_at: strawberry.auto
 
 
-@strawberry_django.filters.filter(Tag, lookups=True)
+@strawberry_django.filter_type(Tag, lookups=True)
 class TagFilter:
-    name: strawberry.auto
+    name: Optional[str]
