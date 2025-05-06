@@ -80,3 +80,8 @@ jobs:
         echo "> Helm Chart: **$(helm show chart "$PACKAGE_FILE" | grep '^name:' | awk '{print $2}')**" >> $GITHUB_STEP_SUMMARY
         echo "> Helm Target Revision: **$(helm show chart "$PACKAGE_FILE" | grep '^version:' | awk '{print $2}')**" >> $GITHUB_STEP_SUMMARY
         echo "> Docker image: **$IMAGE**" >> $GITHUB_STEP_SUMMARY
+
+        # Add annotations as well
+        echo "::notice::Helm Repo URL: **$OCI_REPO**"
+        echo "::notice::Helm Chart: **$(helm show chart "$PACKAGE_FILE" | grep '^name:' | awk '{print $2}')**"
+        echo "::notice::Helm Target Revision: **$(helm show chart "$PACKAGE_FILE" | grep '^version:' | awk '{print $2}')**"
