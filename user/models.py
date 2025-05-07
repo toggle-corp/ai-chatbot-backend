@@ -44,5 +44,8 @@ class UserRole(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     role = models.PositiveSmallIntegerField(choices=Role.choices, default=Role.USER)
 
+    class Meta:
+        unique_together = ("user", "role")
+
     def __str__(self):
         return f"{self.user.email} - {self.role}"
