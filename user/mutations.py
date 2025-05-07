@@ -1,9 +1,11 @@
 import strawberry
+import strawberry_django
 from asgiref.sync import sync_to_async
 from django.contrib.auth import login, logout
 from strawberry.types import Info
+from strawberry_django.permissions import IsAuthenticated, IsSuperuser
 
-from main.graphql.permissions import IsAdmin
+from main.graphql.permissions import IsAdminOrSuperuser
 from user.serializers import (
     AddUserSerializer,
     ChangePasswordSerializer,
@@ -16,8 +18,9 @@ from user.serializers import (
     UserPasswordResetTriggerSerializer,
     UserRegisterSerializer,
     UserResendInviteSerializer,
+    UserRoleSerializer,
 )
-from user.types import UserMeType, UserType
+from user.types import UserMeType, UserRoleType, UserType
 from utils.strawberry.mutations import (
     MutationEmptyResponseType,
     MutationResponseType,
@@ -39,11 +42,12 @@ UserPasswordResetTriggerInput = convert_serializer_to_type(
 UserPasswordReset = convert_serializer_to_type(UserPasswordResetConfirmSerializer, name="UserPasswordReset")
 ChangePasswordInput = convert_serializer_to_type(ChangePasswordSerializer, name="ChangePasswordInput")
 UpdateMeInput = convert_serializer_to_type(UpdateMeSerializer, name="UserMeInput")
-ForgotPasswordInput = convert_serializer_to_type(ForgotpasswordSerializer, name="ResetUserPassword")
+ForgotPasswordInput = convert_serializer_to_type(ForgotpasswordSerializer, name="ForgotPasswordInput")
+UserRoleInput = convert_serializer_to_type(UserRoleSerializer, name="UserRoleInput")
 
 
 @strawberry.type
-class PublicMutation:
+class Mutation:
 
     @strawberry.mutation
     @sync_to_async
@@ -64,7 +68,7 @@ class PublicMutation:
             result=user,
         )
 
-    @strawberry.mutation(permission_classes=[IsAdmin])
+    @strawberry_django.mutation(extensions=[IsAdminOrSuperuser()])
     @sync_to_async
     def add_user(self, info: Info, data: AddUserInput) -> MutationEmptyResponseType:  # type: ignore[reportInvalidTypeForm]
         serializer = AddUserSerializer(data=process_input_data(data), context={"request": info.context.request})
@@ -92,7 +96,7 @@ class PublicMutation:
         user = serializer.save()
         return MutationResponseType(result=user)  # type: ignore[reportReturnType]
 
-    @strawberry.mutation(permission_classes=[IsAdmin])
+    @strawberry_django.mutation(extensions=[IsAdminOrSuperuser()])
     @sync_to_async
     def resend_invite(
         self, data: UserResendInviteInput, info: Info  # type: ignore[reportInvalidTypeForm]
@@ -126,7 +130,7 @@ class PublicMutation:
         serializer.save()
         return MutationEmptyResponseType()
 
-    @strawberry.mutation(permission_classes=[IsAdmin])
+    @strawberry_django.mutation(extensions=[IsAdminOrSuperuser()])
     @sync_to_async
     def account_deactivation(
         self,
@@ -142,7 +146,7 @@ class PublicMutation:
         serializer.save()
         return MutationEmptyResponseType()
 
-    @strawberry.mutation(permission_classes=[IsAdmin])
+    @strawberry_django.mutation(extensions=[IsAdminOrSuperuser()])
     @sync_to_async
     def password_reset_trigger(
         self,
@@ -196,10 +200,7 @@ class PublicMutation:
         serializer.save()
         return MutationEmptyResponseType()
 
-
-@strawberry.type
-class PrivateMutation:
-    @strawberry.mutation
+    @strawberry_django.mutation(extensions=[IsAuthenticated()])
     @sync_to_async
     def logout(self, info: Info) -> MutationEmptyResponseType:
         if info.context.request.user.is_authenticated:
@@ -207,7 +208,7 @@ class PrivateMutation:
             return MutationEmptyResponseType(ok=True)
         return MutationEmptyResponseType(ok=False)
 
-    @strawberry.mutation
+    @strawberry_django.mutation(extensions=[IsAuthenticated()])
     @sync_to_async
     def change_password(
         self,
@@ -226,7 +227,7 @@ class PrivateMutation:
         serializer.save()
         return MutationEmptyResponseType()
 
-    @strawberry.mutation
+    @strawberry_django.mutation(extensions=[IsAuthenticated()])
     @sync_to_async
     def update_me(
         self,
@@ -248,3 +249,22 @@ class PrivateMutation:
         return MutationResponseType(
             result=user,  # type: ignore[reportReturnType]
         )
+
+    @strawberry_django.mutation(extensions=[IsSuperuser()])
+    @sync_to_async
+    def assign_role(
+        self,
+        data: UserRoleInput,  # type: ignore[reportInvalidTypeForm]
+        info: Info,
+    ) -> MutationResponseType[UserRoleType]:
+        serializer = UserRoleSerializer(
+            data=process_input_data(data),
+            context={"request": info.context.request},
+        )
+        if errors := mutation_is_not_valid(serializer):
+            return MutationResponseType(
+                ok=False,
+                errors=errors,
+            )
+        result = serializer.save()
+        return MutationResponseType(result=result)  # type: ignore[reportReturnType]

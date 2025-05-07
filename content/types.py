@@ -1,11 +1,8 @@
 import strawberry
 import strawberry_django
-from django.db import models
 
+from content.enums import DocumentStatusTypeEnum, DocumentTypeEnum
 from content.models import Content, Tag
-from main.graphql.context import Info
-from utils.common import get_queryset_for_model
-from utils.strawberry.enums import enum_field
 
 
 @strawberry_django.type(Tag)
@@ -13,10 +10,6 @@ class TagType:
     id: strawberry.ID
     name: strawberry.auto
     description: strawberry.auto
-
-    @staticmethod
-    def get_queryset(_, queryset: models.QuerySet | None, info: Info) -> models.QuerySet:
-        return get_queryset_for_model(Tag, queryset)
 
 
 @strawberry_django.type(Tag)
@@ -32,9 +25,7 @@ class ContentType:
     extracted_file: strawberry.auto
     created_at: strawberry.auto
     tag: list[TagNameType]
-    document_status = enum_field(Content.document_status)
-    document_type = enum_field(Content.document_type)
-
-    @staticmethod
-    def get_queryset(_, queryset: models.QuerySet | None, info: Info):
-        return get_queryset_for_model(Content, queryset)
+    document_status: DocumentStatusTypeEnum
+    document_type: DocumentTypeEnum
+    is_deleted: strawberry.auto
+    document_file: strawberry.auto

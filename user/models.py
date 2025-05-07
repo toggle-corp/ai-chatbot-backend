@@ -30,5 +30,22 @@ class User(AbstractUser):
         self.email = self.email.lower()
         if self.pk is None:
             super().save(*args, **kwargs)
+            kwargs.pop("force_insert", None)
         self.display_name = self.get_full_name() or f"User#{self.pk}"
         return super().save(*args, **kwargs)
+
+
+class UserRole(models.Model):
+    class Role(models.IntegerChoices):
+        OWNER = 1, _("Owner")
+        ADMIN = 2, _("Admin")
+        USER = 3, _("User")
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    role = models.PositiveSmallIntegerField(choices=Role.choices, default=Role.USER)
+
+    class Meta:
+        unique_together = ("user", "role")
+
+    def __str__(self):
+        return f"{self.user.email} - {self.role}"
