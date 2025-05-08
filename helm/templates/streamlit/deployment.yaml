@@ -1,4 +1,4 @@
-{{- if .Values.app.streamlit.enabled }}
+{{- if .Values.streamlit.enabled }}
 
 apiVersion: apps/v1
 kind: Deployment
@@ -10,7 +10,7 @@ metadata:
     release: {{ .Release.Name }}
     # XXX: Add global lables?
 spec:
-  replicas: {{ .Values.app.streamlit.replicaCount }}
+  replicas: {{ .Values.streamlit.replicaCount }}
   selector:
     matchLabels:
       app: {{ template "tc-chatbot-backend.name" . }}
@@ -25,26 +25,26 @@ spec:
     spec:
       containers:
         - name: {{ .Chart.Name }}-streamlit
-          image: "{{ .Values.app.streamlit.image.name }}:{{ .Values.app.streamlit.image.tag }}"
+          image: "{{ .Values.streamlit.image.name }}:{{ .Values.streamlit.image.tag }}"
           imagePullPolicy: {{ .Values.app.image.pullPolicy }}
           command: ["streamlit", "run", "app.py", "--server.address", "0.0.0.0"]
           ports:
             - name: http
-              containerPort: {{ .Values.app.streamlit.containerPort }}
+              containerPort: {{ .Values.streamlit.containerPort }}
               protocol: TCP
           livenessProbe: # FIXME: Fix Liveness Probe
             httpGet:
               path: /  # TODO
-              port: {{ .Values.app.streamlit.containerPort }}
+              port: {{ .Values.streamlit.containerPort }}
             initialDelaySeconds: 10180  # TODO:?
             periodSeconds: 5  # TODO:?
           resources:
             requests:
-              cpu: {{ .Values.app.streamlit.resources.requests.cpu }}
-              memory: {{ .Values.app.streamlit.resources.requests.memory }}
+              cpu: {{ .Values.streamlit.resources.requests.cpu }}
+              memory: {{ .Values.streamlit.resources.requests.memory }}
             limits:
-              cpu: {{ .Values.app.streamlit.resources.limits.cpu }}
-              memory: {{ .Values.app.streamlit.resources.limits.memory }}
+              cpu: {{ .Values.streamlit.resources.limits.cpu }}
+              memory: {{ .Values.streamlit.resources.limits.memory }}
           env:
             - name: SERVER_IP
               value: {{ template "tc-chatbot-backend.fullname" . }}-api-svc

@@ -12,7 +12,7 @@ metadata:
 spec:
   ingressClassName: {{ .Values.ingress.className }}
   rules:
-    - host: {{ required "ingress.embeddingModel.host" .Values.app.ingress.embeddingModel.host | quote }}
+    - host: {{ required "ingress.embeddingModel.host" .Values.ingress.embeddingModel.host | quote }}
       http:
         paths:
           - path: /

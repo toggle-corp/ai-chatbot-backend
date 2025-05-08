@@ -4,6 +4,6 @@ dependencies:
   version: 1.12.2
 - name: django-app
   repository: oci://ghcr.io/toggle-corp/charts
-  version: 0.1.1-2beta
-digest: sha256:39f9f44c153d15c33bf0302644c7d1e61d98f68178998b3c3d66178abb50a10b
-generated: "2025-05-01T21:24:03.015029345+05:45"
+  version: 0.1.1
+digest: sha256:dced24a0e6978f629a33eaf57fbcba99d1b902160b6bb3f626bb8da2c272b5ca
+generated: "2025-05-06T15:56:53.669786475+05:45"

@@ -1,4 +1,4 @@
-{{- if .Values.app.embeddingModel.enabled }}
+{{- if .Values.embeddingModel.enabled }}
 
 apiVersion: v1
 kind: Service
@@ -18,7 +18,7 @@ spec:
   ports:
     - protocol: TCP
       port: 80
-      targetPort: {{ .Values.app.embeddingModel.containerPort }}
+      targetPort: {{ .Values.embeddingModel.containerPort }}
       nodePort: null
 
 {{- end }}

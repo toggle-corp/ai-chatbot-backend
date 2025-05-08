@@ -1,4 +1,4 @@
-{{- if .Values.app.embeddingModel.enabled }}
+{{- if .Values.embeddingModel.enabled }}
 
 # TODO: Add NODE SELECTOR
 apiVersion: apps/v1
@@ -26,40 +26,40 @@ spec:
     spec:
       containers:
         - name: {{ .Chart.Name }}-embedding-model
-          image: "{{ .Values.app.embeddingModel.image.name }}:{{ .Values.app.embeddingModel.image.tag }}"
+          image: "{{ .Values.embeddingModel.image.name }}:{{ .Values.embeddingModel.image.tag }}"
           imagePullPolicy: {{ .Values.app.image.pullPolicy }}
-          command: ["uvicorn", "app:app", "--host=0.0.0.0", "--port={{ .Values.app.embeddingModel.containerPort }}"]
+          command: ["uvicorn", "app:app", "--host=0.0.0.0", "--port={{ .Values.embeddingModel.containerPort }}"]
           ports:
             - name: http
-              containerPort: {{ .Values.app.embeddingModel.containerPort }}
+              containerPort: {{ .Values.embeddingModel.containerPort }}
               protocol: TCP
           # nodeSelector: TODO:
           #   nvidia: ssd
           livenessProbe: # FIXME: Fix Liveness Probe
             httpGet:
               path: /  # TODO
-              port: {{ .Values.app.embeddingModel.containerPort }}
+              port: {{ .Values.embeddingModel.containerPort }}
             initialDelaySeconds: 10180  # TODO:?
             periodSeconds: 5  # TODO:?
           resources:
             requests:
-              cpu: {{ .Values.app.embeddingModel.resources.requests.cpu }}
-              memory: {{ .Values.app.embeddingModel.resources.requests.memory }}
+              cpu: {{ .Values.embeddingModel.resources.requests.cpu }}
+              memory: {{ .Values.embeddingModel.resources.requests.memory }}
             limits:
-              cpu: {{ .Values.app.embeddingModel.resources.limits.cpu }}
-              memory: {{ .Values.app.embeddingModel.resources.limits.memory }}
+              cpu: {{ .Values.embeddingModel.resources.limits.cpu }}
+              memory: {{ .Values.embeddingModel.resources.limits.memory }}
           volumeMounts:
           - mountPath: "/opt/models"
             name: downloaded-models
           env:
             - name: EMBEDDING_MODEL_NAME
-              value: {{ .Values.app.embeddingModel.env.EMBEDDING_MODEL_NAME }}
+              value: {{ .Values.embeddingModel.env.EMBEDDING_MODEL_NAME }}
             - name: EMBEDDING_MODEL_TYPE
-              value: {{ .Values.app.embeddingModel.env.EMBEDDING_MODEL_TYPE | quote }}
+              value: {{ .Values.embeddingModel.env.EMBEDDING_MODEL_TYPE | quote }}
             - name: EMBEDDING_MODEL_VECTOR_SIZE
-              value: {{ .Values.app.embeddingModel.env.EMBEDDING_MODEL_VECTOR_SIZE | quote }}
+              value: {{ .Values.embeddingModel.env.EMBEDDING_MODEL_VECTOR_SIZE | quote }}
             - name: OPENAI_API_KEY
-              value: {{ .Values.app.embeddingModel.env.OPENAI_API_KEY | quote }}
+              value: {{ .Values.embeddingModel.env.OPENAI_API_KEY | quote }}
       volumes:
         - name: downloaded-models
           persistentVolumeClaim:

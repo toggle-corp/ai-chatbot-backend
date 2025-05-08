@@ -1,3 +1,58 @@
+qdrant:
+  enabled: true
+  persistence:
+    storageClassName: "longhorn"
+    accessModes:
+      - "ReadWriteOnce"
+    size: 2Gi
+  resources:
+    requests:
+      cpu: "100m"
+      memory: 100Mi
+    limits:
+      cpu: "100m"
+      memory: 200Mi
+
+streamlit:
+  enabled: true
+  image:
+    name: ghcr.io/toggle-corp/expt-streamlit-chatapp
+    tag: latest
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  containerPort: 8501
+  resources:
+    requests:
+      cpu: "200m"
+      memory: 0.5Gi
+    limits:
+      cpu: "2"
+      memory: 1Gi
+
+embeddingModel:
+  enabled: true
+  image:
+    name: ghcr.io/toggle-corp/embedding-models
+    tag: latest
+    pullPolicy: IfNotPresent
+  persistence:  # Used to preserve downloaded models
+    storageClassName: ""
+    size: "30G"
+  replicaCount: 1
+  containerPort: 8000
+  resources:
+    requests:
+      cpu: "200m"
+      memory: 5Gi
+    limits:
+      cpu: "2"
+      memory: 6Gi
+  env:
+    EMBEDDING_MODEL_NAME: "sentence-transformers/gtr-t5-large"
+    EMBEDDING_MODEL_TYPE: 1
+    EMBEDDING_MODEL_VECTOR_SIZE: 768
+    OPENAI_API_KEY: test
+
 app:
   environment: prod
  
@@ -49,21 +104,6 @@ app:
         size: .5Gi
         storageClass: "longhorn"
 
-  qdrant:
-    enabled: true
-    persistence:
-      storageClassName: "longhorn"
-      accessModes:
-        - "ReadWriteOnce"
-      size: 2Gi
-    resources:
-      requests:
-        cpu: "100m"
-        memory: 100Mi
-      limits:
-        cpu: "100m"
-        memory: 200Mi
-
   argoHooks:
     # NOTE: Make sure key are lowercase
     enabled: true
@@ -114,46 +154,6 @@ app:
         cpu: "2"
         memory: 4Gi
 
-  streamlit:
-    enabled: true
-    image:
-      name: ghcr.io/toggle-corp/expt-streamlit-chatapp
-      tag: latest
-      pullPolicy: IfNotPresent
-    replicaCount: 1
-    containerPort: 8501
-    resources:
-      requests:
-        cpu: "200m"
-        memory: 0.5Gi
-      limits:
-        cpu: "2"
-        memory: 1Gi
-
-  embeddingModel:
-    enabled: true
-    image:
-      name: ghcr.io/toggle-corp/embedding-models
-      tag: latest
-      pullPolicy: IfNotPresent
-    persistence:  # Used to preserve downloaded models
-      storageClassName: ""
-      size: "30G"
-    replicaCount: 1
-    containerPort: 8000
-    resources:
-      requests:
-        cpu: "200m"
-        memory: 5Gi
-      limits:
-        cpu: "2"
-        memory: 6Gi
-    env:
-      EMBEDDING_MODEL_NAME: "sentence-transformers/gtr-t5-large"
-      EMBEDDING_MODEL_TYPE: 1
-      EMBEDDING_MODEL_VECTOR_SIZE: 768
-      OPENAI_API_KEY: test
-    
   minio:
     enabled: false
     disableWebUI: true
@@ -204,7 +204,8 @@ app:
     SENTRY_PROFILE_SAMPLE_RATE: "0.2"
     # Vector Database
     # QDRANT_DB_HOST: (Required if qdrant.enabled is false)
-    QDRANT_DB_PORT: "6333"
+    QDRANT_DB_HOST: "{{ printf \"%s-qdrant\" (include \"qdrant.fullname\" $) }}"
+    QDRANT_DB_PORT: "{{ printf \"%s-qdrant:6333\" (include \"qdrant.fullname\" $) }}"
     QDRANT_DB_COLLECTION_NAME: "{{ required \".app.env.QDRANT_DB_COLLECTION_NAME\" nil }}"
     # Embedding Model
     EMBEDDING_MODEL_URL: "{{ required \".app.env.EMBEDDING_MODEL_URL\" nil }}"

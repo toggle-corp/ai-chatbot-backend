@@ -1,4 +1,4 @@
-{{- if .Values.app.embeddingModel.enabled }}
+{{- if .Values.embeddingModel.enabled }}
 
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -11,9 +11,9 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: {{ .Values.app.embeddingModel.persistence.storageClassName }}
+  storageClassName: {{ .Values.embeddingModel.persistence.storageClassName }}
   resources:
     requests:
-      storage: {{ .Values.app.embeddingModel.persistence.size }}
+      storage: {{ .Values.embeddingModel.persistence.size }}
 
 {{- end }}
