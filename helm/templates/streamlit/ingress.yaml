@@ -1,4 +1,4 @@
-{{- if .Values.app.ingress.streamlit.enabled }}
+{{- if .Values.streamlit.ingress.enabled }}
 
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -10,9 +10,9 @@ metadata:
     environment: {{ .Values.app.environment }}
     release: {{ .Release.Name }}
 spec:
-  ingressClassName: {{ .Values.app.ingress.className }}
+  ingressClassName: {{ .Values.streamlit.ingress.className }}
   rules:
-    - host: {{ required "ingress.streamlit.host" .Values.app.ingress.streamlit.host | quote }}
+    - host: {{ required "streamlit.ingress.host" .Values.streamlit.ingress.host | quote }}
       http:
         paths:
           - path: /

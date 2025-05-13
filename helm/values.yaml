@@ -12,9 +12,20 @@ qdrant:
     limits:
       cpu: "100m"
       memory: 200Mi
+  env:
+    - name: QDRANT_DB_HOST
+      value: "test"
+    - name: QDRANT_DB_PORT
+      value: "6333"
+    - name: QDRANT_DB_COLLECTION_NAME
+      value: "test"
 
 streamlit:
   enabled: true
+  ingress:
+    className: nginx
+    enabled: false
+    host: "test"
   image:
     name: ghcr.io/toggle-corp/expt-streamlit-chatapp
     tag: latest
@@ -31,6 +42,11 @@ streamlit:
 
 embeddingModel:
   enabled: true
+  ingress:
+     # NOTE: For production don't use this
+    className: nginx
+    enabled: false
+    host: "test"
   image:
     name: ghcr.io/toggle-corp/embedding-models
     tag: latest
@@ -52,6 +68,12 @@ embeddingModel:
     EMBEDDING_MODEL_TYPE: 1
     EMBEDDING_MODEL_VECTOR_SIZE: 768
     OPENAI_API_KEY: test
+    EMBEDDING_MODEL_URL: "test"
+    OLLAMA_EMBEDDING_MODEL_BASE_URL: "test"
+    # LLM Type
+    LLM_TYPE: "1"
+    LLM_MODEL_NAME: "test"
+    LLM_OLLAMA_BASE_URL: "test"
 
 app:
   environment: prod
@@ -60,20 +82,7 @@ app:
     name: SET-BY-CICD-IMAGE
     tag: SET-BY-CICD-TAG
     imagePullPolicy: IfNotPresent
-
-  ingress:
-    className: nginx
-    api:
-      enabled: false
-      host:
-    streamlit:
-      enabled: false
-      host:
-    embeddingModel: # NOTE: For production don't use this
-      enabled: false
-      host:
-
-
+   
   postgresql:
     enabled: true
     architecture: standalone
@@ -131,6 +140,10 @@ app:
 
   api:
     enabled: true
+    ingress:
+      className: nginx
+      enabled: false
+      host:
     replicaCount: 1
     containerPort: 80
     command: ["bash", "/code/scripts/run_prod.sh"]
@@ -141,7 +154,7 @@ app:
       limits:
         cpu: "2"
         memory: 2Gi
-
+    
   worker:
     enabled: true
     replicaCount: 1
@@ -196,27 +209,11 @@ app:
     # Redis (Required if redis.enabled is false)
     CELERY_REDIS_URL: "redis://{{ printf \"%s-master\" (include \"common.names.fullname\" $.Subcharts.redis) }}:6379/0"
     DJANGO_CACHE_REDIS_URL: "redis://{{ printf \"%s-master\" (include \"common.names.fullname\" $.Subcharts.redis) }}:6379/1"
-      # Minio (S3)
     # -- Celery
     CELERY_ACCEPT_CONTENT: "json, application/text"
     # Sentry
     SENTRY_TRACES_SAMPLE_RATE: "0.2"
     SENTRY_PROFILE_SAMPLE_RATE: "0.2"
-    # Vector Database
-    # QDRANT_DB_HOST: (Required if qdrant.enabled is false)
-    QDRANT_DB_HOST: "{{ printf \"%s-qdrant\" (include \"qdrant.fullname\" $) }}"
-    QDRANT_DB_PORT: "{{ printf \"%s-qdrant:6333\" (include \"qdrant.fullname\" $) }}"
-    QDRANT_DB_COLLECTION_NAME: "{{ required \".app.env.QDRANT_DB_COLLECTION_NAME\" nil }}"
-    # Embedding Model
-    EMBEDDING_MODEL_URL: "{{ required \".app.env.EMBEDDING_MODEL_URL\" nil }}"
-    EMBEDDING_MODEL_NAME: "{{ required \".app.env.EMBEDDING_MODEL_NAME\" nil }}"
-    EMBEDDING_MODEL_VECTOR_SIZE: "768"
-    EMBEDDING_MODEL_TYPE: "1"
-    OLLAMA_EMBEDDING_MODEL_BASE_URL: "{{ required \".app.env.OLLAMA_EMBEDDING_MODEL_BASE_URL\" nil }}"
-    # LLM Type
-    LLM_TYPE: "1"
-    LLM_MODEL_NAME: "{{ required \".app.env.LLM_MODEL_NAME\" nil }}"
-    LLM_OLLAMA_BASE_URL: "{{ required \".app.env.LLM_OLLAMA_BASE_URL\" nil }}"
     # S3
     USE_S3_BUCKET: "false"
     AWS_S3_AWS_ENDPOINT_URL: "https://{{ $.Values.minio.apiIngress.hostname}}"
