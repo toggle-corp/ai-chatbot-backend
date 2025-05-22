@@ -66,10 +66,10 @@ jobs:
     - name: Push Helm Chart
       env:
         IMAGE: ${{ needs.ci.outputs.docker_image }}
-        OCI_REPO: oci://ghcr.io/${{ github.repository_owner }}
+        OCI_REPO: oci://ghcr.io/${{ github.repository }}
       run: |
         OCI_REPO=$(echo $OCI_REPO | tr '[:upper:]' '[:lower:]')
-        PACKAGE_FILE=$(ls ./helm/.helm-charts/*.tgz | head -n 1)
+        PACKAGE_FILE=$(ls .helm-charts/*.tgz | head -n 1)
         echo "# Helm Chart" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo '```yaml' >> $GITHUB_STEP_SUMMARY
