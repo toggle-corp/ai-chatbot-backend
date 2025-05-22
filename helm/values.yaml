@@ -68,7 +68,6 @@ embeddingModel:
     EMBEDDING_MODEL_TYPE: 1
     EMBEDDING_MODEL_VECTOR_SIZE: 768
     OPENAI_API_KEY: test
-    EMBEDDING_MODEL_URL: "test"
     OLLAMA_EMBEDDING_MODEL_BASE_URL: "test"
     # LLM Type
     LLM_TYPE: "1"
@@ -223,6 +222,7 @@ app:
     # email
     EMAIL_USE_TLS: "false"
     DEFAULT_FROM_EMAIL: "{{ required \".app.env.DEFAULT_FROM_EMAIL\" nil }}"
+    EMBEDDING_MODEL_URL: "{{ template \"tc-chatbot-backend.fullname\" $ }}-embedding-model-svc"
   
   secrets:
     DJANGO_SECRET_KEY: "{{ required \".app.secrets.DJANGO_SECRET_KEY\" nil }}"
