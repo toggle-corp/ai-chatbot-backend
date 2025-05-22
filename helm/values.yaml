@@ -76,7 +76,8 @@ embeddingModel:
 
 app:
   environment: prod
- 
+  appTypeEnvName: "APP_TYPE"
+  
   image:
     name: SET-BY-CICD-IMAGE
     tag: SET-BY-CICD-TAG
@@ -201,7 +202,8 @@ app:
     DJANGO_TIME_ZONE: "UTC"
     DJANGO_ALLOWED_HOST: "*"
     APP_HTTP_PROTOCOL: "https"
-    APP_TYPE: "web"
+    APP_ENVIRONMENT: "{{ $.Values.environment }}"
+
     # App Domain
     APP_DOMAIN: "{{ required \".app.env.APP_DOMAIN\" nil }}"
     APP_FRONTEND_HOST:  "{{ required \".app.env.APP_FRONTEND_HOST\" nil }}"
