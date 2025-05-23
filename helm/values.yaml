@@ -154,18 +154,51 @@ app:
       limits:
         cpu: "2"
         memory: 2Gi
-    
+
   worker:
     enabled: true
-    replicaCount: 1
-    command: ["bash", "/code/scripts/run_worker.sh"]
-    resources:
+
+    beat:
+      command: ["celery", "-A", "main", "beat", "-l", "INFO"]
+      resources:
+        requests:
+          cpu: "1"
+          memory: 0.5Gi
+        limits:
+          cpu: "1"
+          memory: 1Gi
+    queueDefaultResources:
       requests:
-        cpu: "200m"
-        memory: 3Gi
+        cpu: "1"
+        memory: 1Gi
       limits:
-        cpu: "2"
-        memory: 4Gi
+        cpu: "1"
+        memory: 2Gi
+    queueCommandPrefix:
+      - "celery"
+      - "-A"
+      - "main"
+      - "worker"
+      - "-l"
+      - "INFO"
+    queues:
+      default:
+        enabled: true
+        replicaCount: 1
+        celeryArgs:
+          - "-Q"
+          - "celery"
+          - "--concurrency"
+          - "4"
+          - "--max-tasks-per-child"
+          - "10"
+        resources:
+          requests:
+            cpu: "200m"
+            memory: 3Gi
+          limits:
+            cpu: "2"
+            memory: 4Gi
 
   minio:
     enabled: false
