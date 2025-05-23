@@ -28,8 +28,7 @@ django-cors-headers = "^4.6.0"
 strawberry-graphql-django = {version = "0.47.1", extras = ["strawberry-graphql"]}
 pillow = "^11.0.0"
 sentry-sdk = "^2.22.0"
-django-storages = "^1.14.6"
-boto3 = "^1.38.21"
+django-storages = {extras = ["s3"], version = "^1.14.6"}
 
 [build-system]
 requires = ["poetry-core"]
