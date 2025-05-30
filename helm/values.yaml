@@ -12,20 +12,12 @@ qdrant:
     limits:
       cpu: "100m"
       memory: 200Mi
-  env:
-    - name: QDRANT_DB_HOST
-      value: "test"
-    - name: QDRANT_DB_PORT
-      value: "6333"
-    - name: QDRANT_DB_COLLECTION_NAME
-      value: "test"
-
 streamlit:
   enabled: true
   ingress:
     className: nginx
-    enabled: false
-    host: "test"
+    enabled: true
+    host: 
   image:
     name: ghcr.io/toggle-corp/expt-streamlit-chatapp
     tag: latest
@@ -39,14 +31,13 @@ streamlit:
     limits:
       cpu: "2"
       memory: 1Gi
-
 embeddingModel:
   enabled: true
   ingress:
      # NOTE: For production don't use this
     className: nginx
-    enabled: false
-    host: "test"
+    enabled: true
+    host: 
   image:
     name: ghcr.io/toggle-corp/embedding-models
     tag: latest
@@ -64,9 +55,9 @@ embeddingModel:
       cpu: "2"
       memory: 6Gi
   env:
-    EMBEDDING_MODEL_NAME: "sentence-transformers/gtr-t5-large"
-    EMBEDDING_MODEL_TYPE: 1
-    EMBEDDING_MODEL_VECTOR_SIZE: 768
+    EMBEDDING_MODEL_NAME: "text-embedding-3-small"
+    EMBEDDING_MODEL_TYPE: "3"
+    EMBEDDING_MODEL_VECTOR_SIZE: "1536"
     OPENAI_API_KEY: test
     OLLAMA_EMBEDDING_MODEL_BASE_URL: "test"
     # LLM Type
@@ -77,12 +68,16 @@ embeddingModel:
 app:
   environment: prod
   appTypeEnvName: "APP_TYPE"
-  
+  extraConfigMapName: "common-extra-config"
   image:
     name: SET-BY-CICD-IMAGE
     tag: SET-BY-CICD-TAG
     imagePullPolicy: IfNotPresent
-   
+  ingress:
+    enabled: true
+    className: nginx
+    host:
+
   postgresql:
     enabled: true
     architecture: standalone
@@ -99,7 +94,6 @@ app:
         enabled: true
         size: 1Gi
         storageClass: "longhorn"
-
   redis:
     enabled: true
     architecture: standalone
@@ -112,8 +106,7 @@ app:
         enabled: true
         size: .5Gi
         storageClass: "longhorn"
-
-  argoHooks:
+  argoHook:
     # NOTE: Make sure key are lowercase
     enabled: true
     resources:
@@ -137,13 +130,8 @@ app:
         command: ["/bin/bash", "-c"]
         args: 
           - "./manage.py wait_for_resources --minio && ./manage.py collectstatic --noinput"
-
   api:
     enabled: true
-    ingress:
-      className: nginx
-      enabled: false
-      host:
     replicaCount: 1
     containerPort: 80
     command: ["bash", "/code/scripts/run_prod.sh"]
@@ -154,10 +142,8 @@ app:
       limits:
         cpu: "2"
         memory: 2Gi
-
   worker:
     enabled: true
-
     beat:
       command: ["celery", "-A", "main", "beat", "-l", "INFO"]
       resources:
@@ -199,7 +185,6 @@ app:
           limits:
             cpu: "2"
             memory: 4Gi
-
   minio:
     enabled: false
     disableWebUI: true
@@ -216,7 +201,7 @@ app:
     auth:
       forceNewKeys: True
       rootUser: chatbot
-      rootPassword: test
+      rootPassword: 
     persistence:
       enabled: true
       size: 1Gi
@@ -228,7 +213,6 @@ app:
         enabled: true
       extraCommands:
         - "mc anonymous set download provisioning/chatbot-static"
-        
   env:
     # APP_ENVIRONMENT:
     DJANGO_DEBUG: "false"
@@ -236,7 +220,6 @@ app:
     DJANGO_ALLOWED_HOST: "*"
     APP_HTTP_PROTOCOL: "https"
     APP_ENVIRONMENT: "{{ $.Values.environment }}"
-
     # App Domain
     APP_DOMAIN: "{{ required \".app.env.APP_DOMAIN\" nil }}"
     APP_FRONTEND_HOST:  "{{ required \".app.env.APP_FRONTEND_HOST\" nil }}"
@@ -260,7 +243,6 @@ app:
     EMAIL_USE_TLS: "false"
     DEFAULT_FROM_EMAIL: "{{ required \".app.env.DEFAULT_FROM_EMAIL\" nil }}"
     EMBEDDING_MODEL_URL: "{{ template \"tc-chatbot-backend.fullname\" $ }}-embedding-model-svc"
-  
   secrets:
     DJANGO_SECRET_KEY: "{{ required \".app.secrets.DJANGO_SECRET_KEY\" nil }}"
     # Database (required if postgresql.enabled if false)

@@ -47,7 +47,7 @@ spec:
               memory: {{ .Values.streamlit.resources.limits.memory }}
           env:
             - name: SERVER_IP
-              value: {{ template "tc-chatbot-backend.fullname" . }}-api-svc
+              value: {{ include "django-app.fullname" .Subcharts.app }}-api
             - name: SERVER_PORT
               value: {{ .Values.app.api.containerPort | quote }}
 

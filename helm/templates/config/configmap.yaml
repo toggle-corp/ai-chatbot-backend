@@ -1,0 +1,14 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: "qdrant-hardcoded-config"
+  labels:
+    component: api-deployment
+    environment: {{ .Values.environment }}
+    release: {{ .Release.Name }}
+data:
+  QDRANT_DB_HOST: {{ include "qdrant.fullname" .Subcharts.qdrant | quote }}
+  QDRANT_DB_PORT: "6333"
+  QDRANT_DB_COLLECTION_NAME: 'tc-hr'
+  EMBEDDING_MODEL_URL: "http://{{ template \"tc-chatbot-backend.fullname\" . }}-embedding-model-svc"
+

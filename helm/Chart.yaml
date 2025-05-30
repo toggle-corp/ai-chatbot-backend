@@ -7,14 +7,15 @@ sources:
   - https://github.com/toggle-corp/ai-chatbot-backend
 
 dependencies:
-
   - name: qdrant
     alias: qdrant
     version: "1.12.2"
     repository: "https://qdrant.github.io/qdrant-helm"
     condition: qdrant.enabled
-
+    
   - name: django-app
     alias: app
     version: 0.1.1
-    repository: oci://ghcr.io/toggle-corp/charts
+    repository: oci://ghcr.io/toggle-corp/charts\
+    
+    
