@@ -7,7 +7,7 @@ metadata:
   name: {{ template "tc-chatbot-backend.fullname" . }}-embedding-model
   labels:
     component: embedding-model-deployment
-    environment: {{ .Values.environment }}
+    environment: {{ .Values.app.environment }}
     release: {{ .Release.Name }}
     # XXX: Add global lables?
 spec:
@@ -27,7 +27,7 @@ spec:
       containers:
         - name: {{ .Chart.Name }}-embedding-model
           image: "{{ .Values.embeddingModel.image.name }}:{{ .Values.embeddingModel.image.tag }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          imagePullPolicy: {{ .Values.embeddingModel.image.pullPolicy }}
           command: ["uvicorn", "app:app", "--host=0.0.0.0", "--port={{ .Values.embeddingModel.containerPort }}"]
           ports:
             - name: http

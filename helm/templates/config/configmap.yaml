@@ -1,73 +1,14 @@
 kind: ConfigMap
 apiVersion: v1
 metadata:
-  name: {{ template "tc-chatbot-backend.fullname" . }}-api-configmap
+  name: "qdrant-hardcoded-config"
   labels:
     component: api-deployment
     environment: {{ .Values.environment }}
     release: {{ .Release.Name }}
 data:
-  APP_ENVIRONMENT: {{ .Values.environment | upper | quote }} 
-  APP_DOMAIN: {{ required "env.APP_DOMAIN" .Values.environment | upper | quote }} 
-  APP_FRONTEND_HOST: {{ required "env.APP_FRONTEND_HOST" .Values.environment | quote }} 
-  DJANGO_TIME_ZONE: {{ .Values.env.DJANGO_TIME_ZONE }}
-  DJANGO_DEBUG: {{ .Values.env.DJANGO_DEBUG | quote }}
-  DJANGO_ALLOWED_HOST: {{ .Values.env.DJANGO_ALLOWED_HOST | quote }}
-  APP_HTTP_PROTOCOL: {{ .Values.env.APP_HTTP_PROTOCOL | quote }}
-
-  # Email
-  DEFAULT_FROM_EMAIL: {{ required "env.DEFAULT_FROM_EMAIL" .Values.env.DEFAULT_FROM_EMAIL | quote }}
-  EMAIL_USE_TLS: {{ required "env.EMAIL_USE_TLS" .Values.env.EMAIL_USE_TLS | quote }}
-
-  {{- if .Values.redis.enabled }}
-  # Celery
-  CELERY_REDIS_URL: "redis://{{ printf "%s-master" (include "common.names.fullname" .Subcharts.redis) }}:6379/0"
-  CELERY_BROKER_URL: "redis://{{ printf "%s-master" (include "common.names.fullname" .Subcharts.redis) }}:6379/0"
-  CELERY_RESULT_BACKEND: "redis://{{ printf "%s-master" (include "common.names.fullname" .Subcharts.redis) }}:6379/0"
-  # Cache
-  DJANGO_CACHE_REDIS_URL: "redis://{{ printf "%s-master" (include "common.names.fullname" .Subcharts.redis) }}:6379/1"
-  {{- else }}
-  # Celery
-  CELERY_BROKER_URL: {{ required "env.CELERY_BROKER_URL" .Values.env.CELERY_BROKER_URL | quote }}
-  CACHE_REDIS_URL: {{ required "env.CACHE_REDIS_URL" .Values.env.CACHE_REDIS_URL | quote }}
-  CELERY_RESULT_BACKEND: {{ required "env.CELERY_RESULT_BACKEND" .Values.env.CELERY_RESULT_BACKEND | quote }}
-  # Cache
-  DJANGO_CACHE_REDIS_URL: {{ required "env.DJANGO_CACHE_REDIS_URL" .Values.env.DJANGO_CACHE_REDIS_URL | quote }}
-  {{- end }}
-
-  # Sentry
-  SENTRY_TRACES_SAMPLE_RATE: {{ .Values.env.SENTRY_TRACES_SAMPLE_RATE | quote }}
-  SENTRY_PROFILE_SAMPLE_RATE: {{ .Values.env.SENTRY_PROFILE_SAMPLE_RATE | quote }}
-  
-  # Vector Database
-  {{- if .Values.redis.enabled }}
   QDRANT_DB_HOST: {{ include "qdrant.fullname" .Subcharts.qdrant | quote }}
-  {{- else }}
-  QDRANT_DB_HOST: {{ required "env.QDRANT_DB_HOST" .Values.env.QDRANT_DB_HOST | quote }}
-  {{- end }}
-  QDRANT_DB_PORT: {{ required "env.QDRANT_DB_PORT" .Values.env.QDRANT_DB_PORT | quote }}
-  QDRANT_DB_COLLECTION_NAME: {{ required "env.QDRANT_DB_COLLECTION_NAME" .Values.env.QDRANT_DB_COLLECTION_NAME | quote }}
+  QDRANT_DB_PORT: "6333"
+  QDRANT_DB_COLLECTION_NAME: 'tc-hr'
+  EMBEDDING_MODEL_URL: "http://{{ template \"tc-chatbot-backend.fullname\" . }}-embedding-model-svc"
 
-  # Embedding Model
-  {{- if .Values.embeddingModel.enabled }}
-  EMBEDDING_MODEL_URL: http://{{ template "tc-chatbot-backend.fullname" . }}-embedding-model-svc
-  {{- else }}
-  EMBEDDING_MODEL_URL: {{ required ".Values.env.EMBEDDING_MODEL_URL" .Values.env.EMBEDDING_MODEL_URL | quote }}
-  {{- end }}
-  EMBEDDING_MODEL_NAME: {{ .Values.env.EMBEDDING_MODEL_NAME | quote }}
-  EMBEDDING_MODEL_VECTOR_SIZE: {{ .Values.env.EMBEDDING_MODEL_VECTOR_SIZE | quote }}
-  EMBEDDING_MODEL_TYPE: {{ .Values.env.EMBEDDING_MODEL_TYPE | quote }}
-  OLLAMA_EMBEDDING_MODEL_BASE_URL: {{ .Values.env.OLLAMA_EMBEDDING_MODEL_BASE_URL | quote }}
-  # LLM Type
-  LLM_TYPE: {{ .Values.env.LLM_TYPE | quote }}
-  LLM_MODEL_NAME: {{ .Values.env.LLM_MODEL_NAME | quote }}
-  LLM_OLLAMA_BASE_URL: {{ .Values.env.LLM_OLLAMA_BASE_URL | quote }}
-
-  # S3
-  {{- if .Values.env.USE_S3_BUCKET }}
-  USE_S3_BUCKET: {{ .Values.env.USE_S3_BUCKET | quote }}
-  AWS_S3_AWS_ENDPOINT_URL: {{ .Values.env.AWS_S3_AWS_ENDPOINT_URL | quote }}
-  AWS_S3_REGION: {{ required "env.AWS_S3_REGION" .Values.env.AWS_S3_REGION | quote }}
-  S3_STATIC_BUCKET_NAME: {{ required "env.S3_STATIC_BUCKET_NAME" .Values.env.S3_STATIC_BUCKET_NAME | quote }}
-  S3_MEDIA_BUCKET_NAME: {{ required "env.S3_MEDIA_BUCKET_NAME" .Values.env.S3_MEDIA_BUCKET_NAME | quote }}
-  {{- end }}

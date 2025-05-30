@@ -6,7 +6,7 @@ metadata:
   name: {{ template "tc-chatbot-backend.fullname" . }}-streamlit
   labels:
     component: streamlit-deployment
-    environment: {{ .Values.environment }}
+    environment: {{ .Values.app.environment }}
     release: {{ .Release.Name }}
     # XXX: Add global lables?
 spec:
@@ -18,9 +18,6 @@ spec:
       run: {{ .Release.Name }}-streamlit
   template:
     metadata:
-      annotations:
-        checksum/secret: {{ include (print .Template.BasePath "/config/secret.yaml") . | sha256sum }}
-        checksum/configmap: {{ include (print .Template.BasePath "/config/configmap.yaml") . | sha256sum }}
       labels:
         app: {{ template "tc-chatbot-backend.name" . }}
         release: {{ .Release.Name }}
@@ -29,7 +26,7 @@ spec:
       containers:
         - name: {{ .Chart.Name }}-streamlit
           image: "{{ .Values.streamlit.image.name }}:{{ .Values.streamlit.image.tag }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          imagePullPolicy: {{ .Values.streamlit.image.pullPolicy }}
           command: ["streamlit", "run", "app.py", "--server.address", "0.0.0.0"]
           ports:
             - name: http
@@ -50,8 +47,8 @@ spec:
               memory: {{ .Values.streamlit.resources.limits.memory }}
           env:
             - name: SERVER_IP
-              value: {{ template "tc-chatbot-backend.fullname" . }}-api-svc
+              value: {{ include "django-app.fullname" .Subcharts.app }}-api
             - name: SERVER_PORT
-              value: {{ .Values.api.containerPort | quote }}
+              value: {{ .Values.app.api.containerPort | quote }}
 
 {{- end }}

@@ -1,12 +1,9 @@
 dependencies:
-- name: redis
-  repository: https://charts.bitnami.com/bitnami
-  version: 20.2.1
-- name: postgresql
-  repository: https://charts.bitnami.com/bitnami
-  version: 16.1.2
 - name: qdrant
   repository: https://qdrant.github.io/qdrant-helm
   version: 1.12.2
-digest: sha256:3b94766cdd43351699a96ec2bebc27656e34de13c49c7be279db63f750cde6ae
-generated: "2024-11-10T23:44:51.273569466+05:45"
+- name: django-app
+  repository: oci://ghcr.io/toggle-corp/charts
+  version: 0.1.1
+digest: sha256:dced24a0e6978f629a33eaf57fbcba99d1b902160b6bb3f626bb8da2c272b5ca
+generated: "2025-05-06T15:56:53.669786475+05:45"
