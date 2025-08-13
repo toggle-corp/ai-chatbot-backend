@@ -5,6 +5,10 @@ image:
   tag: SET-BY-CICD-TAG
   imagePullPolicy: IfNotPresent
 
+global:
+  security:
+    allowInsecureImages: true
+
 ingress:
   className: nginx
   api:
@@ -20,6 +24,8 @@ ingress:
 
 postgresql:
   enabled: true
+  image:
+    repository: bitnamilegacy/postgresql
   architecture: standalone
   auth:
     database: chatbot
@@ -36,6 +42,8 @@ postgresql:
 
 redis:
   enabled: true
+  image:
+    repository: bitnamilegacy/redis
   architecture: standalone
   auth:
     enabled: false
